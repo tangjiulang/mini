@@ -6,7 +6,9 @@
 #ifndef VERTEX_COMMON_H_
 #define VERTEX_COMMON_H_
 
-#include <math/vector2d.h>
+#include <qopengl.h>
+
+#include "vector2d.hxx"
 
 #include <cstddef>
 

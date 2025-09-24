@@ -34,8 +34,8 @@
 #define GLM_FORCE_RADIANS
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/glm.hpp>
-#include <gal/opengl/vertex_common.h>
-#include <gal/color4d.h>
+#include "vertex_common.hxx"
+#include "color4d.hxx"
 #include <stack>
 #include <memory>
 
@@ -251,7 +251,7 @@ public:
      */
     void PopMatrix()
     {
-        wxASSERT( !m_transformStack.empty() );
+        Q_ASSERT( !m_transformStack.empty() );
 
         m_transform = m_transformStack.top();
         m_transformStack.pop();

@@ -43,7 +43,7 @@
  *
  * @ingroup trace_env_vars
  */
-static const wxChar traceVertexManager[] = wxT( "KICAD_VERTEX_MANAGER" );
+static const std::string traceVertexManager = "KICAD_VERTEX_MANAGER";
 
 
 using namespace KIGFX;

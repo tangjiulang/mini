@@ -9,8 +9,11 @@ target_link_libraries(gal PUBLIC
                         Qt6::Widgets
                         Qt6::OpenGL
                         Qt6::OpenGLWidgets
+                        glm::glm
 						spdlog::spdlog 
+                        core
 						math
+                        base
 )
 
 target_include_directories(gal PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

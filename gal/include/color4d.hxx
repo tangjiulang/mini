@@ -4,7 +4,7 @@
 #include <string>
 #include <qassert.h>
 #include <QColor>
-#include <nlohmann/json_fwd.hpp>
+//#include <nlohmann/json_fwd.hpp>
 #include "hash.hxx"
 
 /**
@@ -141,7 +141,7 @@ public:
     bool SetFromHexString( const std::string& aColorString );
     std::string ToHexString() const;
 
-    std::string ToColour() const;
+    QColor ToColour() const;
 
     /**
      * Mix this COLOR4D with an input COLOR4D using the OR-mixing of legacy canvas.
@@ -387,10 +387,10 @@ bool operator<( const COLOR4D& lhs, const COLOR4D& rhs );
 std::ostream& operator<<( std::ostream& aStream, COLOR4D const& aColor );
 
 // to allow json( COLOR4D )
-void to_json( nlohmann::json& aJson, const COLOR4D& aColor );
+//void to_json( nlohmann::json& aJson, const COLOR4D& aColor );
 
 // To allow json::get<COLOR4D>()
-void from_json( const nlohmann::json& aJson, COLOR4D& aColor );
+//void from_json( const nlohmann::json& aJson, COLOR4D& aColor );
 
 } // namespace KIGFX
 

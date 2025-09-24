@@ -17,6 +17,7 @@ endif()
 find_package(Boost REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui OpenGL Widgets OpenGLWidgets)
 find_package(spdlog CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 
 message(STATUS "Qt6 Core include dirs: ${Qt6Core_INCLUDE_DIRS}")
 message(STATUS "Qt6 Widgets include dirs: ${Qt6Widgets_INCLUDE_DIRS}")
@@ -27,10 +28,12 @@ message(STATUS "Qt6 OpenGLWidgets include dirs: ${Qt6OpenGLWidgets_INCLUDE_DIRS}
 
 message(${CMAKE_TOOLCHAIN_FILE})
 
+add_subdirectory(base)
+add_subdirectory(core)
 add_subdirectory(math)
 add_subdirectory(gal)
 
-add_executable (mini "mini.cpp" "mini.h" "gal/include/shader.hxx")
+add_executable (mini "mini.cpp" "mini.h")
 
 target_link_libraries(mini PUBLIC 
                         Qt6::Core
