@@ -31,10 +31,10 @@
  * GPU memory and a fast reuse of that data.
  */
 
-#include "cached_container.hxx"
-#include "vertex_manager.hxx"
-#include "vertex_item.hxx"
-#include "utils.hxx"
+#include "gal/include/cached_container.hxx"
+#include "gal/include/vertex_manager.hxx"
+#include "gal/include/vertex_item.hxx"
+#include "gal/include/utils.hxx"
 
 #include <list>
 #include <algorithm>

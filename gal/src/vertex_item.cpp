@@ -29,8 +29,8 @@
  * @brief Class to handle an item held in a container.
  */
 
-#include "vertex_item.hxx"
-#include "vertex_manager.hxx"
+#include "gal/include/vertex_item.hxx"
+#include "gal/include/vertex_manager.hxx"
 #include <cstring>
 
 using namespace KIGFX;

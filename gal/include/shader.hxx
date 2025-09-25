@@ -167,6 +167,8 @@ public:
      */
     static std::string ReadSource( const std::string& aShaderSourceName );
 
+    QOpenGLShaderProgram program;
+
 private:
     /**
      * Compile vertex of fragment shader source code into the program.
@@ -200,7 +202,6 @@ private:
     GLuint              geomOutputType;
     std::deque<GLint>   parameterLocation;  ///< Location of the parameter
 
-    QOpenGLShaderProgram program;
 };
 } // namespace KIGFX
 

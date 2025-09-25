@@ -3,6 +3,7 @@
 
 #include <map>
 #include <set>
+#include <QOpenGLBuffer>
 
 #include "vertex_container.hxx"
 
@@ -57,6 +58,7 @@ public:
      * Return handle to the vertex buffer. It might be negative if the buffer is not initialized.
      */
     virtual unsigned int GetBufferHandle() const = 0;
+    virtual QOpenGLBuffer* GetBuffer() = 0;
 
     /**
      * Return true if vertex buffer is currently mapped.

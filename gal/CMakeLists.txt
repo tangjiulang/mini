@@ -16,4 +16,5 @@ target_link_libraries(gal PUBLIC
                         base
 )
 
-target_include_directories(gal PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${Boost_INCLUDE_DIRS})
+target_include_directories(gal PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../)

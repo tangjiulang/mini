@@ -24,11 +24,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-#include "cached_container_ram.hxx"
-#include "vertex_manager.hxx"
-#include "vertex_item.hxx"
-#include "shader.hxx"
-#include "utils.hxx"
+#include "gal/include/cached_container_ram.hxx"
+#include "gal/include/vertex_manager.hxx"
+#include "gal/include/vertex_item.hxx"
+#include "gal/include/shader.hxx"
+#include "gal/include/utils.hxx"
 
 #include <confirm.hxx>
 #include <list>
@@ -56,7 +56,7 @@ CACHED_CONTAINER_RAM::CACHED_CONTAINER_RAM( unsigned int aSize ) :
         CACHED_CONTAINER( aSize ),
         m_verticesBuffer( 0 )
 {
-    glGenBuffers( 1, &m_verticesBuffer );
+    m_buffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
     checkGlError( "generating vertices buffer", __FILE__, __LINE__ );
 
     m_vertices = static_cast<VERTEX*>( malloc( aSize * VERTEX_SIZE ) );
@@ -68,8 +68,7 @@ CACHED_CONTAINER_RAM::CACHED_CONTAINER_RAM( unsigned int aSize ) :
 
 CACHED_CONTAINER_RAM::~CACHED_CONTAINER_RAM()
 {
-    if( glDeleteBuffers )
-        glDeleteBuffers( 1, &m_verticesBuffer );
+
 
     free( m_vertices );
 }
@@ -81,20 +80,21 @@ void CACHED_CONTAINER_RAM::Unmap()
         return;
 
     // Upload vertices coordinates and shader types to GPU memory
-    glBindBuffer( GL_ARRAY_BUFFER, m_verticesBuffer );
+    m_buffer.bind();
     checkGlError( "binding vertices buffer", __FILE__, __LINE__ );
-    glBufferData( GL_ARRAY_BUFFER, m_maxIndex * VERTEX_SIZE, m_vertices, GL_STREAM_DRAW );
+    m_buffer.setUsagePattern(QOpenGLBuffer::StreamDraw);
+    m_buffer.allocate(m_vertices, m_maxIndex * VERTEX_SIZE);
+    //glBufferData( GL_ARRAY_BUFFER, m_maxIndex * VERTEX_SIZE, m_vertices, GL_STREAM_DRAW );
     checkGlError( "transferring vertices", __FILE__, __LINE__ );
-    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+    m_buffer.release();
+    //glBindBuffer( GL_ARRAY_BUFFER, 0 );
     checkGlError( "unbinding vertices buffer", __FILE__, __LINE__ );
 }
 
 
 bool CACHED_CONTAINER_RAM::defragmentResize( unsigned int aNewSize )
 {
-    wxLogTrace( traceGalCachedContainer,
-                wxT( "Resizing & defragmenting container (memcpy) from %d to %d" ), m_currentSize,
-                aNewSize );
+    spdlog::trace("{} Resizing & defragmenting container (memcpy) from {} to {}", traceGalCachedContainer, m_currentSize, aNewSize );
 
     // No shrinking if we cannot fit all the data
     if( usedSpace() > aNewSize )

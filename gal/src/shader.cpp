@@ -5,7 +5,7 @@
 #include <cstring>
 #include <cassert>
 
-#include "shader.hxx"
+#include "gal/include/shader.hxx"
 #include <vector>
 
 using namespace KIGFX;

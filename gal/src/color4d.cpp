@@ -29,7 +29,7 @@
 //#include <i18n_utility.h>
 
 //#include <core/kicad_al go.h>
-#include "color4d.hxx"
+#include "gal/include/color4d.hxx"
 #include "util.hxx"
 
 using namespace KIGFX;
@@ -266,10 +266,10 @@ bool operator<( const COLOR4D& lhs, const COLOR4D& rhs )
 }
 
 
-std::ostream &operator<<( std::ostream &aStream, COLOR4D const &aColor )
-{
-    return aStream << aColor.ToCSSString();
-}
+//std::ostream &operator<<( std::ostream &aStream, COLOR4D const &aColor )
+//{
+//    return aStream << aColor.ToCSSString();
+//}
 
 
 //void to_json( nlohmann::json& aJson, const COLOR4D& aColor )

@@ -1,10 +1,11 @@
 #include <list>
 #include <spdlog/spdlog.h>
-#include "cached_container_gpu.hxx"
-#include "vertex_manager.hxx"
-#include "vertex_item.hxx"
-#include "shader.hxx"
-#include "utils.hxx"
+#include <trace_helpers.hxx>
+#include "gal/include/cached_container_gpu.hxx"
+#include "gal/include/vertex_manager.hxx"
+#include "gal/include/vertex_item.hxx"
+#include "gal/include/shader.hxx"
+#include "gal/include/utils.hxx"
 #include "profile.hxx"
 //#include "trace_helpers.hxx"
 
@@ -25,9 +26,11 @@ CACHED_CONTAINER_GPU::CACHED_CONTAINER_GPU( unsigned int aSize ) :
         m_isMapped( false ),
         m_glBufferHandle( -1 )
 {
-    m_useCopyBuffer = GLEW_ARB_copy_buffer;
-
-    QString vendor( glGetString( GL_VENDOR ) );
+    m_useCopyBuffer = 0;
+    QOpenGLFunctions* f = QOpenGLContext::currentContext()->functions();
+    QString vendor = QString::fromUtf8((const char*)f->glGetString(GL_VENDOR));
+    m_buffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+    m_buffer.create();
 
     // workaround for intel GPU drivers:
     // disable glCopyBuffer, causes crashes/freezes on certain driver versions
@@ -38,12 +41,11 @@ CACHED_CONTAINER_GPU::CACHED_CONTAINER_GPU( unsigned int aSize ) :
         m_useCopyBuffer = false;
     }
 
-    spdlog::trace( traceGalProfile, "VBO initial size: %d\n", m_currentSize );
+    spdlog::trace("{} VBO initial size: %d\n", traceGalProfile.data(), m_currentSize);
 
-    glGenBuffers( 1, &m_glBufferHandle );
-    glBindBuffer( GL_ARRAY_BUFFER, m_glBufferHandle );
-    glBufferData( GL_ARRAY_BUFFER, m_currentSize * VERTEX_SIZE, nullptr, GL_DYNAMIC_DRAW );
-    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+    m_buffer.bind();
+    m_buffer.allocate(m_currentSize * VERTEX_SIZE);
+    m_buffer.release();
     checkGlError( "allocating video memory for cached container", __FILE__, __LINE__ );
 }
 
@@ -53,21 +55,19 @@ CACHED_CONTAINER_GPU::~CACHED_CONTAINER_GPU()
     if( m_isMapped )
         Unmap();
 
-    if( glDeleteBuffers )
-        glDeleteBuffers( 1, &m_glBufferHandle );
 }
 
 
 void CACHED_CONTAINER_GPU::Map()
 {
-    wxCHECK( !IsMapped(), /*void*/ );
+    Q_ASSERT(!IsMapped());
 
     // OpenGL version might suddenly stop being available in Windows when an RDP session is started
-    if( !glBindBuffer )
+    if(!m_buffer.isCreated())
         throw std::runtime_error( "OpenGL no longer available!" );
 
-    glBindBuffer( GL_ARRAY_BUFFER, m_glBufferHandle );
-    m_vertices = static_cast<VERTEX*>( glMapBuffer( GL_ARRAY_BUFFER, GL_READ_WRITE ) );
+    m_buffer.bind();
+    m_vertices = static_cast<VERTEX*>( m_buffer.map(QOpenGLBuffer::ReadWrite) );
 
     if( checkGlError( "mapping vertices buffer", __FILE__, __LINE__ ) == GL_NO_ERROR )
         m_isMapped = true;
@@ -76,21 +76,21 @@ void CACHED_CONTAINER_GPU::Map()
 
 void CACHED_CONTAINER_GPU::Unmap()
 {
-    wxCHECK( IsMapped(), /*void*/ );
+    Q_ASSERT(IsMapped());
 
     // This gets called from ~CACHED_CONTAINER_GPU.  To avoid throwing an exception from
     // the dtor, catch it here instead.
     try
     {
-        glUnmapBuffer( GL_ARRAY_BUFFER );
+        m_buffer.unmap();
         checkGlError( "unmapping vertices buffer", __FILE__, __LINE__ );
-        glBindBuffer( GL_ARRAY_BUFFER, 0 );
+        m_buffer.release();
         m_vertices = nullptr;
         checkGlError( "unbinding vertices buffer", __FILE__, __LINE__ );
     }
     catch( const std::runtime_error& err )
     {
-        wxLogError( wxT( "OpenGL did not shut down properly.\n\n%s" ), err.what() );
+        spdlog::trace( "OpenGL did not shut down properly.\n\n{}", err.what() );
     }
 
     m_isMapped = false;
@@ -102,11 +102,10 @@ bool CACHED_CONTAINER_GPU::defragmentResize( unsigned int aNewSize )
     if( !m_useCopyBuffer )
         return defragmentResizeMemcpy( aNewSize );
 
-    wxCHECK( IsMapped(), false );
+    Q_ASSERT(IsMapped());
 
-    wxLogTrace( traceGalCachedContainerGpu,
-                wxT( "Resizing & defragmenting container from %d to %d" ), m_currentSize,
-                aNewSize );
+    spdlog::trace("{} Resizing & defragmenting container from {} to {}", traceGalCachedContainerGpu, m_currentSize,
+                aNewSize);
 
     // No shrinking if we cannot fit all the data
     if( usedSpace() > aNewSize )
@@ -116,13 +115,14 @@ bool CACHED_CONTAINER_GPU::defragmentResize( unsigned int aNewSize )
     PROF_TIMER totalTime;
 #endif /* KICAD_GAL_PROFILE */
 
-    GLuint newBuffer;
 
     // glCopyBufferSubData requires a buffer to be unmapped
-    glUnmapBuffer( GL_ARRAY_BUFFER );
+    m_buffer.unmap();
 
     // Create a new destination buffer
-    glGenBuffers( 1, &newBuffer );
+    QOpenGLBuffer newBuffer(QOpenGLBuffer::VertexBuffer);
+    newBuffer.create();
+    newBuffer.bind();
 
     // It would be best to use GL_COPY_WRITE_BUFFER here,
     // but it is not available everywhere
@@ -131,9 +131,9 @@ bool CACHED_CONTAINER_GPU::defragmentResize( unsigned int aNewSize )
     glGetIntegerv( GL_ELEMENT_ARRAY_BUFFER_BINDING, &eaBuffer );
     wxASSERT( eaBuffer == 0 );
 #endif /* KICAD_GAL_PROFILE */
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, newBuffer );
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, aNewSize * VERTEX_SIZE, nullptr, GL_DYNAMIC_DRAW );
+    newBuffer.allocate(aNewSize * VERTEX_SIZE);
     checkGlError( "creating buffer during defragmentation", __FILE__, __LINE__ );
+    newBuffer.release();
 
     ITEMS::iterator it, it_end;
     int             newOffset = 0;
@@ -146,8 +146,12 @@ bool CACHED_CONTAINER_GPU::defragmentResize( unsigned int aNewSize )
         int          itemSize = item->GetSize();
 
         // Move an item to the new container
-        glCopyBufferSubData( GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER, itemOffset * VERTEX_SIZE,
-                             newOffset * VERTEX_SIZE, itemSize * VERTEX_SIZE );
+        VERTEX* src = m_vertices + m_item->GetOffset();
+        newBuffer.bind();
+        VERTEX* dst = static_cast<VERTEX*>(newBuffer.map(QOpenGLBuffer::WriteOnly));
+        std::memcpy(dst + newOffset, src, itemSize * VERTEX_SIZE);
+        newBuffer.unmap();
+        newBuffer.release();
 
         // Update new offset
         item->setOffset( newOffset );
@@ -159,25 +163,29 @@ bool CACHED_CONTAINER_GPU::defragmentResize( unsigned int aNewSize )
     // Move the current item and place it at the end
     if( m_item->GetSize() > 0 )
     {
-        glCopyBufferSubData( GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER,
-                             m_item->GetOffset() * VERTEX_SIZE, newOffset * VERTEX_SIZE,
-                             m_item->GetSize() * VERTEX_SIZE );
+        VERTEX* src = m_vertices + m_item->GetOffset();
+        newBuffer.bind();
+        VERTEX* dst = static_cast<VERTEX*>(newBuffer.map(QOpenGLBuffer::WriteOnly));
+        std::memcpy(dst + newOffset, src, m_item->GetSize() * VERTEX_SIZE);
+        newBuffer.unmap();
+        newBuffer.release();
+
 
         m_item->setOffset( newOffset );
         m_chunkOffset = newOffset;
     }
 
     // Cleanup
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
-    glBindBuffer( GL_ARRAY_BUFFER, 0 );
+    //glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
+    //glBindBuffer( GL_ARRAY_BUFFER, 0 );
 
     // Previously we have unmapped the array buffer, now when it is also
     // unbound, it may be officially marked as unmapped
     m_isMapped = false;
-    glDeleteBuffers( 1, &m_glBufferHandle );
-
+    m_buffer.destroy();
+    
     // Switch to the new vertex buffer
-    m_glBufferHandle = newBuffer;
+    m_buffer = newBuffer;
     Map();
     checkGlError( "switching buffers during defragmentation", __FILE__, __LINE__ );
 
@@ -191,7 +199,7 @@ bool CACHED_CONTAINER_GPU::defragmentResize( unsigned int aNewSize )
     m_freeSpace += ( aNewSize - m_currentSize );
     m_currentSize = aNewSize;
 
-    KI_TRACE( traceGalProfile, "VBO size %d used %d\n", m_currentSize, AllItemsSize() );
+    spdlog::trace("[{}] VBO size {} used {}\n", traceGalProfile.data(), m_currentSize, AllItemsSize());
 
     // Now there is only one big chunk of free memory
     m_freeChunks.clear();
@@ -203,10 +211,9 @@ bool CACHED_CONTAINER_GPU::defragmentResize( unsigned int aNewSize )
 
 bool CACHED_CONTAINER_GPU::defragmentResizeMemcpy( unsigned int aNewSize )
 {
-    wxCHECK( IsMapped(), false );
+    Q_ASSERT( IsMapped());
 
-    wxLogTrace( traceGalCachedContainerGpu,
-                wxT( "Resizing & defragmenting container (memcpy) from %d to %d" ), m_currentSize,
+    spdlog::trace("{} Resizing & defragmenting container (memcpy) from {} to {}", traceGalCachedContainerGpu, m_currentSize,
                 aNewSize );
 
     // No shrinking if we cannot fit all the data
@@ -217,11 +224,10 @@ bool CACHED_CONTAINER_GPU::defragmentResizeMemcpy( unsigned int aNewSize )
     PROF_TIMER totalTime;
 #endif /* KICAD_GAL_PROFILE */
 
-    GLuint  newBuffer;
     VERTEX* newBufferMem;
 
     // Create the destination buffer
-    glGenBuffers( 1, &newBuffer );
+    QOpenGLBuffer newBuffer(QOpenGLBuffer::VertexBuffer);
 
     // It would be best to use GL_COPY_WRITE_BUFFER here,
     // but it is not available everywhere
@@ -231,21 +237,21 @@ bool CACHED_CONTAINER_GPU::defragmentResizeMemcpy( unsigned int aNewSize )
     wxASSERT( eaBuffer == 0 );
 #endif /* KICAD_GAL_PROFILE */
 
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, newBuffer );
-    glBufferData( GL_ELEMENT_ARRAY_BUFFER, aNewSize * VERTEX_SIZE, nullptr, GL_DYNAMIC_DRAW );
-    newBufferMem = static_cast<VERTEX*>( glMapBuffer( GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY ) );
+    newBuffer.create();
+    newBuffer.bind();
+    newBuffer.allocate(aNewSize * VERTEX_SIZE);
+    newBufferMem = static_cast<VERTEX*>(newBuffer.map(QOpenGLBuffer::WriteOnly));
+    newBuffer.release();
     checkGlError( "creating buffer during defragmentation", __FILE__, __LINE__ );
 
     defragment( newBufferMem );
 
     // Cleanup
-    glUnmapBuffer( GL_ELEMENT_ARRAY_BUFFER );
-    glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, 0 );
     Unmap();
-    glDeleteBuffers( 1, &m_glBufferHandle );
-
+    m_buffer.destroy();
+    
     // Switch to the new vertex buffer
-    m_glBufferHandle = newBuffer;
+    m_buffer = newBuffer;
     Map();
     checkGlError( "switching buffers during defragmentation", __FILE__, __LINE__ );
 
@@ -259,7 +265,7 @@ bool CACHED_CONTAINER_GPU::defragmentResizeMemcpy( unsigned int aNewSize )
     m_freeSpace += ( aNewSize - m_currentSize );
     m_currentSize = aNewSize;
 
-    KI_TRACE( traceGalProfile, "VBO size %d used: %d \n", m_currentSize, AllItemsSize() );
+    spdlog::trace("[{}] VBO size {} used: {} \n", traceGalProfile.data(), m_currentSize, AllItemsSize());
 
     // Now there is only one big chunk of free memory
     m_freeChunks.clear();

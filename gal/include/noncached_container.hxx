@@ -32,7 +32,7 @@
 #ifndef NONCACHED_CONTAINER_H_
 #define NONCACHED_CONTAINER_H_
 
-#include "vertex_container.hxx"
+#include "gal/include/vertex_container.hxx"
 
 namespace KIGFX
 {

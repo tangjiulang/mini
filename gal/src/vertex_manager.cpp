@@ -30,12 +30,13 @@
  * 1.0 state machine using modern OpenGL methods.
  */
 
-#include "vertex_manager.hxx"
-#include "vertex_item.hxx"
-#include <gal/opengl/cached_container.h>
-#include <gal/opengl/noncached_container.h>
-#include <gal/opengl/gpu_manager.h>
-#include <confirm.h>
+#include <spdlog/spdlog.h>
+#include "gal/include/vertex_manager.hxx"
+#include "gal/include/vertex_item.hxx"
+#include "gal/include/cached_container.hxx"
+#include "gal/include/noncached_container.hxx"
+#include "gal/include/gpu_manager.hxx"
+#include "confirm.hxx"
 
 
 /**
@@ -88,7 +89,7 @@ bool VERTEX_MANAGER::Reserve( unsigned int aSize )
     {
         if( show_err_reserve )
         {
-            DisplayError( nullptr, wxT( "VERTEX_MANAGER::Reserve: Did not use all previous vertices allocated" ) );
+            DisplayError( nullptr, "VERTEX_MANAGER::Reserve: Did not use all previous vertices allocated" );
             show_err_reserve = false;
         }
     }
@@ -99,7 +100,7 @@ bool VERTEX_MANAGER::Reserve( unsigned int aSize )
     {
         if( show_err_alloc )
         {
-            DisplayError( nullptr, wxT( "VERTEX_MANAGER::Reserve: Vertex allocation error" ) );
+            DisplayError( nullptr, "VERTEX_MANAGER::Reserve: Vertex allocation error" );
             show_err_alloc = false;
         }
 
@@ -136,7 +137,7 @@ bool VERTEX_MANAGER::Vertex( GLfloat aX, GLfloat aY, GLfloat aZ )
         {
             if( show_err )
             {
-                DisplayError( nullptr, wxT( "VERTEX_MANAGER::Vertex: Vertex allocation error" ) );
+                DisplayError( nullptr, "VERTEX_MANAGER::Vertex: Vertex allocation error" );
                 show_err = false;
             }
 
@@ -162,7 +163,7 @@ bool VERTEX_MANAGER::Vertices( const VERTEX aVertices[], unsigned int aSize )
     {
         if( show_err )
         {
-            DisplayError( nullptr, wxT( "VERTEX_MANAGER::Vertices: Vertex allocation error" ) );
+            DisplayError( nullptr, "VERTEX_MANAGER::Vertices: Vertex allocation error" );
             show_err = false;
         }
 
@@ -188,7 +189,7 @@ void VERTEX_MANAGER::SetItem( VERTEX_ITEM& aItem ) const
 void VERTEX_MANAGER::FinishItem() const
 {
     if( m_reservedSpace != 0 || m_reserved )
-        wxLogTrace( traceVertexManager, wxS( "Did not use all previous vertices allocated" ) );
+        spdlog::trace( "{} Did not use all previous vertices allocated", traceVertexManager);
 
     m_container->FinishItem();
 }

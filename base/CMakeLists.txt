@@ -9,6 +9,7 @@ target_link_libraries(base PUBLIC
                         Qt6::Widgets
                         Qt6::OpenGL
                         Qt6::OpenGLWidgets
+                        spdlog::spdlog
 )
 
 target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

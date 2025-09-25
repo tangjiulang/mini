@@ -1,4 +1,4 @@
-#include <confirm.h> // DisplayError
+#include <confirm.hxx> // DisplayError
 
 #include <format>
 #include <stdexcept>
@@ -113,8 +113,9 @@ int checkGlError( const std::string& aInfo, const char* aFile, int aLine, bool a
     {
         if( aThrow )
         {
-            spdlog::trace( traceGalOpenGlError, "Throwing exception for glGetError() '{}' "
+            spdlog::trace("{} Throwing exception for glGetError() '{}' "
                                                   "in file '{}' on line {}.",
+                        traceGalOpenGlError,
                         errorMsg,
                         aFile,
                         aLine );
@@ -125,7 +126,7 @@ int checkGlError( const std::string& aInfo, const char* aFile, int aLine, bool a
         {
             std::string msg = std::format("glGetError() '{}' in file '{}' on line {}.", errorMsg, aFile, aLine);
 
-            DisplayErrorMessage( nullptr, "OpenGL Error", errorMsg );
+            DisplayErrorMessage( nullptr, "OpenGL Error", errorMsg.data() );
         }
     }
 
@@ -162,7 +163,7 @@ void enableGlDebug( bool aEnable )
     if( aEnable )
     {
         function->glEnable( GL_DEBUG_OUTPUT );
-        function->glDebugMessageCallback( (GLDEBUGPROC) debugMsgCallback, nullptr );
+        //function->glDebugMessageCallback( (GLDEBUGPROC) debugMsgCallback, nullptr );
     }
     else
     {

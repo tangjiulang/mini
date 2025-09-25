@@ -29,8 +29,7 @@
 
 #include <map>
 #include <set>
-#include <QOpenGLBuffer>
-#include "cached_container.hxx"
+#include "gal/include/cached_container.hxx"
 
 namespace KIGFX
 {
@@ -70,6 +69,10 @@ public:
         return m_verticesBuffer;    // make common with CACHED_CONTAINER_RAM
     }
 
+    QOpenGLBuffer* GetBuffer() {
+        return &m_buffer;
+    }
+
 protected:
     /**
      * Defragment the currently stored data and resizes the buffer.
@@ -81,7 +84,7 @@ protected:
 
     ///< Handle to vertices buffer
     GLuint  m_verticesBuffer;
-    QOpenGLBuffer m_vertexBuffer;
+    QOpenGLBuffer m_buffer;
 };
 } // namespace KIGFX
 

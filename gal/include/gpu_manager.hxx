@@ -28,7 +28,9 @@
 #define GPU_MANAGER_H_
 
 #include <vector>
-#include <gal/opengl/vertex_common.h>
+#include <QOpenGLBuffer>
+#include <QOpenGLVertexArrayObject>
+#include "gal/include/vertex_common.hxx"
 #include <boost/scoped_array.hpp>
 
 namespace KIGFX
@@ -165,6 +167,8 @@ protected:
 
     ///< Size of the current VRANGE
     unsigned int m_curVrangeSize;
+
+    QOpenGLVertexArrayObject m_vertexArrayObject;
 };
 
 

@@ -34,7 +34,9 @@
 #include <stdarg.h>
 #include <map>
 #include <string>
-
+#include <QString>
+#include <QKeyEvent>
+#include <spdlog/spdlog.h>
 /**
  * @defgroup trace_env_vars Trace Environment Variables
  *
@@ -53,126 +55,126 @@
  *
  * Use "KICAD_FIND_ITEM" to enable.
  */
-extern const wxChar* const traceFindItem;
+extern const std::string const traceFindItem;
 
 /**
  * Flag to enable find and replace debug tracing.
  *
  * Use "KICAD_FIND_REPLACE" to enable.
  */
-extern const wxChar* const traceFindReplace;
+extern const std::string const traceFindReplace;
 
 /**
  * Flag to enable draw panel coordinate debug tracing.
  *
  * Use "KICAD_COORDS" to enable.
  */
-extern const wxChar* const kicadTraceCoords;
+extern const std::string const kicadTraceCoords;
 
 /**
  * Flag to enable wxKeyEvent debug tracing.
  *
  * Use "KICAD_KEY_EVENTS" to enable.
  */
-extern const wxChar* const kicadTraceKeyEvent;
+extern const std::string const kicadTraceKeyEvent;
 
 /**
  * Flag to enable tracing of the tool handling stack.
  *
  * Use "KICAD_TOOL_STACK" to enable.
  */
-extern const wxChar* const kicadTraceToolStack;
+extern const std::string const kicadTraceToolStack;
 
 /**
  * Flag to enable tracing of the coroutine call stack.
  *
  * Use "KICAD_COROUTINE_STACK" to enable.
  */
-extern const wxChar* const kicadTraceCoroutineStack;
+extern const std::string const kicadTraceCoroutineStack;
 
 /**
  * Flag to enable auto save feature debug tracing.
  *
  * Use "KICAD_AUTOSAVE" to enable.
  */
-extern const wxChar* const traceAutoSave;
+extern const std::string const traceAutoSave;
 
 /**
  * Flag to enable schematic library memory deletion debug output.
  *
  * Use "KICAD_SCH_LIB_MEM" to enable.
  */
-extern const wxChar* const traceSchLibMem;
+extern const std::string const traceSchLibMem;
 
 /**
  * Flag to enable legacy schematic plugin debug output.
  *
  * Use "KICAD_SCH_PLUGIN" to enable.
  */
-extern const wxChar* const traceSchPlugin;
+extern const std::string const traceSchPlugin;
 
 /**
  * Flag to enable legacy schematic plugin debug output.
  *
  * Use "KICAD_SCH_LEGACY_PLUGIN" to enable.
  */
-extern const wxChar* const traceSchLegacyPlugin;
+extern const std::string const traceSchLegacyPlugin;
 
 /**
  * Flag to enable GEDA PCB plugin debug output.
  *
  * Use "KICAD_PCB_PLUGIN" to enable.
  */
-extern const wxChar* const traceKicadPcbPlugin;
+extern const std::string const traceKicadPcbPlugin;
 
 /**
  * Flag to enable GEDA PCB plugin debug output.
  *
  * Use "KICAD_GEDA_PLUGIN" to enable.
  */
-extern const wxChar* const traceGedaPcbPlugin;
+extern const std::string const traceGedaPcbPlugin;
 
 /**
  * Flag to enable print controller debug output.
  *
  * Use "KICAD_PRINT" to enable.
  */
-extern const wxChar* const tracePrinting;
+extern const std::string const tracePrinting;
 
 /**
  * Flag to enable path and file name debug output.
  *
  * Use "KICAD_PATHS_AND_FILES" to enable.
  */
-extern const wxChar* const tracePathsAndFiles;
+extern const std::string const tracePathsAndFiles;
 
 /**
  * Flag to enable locale debug output.
  *
  * Use "KICAD_LOCALE" to enable.
  */
-extern const wxChar* const traceLocale;
+extern const std::string const traceLocale;
 
 /**
  * Flag to enable locale debug output.
  *
  * Use "KICAD_FONTS" to enable.
  */
-extern const wxChar* const traceFonts;
+extern const std::string const traceFonts;
 
 /**
  * Flag to enable debug output of #BASE_SCREEN and it's derivatives.
  *
  * Use "KICAD_SCREEN" to enable.
  */
-extern const wxChar* const traceScreen;
+extern const std::string const traceScreen;
 
 /**
  * Flag to enable debug output of display positioning logic.
  *
  * Use "KICAD_DISPLAY_LOCATION" to enable.
  */
-extern const wxChar* const traceDisplayLocation;
+extern const std::string const traceDisplayLocation;
 
 /**
  * Flag to enable debug output of zoom-scrolling calculations in
@@ -180,70 +182,70 @@ extern const wxChar* const traceDisplayLocation;
  *
  * Use "KICAD_ZOOM_SCROLL" to enable.
  */
-extern const wxChar* const traceZoomScroll;
+extern const std::string const traceZoomScroll;
 
 /**
  * Flag to enable debug output of symbol library resolver results
  *
  * Use "KICAD_SYM_RESOLVE" to enable.
  */
-extern const wxChar* const traceSymbolResolver;
+extern const std::string const traceSymbolResolver;
 
 /**
  * Flag to enable debug output of schematic symbol sheet path manipulation code.
  *
  * Use "KICAD_SCH_SHEET_PATHS" to enable.
  */
-extern const wxChar* const traceSchSheetPaths;
+extern const std::string const traceSchSheetPaths;
 
 /**
  * Flag to enable debug output of environment variable operations.
  *
  * Use "KICAD_ENV_VARS" to enable.
  */
-extern const wxChar* const traceEnvVars;
+extern const std::string const traceEnvVars;
 
 /**
  * Flag to enable debug output of GAL performance profiling.
  *
  * Use "KICAD_GAL_PROFILE" to enable.
  */
-extern const wxChar* const traceGalProfile;
+extern const std::string const traceGalProfile;
 
 /**
  * Flag to enable KiCad2Step debug tracing.
  *
  * Use "KICAD2STEP" to enable.
  */
-extern const wxChar* const traceKiCad2Step;
+extern const std::string const traceKiCad2Step;
 
 /**
  * Flag to enable user interface profile tracing.
  *
  * Use "KICAD_UI_PROFILE" to enable.
  */
-extern const wxChar* const traceUiProfile;
+extern const std::string const traceUiProfile;
 
 /**
  * Flag to enable Git debugging output.
  *
  * Use "KICAD_GIT" to enable.
  */
-extern const wxChar* const traceGit;
+extern const std::string const traceGit;
 
 /*
  * Flag to enable Eagle I/O debug tracing.
  *
  * Use "KICAD_EAGLE_IO" to enable.
  */
-extern const wxChar* const traceEagleIo;
+extern const std::string const traceEagleIo;
 
 /*
  * Flag to enable Design Block O debug tracing.
  *
  * Use "KICAD_EAGLE_IO" to enable.
  */
-extern const wxChar* const traceDesignBlocks;
+extern const std::string const traceDesignBlocks;
 
 ///@}
 
@@ -253,7 +255,7 @@ extern const wxChar* const traceDesignBlocks;
  * @param aEvent is the wxKeyEvent to generate the print string from.
  * @return the wxKeyEvent information.
  */
-extern wxString dump( const wxKeyEvent& aEvent );
+extern std::string dump( const QKeyEvent& aEvent );
 
 /**
  * Debug helper for printing wxArrayString contents.
@@ -261,7 +263,7 @@ extern wxString dump( const wxKeyEvent& aEvent );
  * @param aArray is the string array to output.
  * @return the wxArrayString contents in a formatted string for debugging output.
  */
-extern wxString dump( const wxArrayString& aArray );
+extern std::string dump( const QStringList& aArray );
 
 class TRACE_MANAGER
 {
@@ -274,10 +276,14 @@ public:
 
     static TRACE_MANAGER& Instance();
 
-    WX_DEFINE_VARARG_FUNC_VOID( Trace, 2, (const wxString, const wxFormatString&), DoTrace,
-                                DoTraceUtf8 )
+    void Trace(const QString& tag, const char* fmt, auto&&... args)
+    {
+        const char* str = tag.toStdString().data();
+        const char* src = (std::string("[{}] ") + std::string(fmt)).data();
+        spdlog::trace(src, str, std::forward<decltype(args)>(args)...);
+    }
 
-    void DoTrace( const wxString aWhat, const wxChar* aFmt, ... )
+    void DoTrace( const QString aWhat, const char* aFmt, ... )
     {
         va_list argptr;
         va_start( argptr, aFmt );
@@ -295,13 +301,13 @@ public:
     }
 #endif
 
-    bool IsTraceEnabled( const wxString& aWhat );
+    bool IsTraceEnabled( const QString& aWhat );
 
 private:
-    void traceV( const wxString& aWhat, const wxString& aFmt, va_list vargs );
+    void traceV( const QString& aWhat, const QString& aFmt, va_list vargs );
     void init();
 
-    std::map<wxString, bool> m_enabledTraces;
+    std::map<QString, bool> m_enabledTraces;
     bool                     m_globalTraceEnabled;
     bool                     m_printAllTraces;
 };

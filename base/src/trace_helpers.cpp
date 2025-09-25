@@ -27,53 +27,53 @@
  * @brief wxLogTrace helper implementation.
  */
 
+#include <QCursor>
 #include "trace_helpers.hxx"
 
-#include <wx/tokenzr.h>
 
-const std::string const traceFindReplace = wxT( "KICAD_FIND_REPLACE" );
-const std::string const kicadTraceCoords = wxT( "KICAD_COORDS" );
-const std::string const kicadTraceKeyEvent = wxT( "KICAD_KEY_EVENTS" );
-const std::string const kicadTraceToolStack = wxT( "KICAD_TOOL_STACK" );
-const std::string const kicadTraceCoroutineStack = wxT( "KICAD_COROUTINE_STACK" );
-const std::string const traceSchLibMem = wxT( "KICAD_SCH_LIB_MEM" );
-const std::string const traceFindItem = wxT( "KICAD_FIND_ITEM" );
-const std::string const traceSchLegacyPlugin = wxT( "KICAD_SCH_LEGACY_PLUGIN" );
-const std::string const traceSchPlugin = wxT( "KICAD_SCH_PLUGIN" );
-const std::string const traceGedaPcbPlugin = wxT( "KICAD_GEDA_PLUGIN" );
-const std::string const traceKicadPcbPlugin = wxT( "KICAD_PCB_PLUGIN" );
-const std::string const tracePrinting = wxT( "KICAD_PRINT" );
-const std::string const traceAutoSave = wxT( "KICAD_AUTOSAVE" );
-const std::string const tracePathsAndFiles = wxT( "KICAD_PATHS_AND_FILES" );
-const std::string const traceLocale = wxT( "KICAD_LOCALE" );
-const std::string const traceFonts = wxT( "KICAD_FONTS" );
-const std::string const traceScreen = wxT( "KICAD_SCREEN" );
-const std::string const traceZoomScroll = wxT( "KICAD_ZOOM_SCROLL" );
-const std::string const traceSymbolResolver = wxT( "KICAD_SYM_RESOLVE" );
-const std::string const traceDisplayLocation = wxT( "KICAD_DISPLAY_LOCATION" );
-const std::string const traceSchSheetPaths = wxT( "KICAD_SCH_SHEET_PATHS" );
-const std::string const traceEnvVars = wxT( "KICAD_ENV_VARS" );
-const std::string const traceGalProfile = wxT( "KICAD_GAL_PROFILE" );
-const std::string const traceKiCad2Step = wxT( "KICAD2STEP" );
-const std::string const traceUiProfile = wxT( "KICAD_UI_PROFILE" );
-const std::string const traceGit = wxT( "KICAD_GIT" );
-const std::string const traceEagleIo = wxT( "KICAD_EAGLE_IO" );
-const std::string const traceDesignBlocks = wxT( "KICAD_DESIGN_BLOCK" );
+const std::string const traceFindReplace = "KICAD_FIND_REPLACE";
+const std::string const kicadTraceCoords = "KICAD_COORDS";
+const std::string const kicadTraceKeyEvent = "KICAD_KEY_EVENTS";
+const std::string const kicadTraceToolStack = "KICAD_TOOL_STACK";
+const std::string const kicadTraceCoroutineStack = "KICAD_COROUTINE_STACK";
+const std::string const traceSchLibMem = "KICAD_SCH_LIB_MEM";
+const std::string const traceFindItem = "KICAD_FIND_ITEM";
+const std::string const traceSchLegacyPlugin = "KICAD_SCH_LEGACY_PLUGIN";
+const std::string const traceSchPlugin = "KICAD_SCH_PLUGIN";
+const std::string const traceGedaPcbPlugin = "KICAD_GEDA_PLUGIN";
+const std::string const traceKicadPcbPlugin = "KICAD_PCB_PLUGIN";
+const std::string const tracePrinting = "KICAD_PRINT";
+const std::string const traceAutoSave = "KICAD_AUTOSAVE";
+const std::string const tracePathsAndFiles = "KICAD_PATHS_AND_FILES";
+const std::string const traceLocale = "KICAD_LOCALE";
+const std::string const traceFonts = "KICAD_FONTS";
+const std::string const traceScreen = "KICAD_SCREEN";
+const std::string const traceZoomScroll = "KICAD_ZOOM_SCROLL";
+const std::string const traceSymbolResolver = "KICAD_SYM_RESOLVE";
+const std::string const traceDisplayLocation = "KICAD_DISPLAY_LOCATION";
+const std::string const traceSchSheetPaths = "KICAD_SCH_SHEET_PATHS";
+const std::string const traceEnvVars = "KICAD_ENV_VARS";
+const std::string const traceGalProfile = "KICAD_GAL_PROFILE";
+const std::string const traceKiCad2Step = "KICAD2STEP";
+const std::string const traceUiProfile = "KICAD_UI_PROFILE";
+const std::string const traceGit = "KICAD_GIT";
+const std::string const traceEagleIo = "KICAD_EAGLE_IO";
+const std::string const traceDesignBlocks = "KICAD_DESIGN_BLOCK";
 
 
-wxString dump( const wxArrayString& aArray )
+std::string dump( const QStringList& aArray )
 {
-    wxString tmp;
+    QString tmp;
 
-    for( unsigned i = 0;  i < aArray.GetCount();  i++ )
+    for( unsigned i = 0;  i < aArray.size();  i++ )
     {
-        if( aArray[i].IsEmpty() )
-            tmp << wxT( "\"\" " );
+        if( aArray[i].isEmpty() )
+            tmp = "\"\" ";
         else
-            tmp << aArray[i] << wxT( " " );
+            tmp = aArray[i] + " ";
     }
 
-    return tmp;
+    return tmp.toStdString();
 }
 
 
@@ -89,140 +89,105 @@ wxString dump( const wxArrayString& aArray )
 /////////////////////////////////////////////////////////////////////////////
 
 // helper function that returns textual description of wx virtual keycode
-const char* GetVirtualKeyCodeName(int keycode)
+std::string GetVirtualKeyCodeName(int keycode)
 {
-    switch ( keycode )
+    switch (keycode)
     {
-#define WXK_(x) \
-        case WXK_##x: return #x;
+#define QTKEY(x) case Qt::Key_##x: return QStringLiteral(#x).toStdString();
 
-        WXK_(BACK)
-        WXK_(TAB)
-        WXK_(RETURN)
-        WXK_(ESCAPE)
-        WXK_(SPACE)
-        WXK_(DELETE)
-        WXK_(START)
-        WXK_(LBUTTON)
-        WXK_(RBUTTON)
-        WXK_(CANCEL)
-        WXK_(MBUTTON)
-        WXK_(CLEAR)
-        WXK_(SHIFT)
-        WXK_(ALT)
-        WXK_(CONTROL)
-        WXK_(MENU)
-        WXK_(PAUSE)
-        WXK_(CAPITAL)
-        WXK_(END)
-        WXK_(HOME)
-        WXK_(LEFT)
-        WXK_(UP)
-        WXK_(RIGHT)
-        WXK_(DOWN)
-        WXK_(SELECT)
-        WXK_(PRINT)
-        WXK_(EXECUTE)
-        WXK_(SNAPSHOT)
-        WXK_(INSERT)
-        WXK_(HELP)
-        WXK_(NUMPAD0)
-        WXK_(NUMPAD1)
-        WXK_(NUMPAD2)
-        WXK_(NUMPAD3)
-        WXK_(NUMPAD4)
-        WXK_(NUMPAD5)
-        WXK_(NUMPAD6)
-        WXK_(NUMPAD7)
-        WXK_(NUMPAD8)
-        WXK_(NUMPAD9)
-        WXK_(MULTIPLY)
-        WXK_(ADD)
-        WXK_(SEPARATOR)
-        WXK_(SUBTRACT)
-        WXK_(DECIMAL)
-        WXK_(DIVIDE)
-        WXK_(F1)
-        WXK_(F2)
-        WXK_(F3)
-        WXK_(F4)
-        WXK_(F5)
-        WXK_(F6)
-        WXK_(F7)
-        WXK_(F8)
-        WXK_(F9)
-        WXK_(F10)
-        WXK_(F11)
-        WXK_(F12)
-        WXK_(F13)
-        WXK_(F14)
-        WXK_(F15)
-        WXK_(F16)
-        WXK_(F17)
-        WXK_(F18)
-        WXK_(F19)
-        WXK_(F20)
-        WXK_(F21)
-        WXK_(F22)
-        WXK_(F23)
-        WXK_(F24)
-        WXK_(NUMLOCK)
-        WXK_(SCROLL)
-        WXK_(PAGEUP)
-        WXK_(PAGEDOWN)
-        WXK_(NUMPAD_SPACE)
-        WXK_(NUMPAD_TAB)
-        WXK_(NUMPAD_ENTER)
-        WXK_(NUMPAD_F1)
-        WXK_(NUMPAD_F2)
-        WXK_(NUMPAD_F3)
-        WXK_(NUMPAD_F4)
-        WXK_(NUMPAD_HOME)
-        WXK_(NUMPAD_LEFT)
-        WXK_(NUMPAD_UP)
-        WXK_(NUMPAD_RIGHT)
-        WXK_(NUMPAD_DOWN)
-        WXK_(NUMPAD_PAGEUP)
-        WXK_(NUMPAD_PAGEDOWN)
-        WXK_(NUMPAD_END)
-        WXK_(NUMPAD_BEGIN)
-        WXK_(NUMPAD_INSERT)
-        WXK_(NUMPAD_DELETE)
-        WXK_(NUMPAD_EQUAL)
-        WXK_(NUMPAD_MULTIPLY)
-        WXK_(NUMPAD_ADD)
-        WXK_(NUMPAD_SEPARATOR)
-        WXK_(NUMPAD_SUBTRACT)
-        WXK_(NUMPAD_DECIMAL)
-        WXK_(NUMPAD_DIVIDE)
+        QTKEY(Backspace)
+            QTKEY(Tab)
+            QTKEY(Return)
+            QTKEY(Escape)
+            QTKEY(Space)
+            QTKEY(Delete)
+            QTKEY(Shift)
+            QTKEY(Alt)
+            QTKEY(Control)
+            QTKEY(Menu)
+            QTKEY(Pause)
+            QTKEY(CapsLock)
+            QTKEY(End)
+            QTKEY(Home)
+            QTKEY(Left)
+            QTKEY(Up)
+            QTKEY(Right)
+            QTKEY(Down)
+            QTKEY(Print)
+            QTKEY(Insert)
+            QTKEY(Help)
+            QTKEY(0)
+            QTKEY(1)
+            QTKEY(2)
+            QTKEY(3)
+            QTKEY(4)
+            QTKEY(5)
+            QTKEY(6)
+            QTKEY(7)
+            QTKEY(8)
+            QTKEY(9)
+            QTKEY(Asterisk)
+            QTKEY(Plus)
+            QTKEY(Minus)
+            QTKEY(Period)
+            QTKEY(Slash)
+            QTKEY(F1)
+            QTKEY(F2)
+            QTKEY(F3)
+            QTKEY(F4)
+            QTKEY(F5)
+            QTKEY(F6)
+            QTKEY(F7)
+            QTKEY(F8)
+            QTKEY(F9)
+            QTKEY(F10)
+            QTKEY(F11)
+            QTKEY(F12)
+            QTKEY(F13)
+            QTKEY(F14)
+            QTKEY(F15)
+            QTKEY(F16)
+            QTKEY(F17)
+            QTKEY(F18)
+            QTKEY(F19)
+            QTKEY(F20)
+            QTKEY(F21)
+            QTKEY(F22)
+            QTKEY(F23)
+            QTKEY(F24)
+            QTKEY(NumLock)
+            QTKEY(ScrollLock)
+            QTKEY(PageUp)
+            QTKEY(PageDown)
 
-        WXK_(WINDOWS_LEFT)
-        WXK_(WINDOWS_RIGHT)
-#ifdef __WXOSX__
-        WXK_(RAW_CONTROL)
-#endif
-#undef WXK_
+
+            QTKEY(Enter)
+
+            QTKEY(Super_L)   // Windows 左键
+            QTKEY(Super_R)   // Windows 右键
+
+#undef QTKEY
 
     default:
-        return nullptr;
+        return QStringLiteral("Unknown").toStdString();
     }
 }
 
 
 // helper function that returns textual description of key in the event
-wxString GetKeyName( const wxKeyEvent &aEvent )
+std::string GetKeyName( const QKeyEvent &aEvent )
 {
-    int keycode = aEvent.GetKeyCode();
-    const char* virt = GetVirtualKeyCodeName( keycode );
+    int keycode = aEvent.key();
+    std::string virt = GetVirtualKeyCodeName( keycode );
 
-    if( virt )
+    if( !virt.empty() )
         return virt;
 
     if( keycode > 0 && keycode < 32 )
-        return wxString::Format( "Ctrl-%c", (unsigned char)('A' + keycode - 1) );
+        return std::format( "Ctrl-{}", (unsigned char)('A' + keycode - 1) );
 
     if( keycode >= 32 && keycode < 128 )
-        return wxString::Format( "'%c'", (unsigned char)keycode );
+        return std::format( "'{}'", (unsigned char)keycode );
 
 #if wxUSE_UNICODE
     int uc = aEvent.GetUnicodeKey();
@@ -235,22 +200,24 @@ wxString GetKeyName( const wxKeyEvent &aEvent )
 }
 
 
-wxString dump( const wxKeyEvent& aEvent )
+std::string dump( const QKeyEvent& aEvent )
 {
-    wxString msg;
-    wxString eventType = wxS( "unknown" );
+    std::string msg;
+    std::string eventType = "unknown";
 
-    if( aEvent.GetEventType() == wxEVT_KEY_DOWN )
-        eventType = wxS( "KeyDown" );
-    else if( aEvent.GetEventType() == wxEVT_KEY_UP )
-        eventType = wxS( "KeyUp" );
-    else if( aEvent.GetEventType() == wxEVT_CHAR )
-        eventType = wxS( "Char" );
-    else if( aEvent.GetEventType() == wxEVT_CHAR_HOOK )
-        eventType = wxS( "Hook" );
+    if( aEvent.type() == QEvent::KeyPress )
+        eventType = "KeyDown";
+    else if( aEvent.type() == QEvent::KeyRelease)
+        eventType = "KeyUp";
+    else if(aEvent.type() == QEvent::KeyPress && !aEvent.text().isEmpty())
+        eventType = "Char";
+    else if( aEvent.type() == QEvent::ShortcutOverride)
+        eventType = "Hook";
+
+    QPoint globalPos = QCursor::pos();                 // 鼠标全局位置（屏幕坐标）
 
     // event  key_name  KeyCode  modifiers  Unicode  raw_code raw_flags pos
-    msg.Printf( "%7s %15s %5d   %c%c%c%c"
+    msg = std::format( "{} {} {}   {}{}{}{}"
 #if wxUSE_UNICODE
                 "%5d (U+%04x)"
 #else
@@ -264,11 +231,11 @@ wxString dump( const wxKeyEvent& aEvent )
                 "  (%5d,%5d)",
                 eventType,
                 GetKeyName( aEvent ),
-                aEvent.GetKeyCode(),
-                aEvent.ControlDown() ? 'C' : '-',
-                aEvent.AltDown()     ? 'A' : '-',
-                aEvent.ShiftDown()   ? 'S' : '-',
-                aEvent.MetaDown()    ? 'M' : '-'
+                aEvent.key(),
+                aEvent.modifiers().testFlag(Qt::ControlModifier) ? 'C' : '-',
+                aEvent.modifiers().testFlag(Qt::AltModifier) ? 'A' : '-',
+                aEvent.modifiers().testFlag(Qt::ShiftModifier) ? 'S' : '-',
+                aEvent.modifiers().testFlag(Qt::MetaModifier) ? 'M' : '-'
 #if wxUSE_UNICODE
                 , aEvent.GetUnicodeKey()
                 , aEvent.GetUnicodeKey()
@@ -277,8 +244,8 @@ wxString dump( const wxKeyEvent& aEvent )
                 , (unsigned long) aEvent.GetRawKeyCode()
                 , (unsigned long) aEvent.GetRawKeyFlags()
 #endif
-                , aEvent.GetX()
-                , aEvent.GetY()
+                , globalPos.x()
+                , globalPos.y()
         );
 
     return msg;
@@ -299,7 +266,7 @@ TRACE_MANAGER& TRACE_MANAGER::Instance()
 }
 
 
-bool TRACE_MANAGER::IsTraceEnabled( const wxString& aWhat )
+bool TRACE_MANAGER::IsTraceEnabled( const QString& aWhat )
 {
     if( !m_printAllTraces )
     {
@@ -314,37 +281,42 @@ bool TRACE_MANAGER::IsTraceEnabled( const wxString& aWhat )
 }
 
 
-void TRACE_MANAGER::traceV( const wxString& aWhat, const wxString& aFmt, va_list vargs )
+void TRACE_MANAGER::traceV( const QString& aWhat, const QString& aFmt, va_list vargs )
 {
     if( !IsTraceEnabled( aWhat ) )
         return;
 
-    wxString str;
-    str.PrintfV( aFmt, vargs );
+    char buffer[1024];
+    va_list args;
+    va_copy(args, vargs);
+    vsnprintf(buffer, sizeof(buffer), aFmt.toUtf8().constData(), args);
+    va_end(args);
 
-#if defined( __UNIX__ ) || defined( _WIN32 )
-    fprintf( stderr, " %-30s | %s", aWhat.c_str().AsChar(), str.c_str().AsChar() );
-#endif
+    QString str = QString::fromUtf8(buffer);
+
+    // 使用 spdlog 输出到 stderr
+    spdlog::info("{:<30} | {}", aWhat.toStdString(), str.toStdString());
 }
 
 
 void TRACE_MANAGER::init()
 {
-    wxString traceVars;
-    m_globalTraceEnabled = wxGetEnv( wxT( "KICAD_TRACE" ), &traceVars );
+    QString traceVars = QString::fromLocal8Bit(qgetenv("KICAD_TRACE"));
+    m_globalTraceEnabled = !traceVars.isEmpty();
     m_printAllTraces = false;
 
-    if( !m_globalTraceEnabled )
+    if (!m_globalTraceEnabled)
         return;
 
-    wxStringTokenizer tokenizer( traceVars, wxT( "," ) );
+    // 用逗号分隔
+    QStringList tokens = traceVars.split(',', Qt::SkipEmptyParts);
 
-    while( tokenizer.HasMoreTokens() )
-    {
-        wxString token = tokenizer.GetNextToken();
-        m_enabledTraces[token] = true;
+    for (const QString& token : tokens) {
+        QString t = token.trimmed();
+        m_enabledTraces[t] = true;
 
-        if( token.Lower() == wxT( "all" ) )
+        if (t.compare("all", Qt::CaseInsensitive) == 0)
             m_printAllTraces = true;
     }
+
 }

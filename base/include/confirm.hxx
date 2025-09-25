@@ -92,7 +92,7 @@ void DisplayError(QWidget* aParent, const QString& aText );
  * @param aExtraInfo is extra data that can be optionally displayed in a collapsible pane
  */
 void DisplayErrorMessage(QWidget* aParent, const QString& aMessage,
-                                       const QString& aExtraInfo = wxEmptyString );
+                                       const QString& aExtraInfo = "" );
 
 
 /*
@@ -103,7 +103,7 @@ void DisplayErrorMessage(QWidget* aParent, const QString& aMessage,
  * @param aExtraInfo is the extra data that can be optionally displayed in a collapsible pane
  */
 void DisplayInfoMessage(QWidget* parent, const QString& aMessage,
-                                      const QString& aExtraInfo = wxEmptyString );
+                                      const QString& aExtraInfo = "");
 
 /*
  * Display a yes/no dialog with \a aMessage and returns the user response.
@@ -131,9 +131,9 @@ bool IsOK(QWidget* aParent, const QString& aMessage );
  */
 int OKOrCancelDialog(QWidget* aParent, const QString& aWarning,
                                    const QString& aMessage,
-                                   const QString& aDetailedMessage = wxEmptyString,
-                                   const QString& aOKLabel = wxEmptyString,
-                                   const QString& aCancelLabel = wxEmptyString,
+                                   const QString& aDetailedMessage = "",
+                                   const QString& aOKLabel = "",
+                                   const QString& aCancelLabel = "",
                                    bool* aApplyToAll = nullptr );
 
 

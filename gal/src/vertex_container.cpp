@@ -29,11 +29,11 @@
  * @brief Class to store vertices and handle transfers between system memory and GPU memory.
  */
 
-#include "vertex_container.hxx"
-#include "cached_container_ram.hxx"
-#include "cached_container_gpu.hxx"
-#include "noncached_container.hxx"
-#include "shader.hxx"
+#include "gal/include/vertex_container.hxx"
+#include "gal/include/cached_container_ram.hxx"
+#include "gal/include/cached_container_gpu.hxx"
+#include "gal/include/noncached_container.hxx"
+#include "gal/include/shader.hxx"
 
 #include <cstring>
 

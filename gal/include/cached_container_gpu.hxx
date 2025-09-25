@@ -27,7 +27,7 @@
 #ifndef CACHED_CONTAINER_GPU_H_
 #define CACHED_CONTAINER_GPU_H_
 
-#include "cached_container.hxx"
+#include "gal/include/cached_container.hxx"
 
 namespace KIGFX
 {
@@ -44,6 +44,10 @@ public:
     unsigned int GetBufferHandle() const override
     {
         return m_glBufferHandle;
+    }
+
+    QOpenGLBuffer* GetBuffer() {
+        return &m_buffer;
     }
 
     bool IsMapped() const override
@@ -78,6 +82,7 @@ protected:
 
     ///< Vertex buffer handle
     unsigned int m_glBufferHandle;
+    QOpenGLBuffer m_buffer;
 
     ///< Flag saying whether it is safe to use glCopyBufferSubData
     bool m_useCopyBuffer;

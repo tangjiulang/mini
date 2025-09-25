@@ -30,7 +30,7 @@
  * and then clearing the buffer and starting from scratch.
  */
 
-#include <gal/opengl/noncached_container.h>
+#include "gal/include/noncached_container.hxx"
 #include <cstring>
 #include <cstdlib>
 
