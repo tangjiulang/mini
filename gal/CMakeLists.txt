@@ -11,6 +11,7 @@ target_link_libraries(gal PUBLIC
                         Qt6::OpenGLWidgets
                         glm::glm
 						spdlog::spdlog 
+                        GLEW::GLEW
                         core
 						math
                         base

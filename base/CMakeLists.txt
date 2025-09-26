@@ -10,6 +10,8 @@ target_link_libraries(base PUBLIC
                         Qt6::OpenGL
                         Qt6::OpenGLWidgets
                         spdlog::spdlog
+                        math
 )
 
+include_directories(${Boost_INCLUDE_DIRS})
 target_include_directories(base PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

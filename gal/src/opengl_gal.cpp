@@ -27,28 +27,27 @@
  */
 
 #include <advanced_config.h>
-#include <build_version.h>
-#include "gal/opengl/opengl_gal.hxx"
-#include "gal/opengl/utils.hxx"
-#include <gal/definitions.h>
-#include <gal/opengl/gl_context_mgr.h>
-#include <geometry/shape_poly_set.h>
-#include <math/vector2wx.h>
-#include <bitmap_base.h>
+//#include <build_version.h>
+#include "gal/include/opengl_gal.hxx"
+#include "gal/include/utils.hxx"
+#include "gal/include/definitions.hxx"
+#include "gal/include/gl_context_mgr.hxx"
+#include "vector2wx.hxx"
+#include "bitmap_base.hxx"
 #include <bezier_curves.h>
 #include <math/util.h> // for KiROUND
 #include <pgm_base.h>
 
-#include <wx/frame.h>
 
 #include <macros.h>
+#include "geometry/shape_poly_set.h"
 #include <geometry/geometry_utils.h>
 #include <thread_pool.h>
 
 #include "profile.hxx"
 #include "trace_helpers.hxx"
 
-#include <gal/opengl/gl_utils.h>
+#include "gal/include/gl_utils.hxx"
 
 #include <functional>
 #include <limits>
@@ -61,9 +60,9 @@ using namespace KIGFX;
 
 // The current font is "Ubuntu Mono" available under Ubuntu Font Licence 1.0
 // (see ubuntu-font-licence-1.0.txt for details)
-#include "gl_resources.h"
-#include <glsl_kicad_frag.h>
-#include <glsl_kicad_vert.h>
+#include "gal/include/gl_resources.hxx"
+//#include <glsl_mini_frag.h>
+//#include <glsl_mini_vert.h>
 using namespace KIGFX::BUILTIN_FONT;
 
 static void InitTesselatorCallbacks( GLUtesselator* aTesselator );
