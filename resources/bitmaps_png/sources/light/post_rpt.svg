@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="Слой_1"
+   data-name="Слой 1"
+   viewBox="0 0 24 24"
+   version="1.1"
+   sodipodi:docname="post_rpt.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="3840"
+     inkscape:window-height="2109"
+     id="namedview159354"
+     showgrid="true"
+     inkscape:zoom="60.583334"
+     inkscape:cx="11.488308"
+     inkscape:cy="9.8624483"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Слой_1"
+     inkscape:showpageshadow="2"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid6877"
+       empspacing="2"
+       spacingx="0.5"
+       spacingy="0.5" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata43">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>post_xml</dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/4.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs159331">
+    <style
+       id="style159329">.cls-1{fill:#b9b9b9;}.cls-2{fill:#1a81c4;}.cls-3{fill:#fff;}.cls-4{fill:#bf2641;}.cls-5{fill:none;stroke:#f5f5f5;stroke-linecap:round;stroke-linejoin:round;stroke-width:2px;}</style>
+  </defs>
+  <title
+     id="title159333">post_xml</title>
+  <rect
+     class="cls-1"
+     x="3.0489998"
+     y="0"
+     width="17.937201"
+     height="17.983299"
+     rx="2.9934001"
+     id="rect159335" />
+  <rect
+     class="cls-2"
+     x="0.00010001659"
+     y="2.9995"
+     width="18.7099"
+     height="9.2299004"
+     id="rect159337" />
+  <path
+     class="cls-3"
+     d="M 2.07,9.9365 H 0.9965 V 8.9 H 2.07 Z"
+     id="path159339" />
+  <ellipse
+     class="cls-4"
+     cx="17.0075"
+     cy="16.996099"
+     rx="6.9924002"
+     ry="7.0039001"
+     id="ellipse159347" />
+  <line
+     class="cls-5"
+     x1="17.1112"
+     y1="13.6254"
+     x2="17.1112"
+     y2="20.629299"
+     id="line159349" />
+  <polyline
+     class="cls-5"
+     points="15.362 17.16 18.111 14.406 20.861 17.16"
+     id="polyline159351"
+     transform="translate(-1,-1)" />
+  <g
+     aria-label=".rpt"
+     transform="scale(0.94262033,1.0608725)"
+     id="text7901"
+     style="font-size:7.98204px;line-height:1.25;font-family:'Tiresias LPfont';-inkscape-font-specification:'Tiresias LPfont';letter-spacing:0.02px;fill:#ffffff;stroke-width:0.41921">
+    <path
+       d="m 5.7059339,4.926813 q 0.087803,0 0.2075331,0.00798 0.1197306,0.00798 0.1915689,0.023946 L 6.0172335,6.0762267 Q 5.9613592,6.0602626 5.8496106,6.0522806 5.7458441,6.0363165 5.6660237,6.0363165 q -0.3033175,0 -0.5826889,0.1117486 Q 4.8039634,6.2518316 4.6283585,6.4912928 4.4607357,6.730754 4.4607357,7.1458201 V 9.3648272 H 3.2714117 V 5.0066334 H 4.1733822 L 4.3489871,5.740981 h 0.055874 Q 4.5964304,5.4057354 4.931676,5.1662742 5.2669217,4.926813 5.7059339,4.926813 Z"
+       style="font-weight:bold;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'"
+       id="path8511" />
+    <path
+       d="m 9.3418017,4.926813 q 0.7343473,0 1.1893243,0.5747068 0.454976,0.5667249 0.454976,1.6762284 0,1.1095036 -0.47094,1.6921925 -0.470941,0.5747069 -1.2052884,0.5747069 -0.4709404,0 -0.7503118,-0.1676229 Q 8.2801904,9.1014198 8.1045855,8.8859048 h -0.063856 q 0.063856,0.3352456 0.063856,0.6385632 v 1.756049 H 6.9152616 V 5.0066334 h 0.9658268 l 0.1676229,0.5667248 h 0.055874 Q 8.2801904,5.3099509 8.5755259,5.1183819 8.8708614,4.926813 9.3418017,4.926813 Z M 8.9586638,5.8766757 q -0.4629583,0 -0.6545273,0.2873534 -0.1835869,0.2873535 -0.199551,0.8780244 v 0.1277127 q 0,0.6305811 0.183587,0.9738088 0.1915689,0.3352457 0.6864554,0.3352457 0.407084,0 0.598653,-0.3352457 0.199551,-0.3432277 0.199551,-0.9817909 0,-1.2851084 -0.8141681,-1.2851084 z"
+       style="font-weight:bold;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'"
+       id="path8513" />
+    <path
+       d="m 13.823757,8.4947848 q 0.199551,0 0.383138,-0.03991 0.183587,-0.03991 0.367174,-0.095785 v 0.8860065 q -0.191569,0.07982 -0.478922,0.1356946 -0.279372,0.063856 -0.614617,0.063856 -0.39112,0 -0.70242,-0.1277127 Q 12.474793,9.1892223 12.291206,8.8779227 12.115601,8.5586411 12.115601,7.9998983 V 5.9006218 H 11.548876 V 5.3977533 l 0.654527,-0.399102 0.343228,-0.9179346 h 0.758294 v 0.9259167 h 1.221252 v 0.8939884 h -1.221252 v 2.0992765 q 0,0.2474433 0.143676,0.3751559 0.143677,0.1197306 0.375156,0.1197306 z"
+       style="font-weight:bold;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold'"
+       id="path8515" />
+  </g>
+</svg>

@@ -29,21 +29,22 @@
 #ifndef OPENGLGAL_H_
 #define OPENGLGAL_H_
 
+#include <QOpenGLWidget>
 // GAL imports
+#include "utf8.hxx"
 #include "gal/include/gal.hxx"
-#include "gal/graphics_abstraction_layer.hxx"
-#include <gal/gal_display_options.h>
-#include <gal/opengl/shader.h>
-#include <gal/opengl/vertex_manager.h>
-#include <gal/opengl/vertex_item.h>
-#include <gal/opengl/cached_container.h>
-#include <gal/opengl/noncached_container.h>
-#include <gal/opengl/opengl_compositor.h>
-#include <gal/hidpi_gl_canvas.h>
+#include "gal/include/graphics_abstraction_layer.hxx"
+#include <gal/include/gal_display_options.hxx>
+#include "gal/include/shader.hxx"
+#include "gal/include/vertex_manager.hxx"
+#include "gal/include/vertex_item.hxx"
+#include "gal/include/cached_container.hxx"
+#include "gal/include/noncached_container.hxx"
+//#include <gal/opengl/opengl_compositor.h>
+//#include <gal/hidpi_gl_canvas.h>
 
 #include <unordered_map>
 #include <memory>
-#include <wx/event.h>
 
 #ifndef CALLBACK
 #define CALLBACK
@@ -67,7 +68,7 @@ class GL_BITMAP_CACHE;
  * and quads. The purpose is to provide a fast graphics interface, that takes advantage of modern
  * graphics card GPUs. All methods here benefit thus from the hardware acceleration.
  */
-class GAL_API OPENGL_GAL : public GAL, public HIDPI_GL_CANVAS
+class OPENGL_GAL : public GAL, public QOpenGLWidget
 {
 public:
     /**
@@ -83,10 +84,9 @@ public:
      *
      * @param aName is the name of this window for use by wxWindow::FindWindowByName()
      */
-    OPENGL_GAL( const KIGFX::VC_SETTINGS& aVcSettings, GAL_DISPLAY_OPTIONS& aDisplayOptions,
-                wxWindow* aParent,
-                wxEvtHandler* aMouseListener = nullptr, wxEvtHandler* aPaintListener = nullptr,
-                const wxString& aName = wxT( "GLCanvas" ) );
+    OPENGL_GAL( GAL_DISPLAY_OPTIONS& aDisplayOptions,
+                QWidget* aParent,
+                const std::string& aName = "GLCanvas" );
 
     ~OPENGL_GAL();
 
@@ -96,7 +96,7 @@ public:
      * @param aOptions
      * @return wxEmptyString if OpenGL 2.1 or greater is available, otherwise returns error message
      */
-    static wxString CheckFeatures( GAL_DISPLAY_OPTIONS& aOptions );
+    static std::string CheckFeatures( GAL_DISPLAY_OPTIONS& aOptions );
 
     bool IsOpenGlEngine() override { return true; }
 
@@ -104,13 +104,13 @@ public:
     bool IsInitialized() const override
     {
         // is*Initialized flags, but it is enough for OpenGL to show up
-        return IsShownOnScreen() && !GetClientRect().IsEmpty();
+        //return IsShownOnScreen() && !GetClientRect().IsEmpty();
     }
 
     ///< @copydoc GAL::IsVisible()
     bool IsVisible() const override
     {
-        return IsShownOnScreen() && !GetClientRect().IsEmpty();
+        //return IsShownOnScreen() && !GetClientRect().IsEmpty();
     }
 
     // ---------------
@@ -158,10 +158,10 @@ public:
     void DrawPolygon( const SHAPE_LINE_CHAIN& aPolySet ) override;
 
     /// @copydoc GAL::DrawGlyph()
-    virtual void DrawGlyph( const KIFONT::GLYPH& aGlyph, int aNth, int aTotal ) override;
+    //virtual void DrawGlyph( const KIFONT::GLYPH& aGlyph, int aNth, int aTotal ) override;
 
     /// @copydoc GAL::DrawGlyphs()
-    virtual void DrawGlyphs( const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs ) override;
+    //virtual void DrawGlyphs( const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs ) override;
 
     /// @copydoc GAL::DrawCurve()
     void DrawCurve( const VECTOR2D& startPoint, const VECTOR2D& controlPointA,
@@ -172,7 +172,7 @@ public:
     void DrawBitmap( const BITMAP_BASE& aBitmap, double alphaBlend = 1.0 ) override;
 
     /// @copydoc GAL::BitmapText()
-    void BitmapText( const wxString& aText, const VECTOR2I& aPosition,
+    void BitmapText( const std::string& aText, const VECTOR2I& aPosition,
                      const EDA_ANGLE& aAngle ) override;
 
     /// @copydoc GAL::DrawGrid()
@@ -287,17 +287,17 @@ public:
      * A post is used so that the actual drawing function can use a device context type that
      * is not specific to the wxEVT_PAINT event, just by changing the PostPaint code.
      */
-    void PostPaint( wxPaintEvent& aEvent );
+    void PostPaint();
 
-    void SetMouseListener( wxEvtHandler* aMouseListener )
-    {
-        m_mouseListener = aMouseListener;
-    }
+    //void SetMouseListener( wxEvtHandler* aMouseListener )
+    //{
+    //    m_mouseListener = aMouseListener;
+    //}
 
-    void SetPaintListener( wxEvtHandler* aPaintListener )
-    {
-        m_paintListener = aPaintListener;
-    }
+    //void SetPaintListener( wxEvtHandler* aPaintListener )
+    //{
+    //    m_paintListener = aPaintListener;
+    //}
 
     void EnableDepthTest( bool aEnabled = false ) override;
 
@@ -325,17 +325,18 @@ public:
         /// Intersect points, that have to be freed after tessellation
         std::deque<std::shared_ptr<GLdouble>>& intersectPoints;
     };
-
+signals:
+    void paintRequested();
 private:
     /// Super class definition
     typedef GAL super;
 
-    static wxGLContext*     m_glMainContext;    ///< Parent OpenGL context
-    wxGLContext*            m_glPrivContext;    ///< Canvas-specific OpenGL context
+    static QOpenGLContext*     m_glMainContext;    ///< Parent OpenGL context
+    QOpenGLContext*            m_glPrivContext;    ///< Canvas-specific OpenGL context
     int                     m_swapInterval;     ///< Used to store swap interval information
     static int              m_instanceCounter;  ///< GL GAL instance counter
-    wxEvtHandler*           m_mouseListener;
-    wxEvtHandler*           m_paintListener;
+    //wxEvtHandler*           m_mouseListener;
+    //wxEvtHandler*           m_paintListener;
 
     static GLuint           g_fontTexture;      ///< Bitmap font texture handle (shared)
 
@@ -354,7 +355,7 @@ private:
     VERTEX_MANAGER*         m_tempManager;
 
     // Framebuffer & compositing
-    OPENGL_COMPOSITOR*      m_compositor;       ///< Handles multiple rendering targets
+    //OPENGL_COMPOSITOR*      m_compositor;       ///< Handles multiple rendering targets
     unsigned int            m_mainBuffer;       ///< Main rendering target
     unsigned int            m_overlayBuffer;    ///< Auxiliary rendering target (for menus etc.)
     unsigned int            m_tempBuffer;       ///< Temporary rendering target (for diffing etc.)
@@ -379,12 +380,12 @@ private:
     GLint                   ufm_antialiasingOffset;
 
     /// wx cursor showing the current native cursor.
-    WX_CURSOR_TYPE          m_currentwxCursor;
+    QCURSOR_TYPE          m_currentwxCursor;
 
     std::unique_ptr<GL_BITMAP_CACHE>            m_bitmapCache;
 
     // Polygon tesselation
-    GLUtesselator*                        m_tesselator;
+    //GLUtesselator*                        m_tesselator;
     std::deque<std::shared_ptr<GLdouble>> m_tessIntersects;
 
     /// @copydoc GAL::BeginUpdate()
@@ -538,28 +539,28 @@ private:
      *
      * @param aEvent is the OnPaint event.
      */
-    void onPaint( wxPaintEvent& aEvent );
+    void onPaint();
 
     /**
      * Skip the mouse event to the parent.
      *
      * @param aEvent is the mouse event.
      */
-    void skipMouseEvent( wxMouseEvent& aEvent );
+    void skipMouseEvent( QMouseEvent& aEvent );
 
     /**
      * Skip the gesture event to the parent.
      *
      * @param aEvent is the gesture event.
      */
-    void skipGestureEvent( wxGestureEvent& aEvent );
+    void skipGestureEvent( QGesture& aEvent );
 
     /**
      * Give the correct cursor image when the native widget asks for it.
      *
      * @param aEvent is the cursor event to plac the cursor into.
      */
-    void onSetNativeCursor( wxSetCursorEvent& aEvent );
+    //void onSetNativeCursor( wxSetCursorEvent& aEvent );
 
     /**
      * Blit cursor into the current screen.

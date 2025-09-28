@@ -1,27 +1,3 @@
-/*
- * This program source code file is part of KiCad, a free EDA CAD application.
- *
- * Copyright (C) 2018 jean-pierre.charras jp.charras at wanadoo.fr
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, you may find one here:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * or you may search the http://www.gnu.org website for the version 2 license,
- * or you may write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
- */
-
 #pragma once
 
 
@@ -30,11 +6,54 @@
 #include "mirror.hxx"
 #include "kiid.hxx"
 #include "box2.hxx"
-#include "gal/include/color4d.hxx"
+#include "color4d.hxx"
 
 class LINE_READER;
 class PLOTTER;
 
+
+enum Image_Type {
+    Image_Type_INVALID,          // should be == 0 for compatibility!
+    Image_Type_BMP,
+    Image_Type_BMP_RESOURCE,
+    Image_Type_RESOURCE = Image_Type_BMP_RESOURCE,
+    Image_Type_ICO,
+    Image_Type_ICO_RESOURCE,
+    Image_Type_CUR,
+    Image_Type_CUR_RESOURCE,
+    Image_Type_XBM,
+    Image_Type_XBM_DATA,
+    Image_Type_XPM,
+    Image_Type_XPM_DATA,
+    Image_Type_TIFF,
+    Image_Type_TIF = Image_Type_TIFF,
+    Image_Type_TIFF_RESOURCE,
+    Image_Type_TIF_RESOURCE = Image_Type_TIFF_RESOURCE,
+    Image_Type_GIF,
+    Image_Type_GIF_RESOURCE,
+    Image_Type_PNG,
+    Image_Type_PNG_RESOURCE,
+    Image_Type_JPEG,
+    Image_Type_JPEG_RESOURCE,
+    Image_Type_PNM,
+    Image_Type_PNM_RESOURCE,
+    Image_Type_PCX,
+    Image_Type_PCX_RESOURCE,
+    Image_Type_PICT,
+    Image_Type_PICT_RESOURCE,
+    Image_Type_ICON,
+    Image_Type_ICON_RESOURCE,
+    Image_Type_ANI,
+    Image_Type_IFF,
+    Image_Type_TGA,
+    Image_Type_MACCURSOR,
+    Image_Type_MACCURSOR_RESOURCE,
+    Image_Type_WEBP,
+    Image_Type_WEBP_RESOURCE,
+
+    Image_Type_MAX,
+    Image_Type_ANY = 50
+};
 
 /**
  * This class handle bitmap images in KiCad.
@@ -233,12 +252,12 @@ public:
     /**
      * Return the bitmap type (png, jpeg, etc.)
      */
-    QImage::Format GetImageType() const { return m_imageType; }
+    Image_Type GetImageType() const { return m_imageType; }
 
     /**
      * Set the bitmap type (png, jpeg, etc.)
      */
-    void SetImageType(QImage::Format aType ) { m_imageType = aType; }
+    void SetImageType(Image_Type aType ) { m_imageType = aType; }
 
 private:
     /**
@@ -260,11 +279,11 @@ private:
     double    m_scale;              ///< The scaling factor of the bitmap
                                     ///< with #m_pixelSizeIu, controls the actual draw size.
     QByteArray m_imageData;     ///< The original image data in its original format.
-    QImage::Format   m_imageType;     ///< The image type (png, jpeg, etc.).
+    Image_Type   m_imageType;     ///< The image type (png, jpeg, etc.).
 
     QImage*  m_image;              ///< The raw, uncompressed image data.
     QImage*  m_originalImage;      ///< Raw image data, not transformed by rotate/mirror.
-    QBitmap* m_bitmap;             ///< The bitmap used to draw/plot image.
+    QPixmap* m_bitmap;             ///< The bitmap used to draw/plot image.
     double    m_pixelSizeIu;        ///< The scaling factor of the bitmap to convert the bitmap
                                     ///< size (in pixels) to internal KiCad units.  This usually
                                     ///< does not change.

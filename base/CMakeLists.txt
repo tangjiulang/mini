@@ -10,6 +10,7 @@ target_link_libraries(base PUBLIC
                         Qt6::OpenGL
                         Qt6::OpenGLWidgets
                         spdlog::spdlog
+                        core
                         math
 )
 

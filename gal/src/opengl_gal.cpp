@@ -1,48 +1,21 @@
-/*
- * This program source code file is part of KICAD, a free EDA CAD application.
- *
- * Copyright (C) 2012 Torsten Hueter, torstenhtr <at> gmx.de
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- * Copyright (C) 2013-2017 CERN
- * @author Maciej Suminski <maciej.suminski@cern.ch>
- *
- * Graphics Abstraction Layer (GAL) for OpenGL
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, you may find one here:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * or you may search the http://www.gnu.org website for the version 2 license,
- * or you may write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
- */
-
-#include <advanced_config.h>
+//#include <advanced_config.h>
 //#include <build_version.h>
 #include "gal/include/opengl_gal.hxx"
 #include "gal/include/utils.hxx"
 #include "gal/include/definitions.hxx"
 #include "gal/include/gl_context_mgr.hxx"
+#include "gal/include/shader.hxx"
 #include "vector2wx.hxx"
 #include "bitmap_base.hxx"
 #include <bezier_curves.h>
-#include <math/util.h> // for KiROUND
-#include <pgm_base.h>
+#include "util.hxx" // for KiROUND
+//#include <pgm_base.h>
 
 
 #include <macros.h>
 #include "geometry/shape_poly_set.h"
 #include <geometry/geometry_utils.h>
-#include <thread_pool.h>
+//#include <thread_pool.h>
 
 #include "profile.hxx"
 #include "trace_helpers.hxx"
@@ -65,17 +38,17 @@ using namespace KIGFX;
 //#include <glsl_mini_vert.h>
 using namespace KIGFX::BUILTIN_FONT;
 
-static void InitTesselatorCallbacks( GLUtesselator* aTesselator );
+//static void InitTesselatorCallbacks( GLUtesselator* aTesselator );
 
-static wxGLAttributes getGLAttribs()
-{
-    wxGLAttributes attribs;
-    attribs.RGBA().DoubleBuffer().Depth( 8 ).EndList();
+//static wxGLAttributes getGLAttribs()
+//{
+//    wxGLAttributes attribs;
+//    attribs.RGBA().DoubleBuffer().Depth( 8 ).EndList();
+//
+//    return attribs;
+//}
 
-    return attribs;
-}
-
-wxGLContext* OPENGL_GAL::m_glMainContext = nullptr;
+QOpenGLContext* OPENGL_GAL::m_glMainContext = nullptr;
 int          OPENGL_GAL::m_instanceCounter = 0;
 GLuint       OPENGL_GAL::g_fontTexture = 0;
 bool         OPENGL_GAL::m_isBitmapFontLoaded = false;
@@ -125,193 +98,189 @@ GL_BITMAP_CACHE::~GL_BITMAP_CACHE()
 
 GLuint GL_BITMAP_CACHE::RequestBitmap( const BITMAP_BASE* aBitmap )
 {
-#ifndef DISABLE_BITMAP_CACHE
-    auto it = m_bitmaps.find( aBitmap->GetImageID() );
-
-    if( it != m_bitmaps.end() )
-    {
-        // A bitmap is found in cache bitmap. Ensure the associated texture is still valid.
-        if( glIsTexture( it->second.id ) )
-        {
-            it->second.accessTime = wxGetUTCTimeMillis().GetValue();
-            return it->second.id;
-        }
-        else
-        {
-            // Delete the invalid bitmap cache and its data
-            glDeleteTextures( 1, &it->second.id );
-            m_freedTextureIds.emplace_back( it->second.id );
-
-            auto listIt = std::find( m_cacheLru.begin(), m_cacheLru.end(), it->first );
-
-            if( listIt != m_cacheLru.end() )
-                m_cacheLru.erase( listIt );
-
-            m_cacheSize -= it->second.size;
-
-            m_bitmaps.erase( it );
-        }
-
-        // the cached bitmap is not valid and deleted, it will be recreated.
-    }
-
-#endif
+//#ifndef DISABLE_BITMAP_CACHE
+//    auto it = m_bitmaps.find( aBitmap->GetImageID() );
+//
+//    if( it != m_bitmaps.end() )
+//    {
+//        // A bitmap is found in cache bitmap. Ensure the associated texture is still valid.
+//        if( glIsTexture( it->second.id ) )
+//        {
+//            it->second.accessTime = wxGetUTCTimeMillis().GetValue();
+//            return it->second.id;
+//        }
+//        else
+//        {
+//            // Delete the invalid bitmap cache and its data
+//            glDeleteTextures( 1, &it->second.id );
+//            m_freedTextureIds.emplace_back( it->second.id );
+//
+//            auto listIt = std::find( m_cacheLru.begin(), m_cacheLru.end(), it->first );
+//
+//            if( listIt != m_cacheLru.end() )
+//                m_cacheLru.erase( listIt );
+//
+//            m_cacheSize -= it->second.size;
+//
+//            m_bitmaps.erase( it );
+//        }
+//
+//        // the cached bitmap is not valid and deleted, it will be recreated.
+//    }
+//
+//#endif
     return cacheBitmap( aBitmap );
 }
 
 
 GLuint GL_BITMAP_CACHE::cacheBitmap( const BITMAP_BASE* aBitmap )
 {
-    CACHED_BITMAP bmp;
+//    CACHED_BITMAP bmp;
+//
+//    const QImage* imgPtr = aBitmap->GetOriginalImageData();
+//
+//    if( !imgPtr )
+//        return std::numeric_limits< GLuint >::max();
+//
+//    const QImage& imgData = *imgPtr;
+//
+//    bmp.w = imgData.width();
+//    bmp.h = imgData.height();
+//
+//    GLuint textureID;
+//
+//    if( m_freedTextureIds.empty() )
+//    {
+//        glGenTextures( 1, &textureID );
+//    }
+//    else
+//    {
+//        textureID = m_freedTextureIds.front();
+//        m_freedTextureIds.pop_front();
+//    }
+//
+//    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+//
+//    if( imgData.alpha() || imgData.HasMask() )
+//    {
+//        bmp.size = bmp.w * bmp.h * 4;
+//        auto buf = std::make_unique<uint8_t[]>( bmp.size );
+//
+//        uint8_t* dstP = buf.get();
+//        uint8_t* srcP = imgData.GetData();
+//
+//        long long pxCount = static_cast<long long>( bmp.w ) * bmp.h;
+//
+//        if( imgData.HasAlpha() )
+//        {
+//            uint8_t* srcAlpha = imgData.GetAlpha();
+//
+//            for( long long px = 0; px < pxCount; px++ )
+//            {
+//                memcpy( dstP, srcP, 3 );
+//                dstP[3] = *srcAlpha;
+//
+//                srcAlpha += 1;
+//                srcP += 3;
+//                dstP += 4;
+//            }
+//        }
+//        else if( imgData.HasMask() )
+//        {
+//            uint8_t maskRed = imgData.GetMaskRed();
+//            uint8_t maskGreen = imgData.GetMaskGreen();
+//            uint8_t maskBlue = imgData.GetMaskBlue();
+//
+//            for( long long px = 0; px < pxCount; px++ )
+//            {
+//                memcpy( dstP, srcP, 3 );
+//
+//                if( srcP[0] == maskRed && srcP[1] == maskGreen && srcP[2] == maskBlue )
+//                    dstP[3] = wxALPHA_TRANSPARENT;
+//                else
+//                    dstP[3] = wxALPHA_OPAQUE;
+//
+//                srcP += 3;
+//                dstP += 4;
+//            }
+//        }
+//
+//        glBindTexture( GL_TEXTURE_2D, textureID );
+//        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, bmp.w, bmp.h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+//                      buf.get() );
+//    }
+//    else
+//    {
+//        bmp.size = bmp.w * bmp.h * 3;
+//
+//        uint8_t* srcP = imgData.GetData();
+//
+//        glBindTexture( GL_TEXTURE_2D, textureID );
+//        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, bmp.w, bmp.h, 0, GL_RGB, GL_UNSIGNED_BYTE, srcP );
+//    }
+//
+//    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+//    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+//
+//    long long currentTime = wxGetUTCTimeMillis().GetValue();
+//
+//    bmp.id = textureID;
+//    bmp.accessTime = currentTime;
+//
+//#ifndef DISABLE_BITMAP_CACHE
+//    if( ( m_cacheLru.size() + 1 > m_cacheMaxElements || m_cacheSize + bmp.size > m_cacheMaxSize )
+//        && !m_cacheLru.empty() )
+//    {
+//        KIID toRemove( 0 );
+//        auto toRemoveLru = m_cacheLru.end();
+//
+//        // Remove entries accessed > 1s ago first
+//        for( const auto& [kiid, cachedBmp] : m_bitmaps )
+//        {
+//            const int cacheTimeoutMillis = 1000L;
+//
+//            if( currentTime - cachedBmp.accessTime > cacheTimeoutMillis )
+//            {
+//                toRemove = kiid;
+//                toRemoveLru = std::find( m_cacheLru.begin(), m_cacheLru.end(), toRemove );
+//                break;
+//            }
+//        }
+//
+//        // Otherwise, remove the latest entry (it's less likely to be needed soon)
+//        if( toRemove == niluuid )
+//        {
+//            toRemoveLru = m_cacheLru.end();
+//            toRemoveLru--;
+//
+//            toRemove = *toRemoveLru;
+//        }
+//
+//        CACHED_BITMAP& cachedBitmap = m_bitmaps[toRemove];
+//
+//        m_cacheSize -= cachedBitmap.size;
+//        glDeleteTextures( 1, &cachedBitmap.id );
+//        m_freedTextureIds.emplace_back( cachedBitmap.id );
+//
+//        m_bitmaps.erase( toRemove );
+//        m_cacheLru.erase( toRemoveLru );
+//    }
+//
+//    m_cacheLru.emplace_back( aBitmap->GetImageID() );
+//    m_cacheSize += bmp.size;
+//    m_bitmaps.emplace( aBitmap->GetImageID(), std::move( bmp ) );
+//#endif
 
-    const wxImage* imgPtr = aBitmap->GetOriginalImageData();
-
-    if( !imgPtr )
-        return std::numeric_limits< GLuint >::max();
-
-    const wxImage& imgData = *imgPtr;
-
-    bmp.w = imgData.GetSize().x;
-    bmp.h = imgData.GetSize().y;
-
-    GLuint textureID;
-
-    if( m_freedTextureIds.empty() )
-    {
-        glGenTextures( 1, &textureID );
-    }
-    else
-    {
-        textureID = m_freedTextureIds.front();
-        m_freedTextureIds.pop_front();
-    }
-
-    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-
-    if( imgData.HasAlpha() || imgData.HasMask() )
-    {
-        bmp.size = bmp.w * bmp.h * 4;
-        auto buf = std::make_unique<uint8_t[]>( bmp.size );
-
-        uint8_t* dstP = buf.get();
-        uint8_t* srcP = imgData.GetData();
-
-        long long pxCount = static_cast<long long>( bmp.w ) * bmp.h;
-
-        if( imgData.HasAlpha() )
-        {
-            uint8_t* srcAlpha = imgData.GetAlpha();
-
-            for( long long px = 0; px < pxCount; px++ )
-            {
-                memcpy( dstP, srcP, 3 );
-                dstP[3] = *srcAlpha;
-
-                srcAlpha += 1;
-                srcP += 3;
-                dstP += 4;
-            }
-        }
-        else if( imgData.HasMask() )
-        {
-            uint8_t maskRed = imgData.GetMaskRed();
-            uint8_t maskGreen = imgData.GetMaskGreen();
-            uint8_t maskBlue = imgData.GetMaskBlue();
-
-            for( long long px = 0; px < pxCount; px++ )
-            {
-                memcpy( dstP, srcP, 3 );
-
-                if( srcP[0] == maskRed && srcP[1] == maskGreen && srcP[2] == maskBlue )
-                    dstP[3] = wxALPHA_TRANSPARENT;
-                else
-                    dstP[3] = wxALPHA_OPAQUE;
-
-                srcP += 3;
-                dstP += 4;
-            }
-        }
-
-        glBindTexture( GL_TEXTURE_2D, textureID );
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, bmp.w, bmp.h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                      buf.get() );
-    }
-    else
-    {
-        bmp.size = bmp.w * bmp.h * 3;
-
-        uint8_t* srcP = imgData.GetData();
-
-        glBindTexture( GL_TEXTURE_2D, textureID );
-        glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, bmp.w, bmp.h, 0, GL_RGB, GL_UNSIGNED_BYTE, srcP );
-    }
-
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-
-    long long currentTime = wxGetUTCTimeMillis().GetValue();
-
-    bmp.id = textureID;
-    bmp.accessTime = currentTime;
-
-#ifndef DISABLE_BITMAP_CACHE
-    if( ( m_cacheLru.size() + 1 > m_cacheMaxElements || m_cacheSize + bmp.size > m_cacheMaxSize )
-        && !m_cacheLru.empty() )
-    {
-        KIID toRemove( 0 );
-        auto toRemoveLru = m_cacheLru.end();
-
-        // Remove entries accessed > 1s ago first
-        for( const auto& [kiid, cachedBmp] : m_bitmaps )
-        {
-            const int cacheTimeoutMillis = 1000L;
-
-            if( currentTime - cachedBmp.accessTime > cacheTimeoutMillis )
-            {
-                toRemove = kiid;
-                toRemoveLru = std::find( m_cacheLru.begin(), m_cacheLru.end(), toRemove );
-                break;
-            }
-        }
-
-        // Otherwise, remove the latest entry (it's less likely to be needed soon)
-        if( toRemove == niluuid )
-        {
-            toRemoveLru = m_cacheLru.end();
-            toRemoveLru--;
-
-            toRemove = *toRemoveLru;
-        }
-
-        CACHED_BITMAP& cachedBitmap = m_bitmaps[toRemove];
-
-        m_cacheSize -= cachedBitmap.size;
-        glDeleteTextures( 1, &cachedBitmap.id );
-        m_freedTextureIds.emplace_back( cachedBitmap.id );
-
-        m_bitmaps.erase( toRemove );
-        m_cacheLru.erase( toRemoveLru );
-    }
-
-    m_cacheLru.emplace_back( aBitmap->GetImageID() );
-    m_cacheSize += bmp.size;
-    m_bitmaps.emplace( aBitmap->GetImageID(), std::move( bmp ) );
-#endif
-
-    return textureID;
+    //return textureID;
+return 0;
 }
 
 
-OPENGL_GAL::OPENGL_GAL( const KIGFX::VC_SETTINGS& aVcSettings, GAL_DISPLAY_OPTIONS& aDisplayOptions,
-                        wxWindow* aParent,
-                        wxEvtHandler* aMouseListener, wxEvtHandler* aPaintListener,
-                        const wxString& aName ) :
+OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
+                        QWidget* aParent,
+                        const std::string& aName ) :
         GAL( aDisplayOptions ),
-        HIDPI_GL_CANVAS( aVcSettings, aParent, getGLAttribs(), wxID_ANY, wxDefaultPosition,
-                         wxDefaultSize,
-                         wxEXPAND, aName ),
-        m_mouseListener( aMouseListener ),
-        m_paintListener( aPaintListener ),
+        QOpenGLWidget(aParent),
         m_currentManager( nullptr ),
         m_cachedManager( nullptr ),
         m_nonCachedManager( nullptr ),
@@ -325,7 +294,7 @@ OPENGL_GAL::OPENGL_GAL( const KIGFX::VC_SETTINGS& aVcSettings, GAL_DISPLAY_OPTIO
 {
     if( m_glMainContext == nullptr )
     {
-        m_glMainContext = Pgm().GetGLContextManager()->CreateCtx( this );
+        m_glMainContext = GetGLContextManager()->CreateCtx( this );
 
         if( !m_glMainContext )
             throw std::runtime_error( "Could not create the main OpenGL context" );
@@ -334,7 +303,7 @@ OPENGL_GAL::OPENGL_GAL( const KIGFX::VC_SETTINGS& aVcSettings, GAL_DISPLAY_OPTIO
     }
     else
     {
-        m_glPrivContext = Pgm().GetGLContextManager()->CreateCtx( this, m_glMainContext );
+        m_glPrivContext = GetGLContextManager()->CreateCtx( this, m_glMainContext );
 
         if( !m_glPrivContext )
             throw std::runtime_error( "Could not create a private OpenGL context" );
@@ -345,8 +314,8 @@ OPENGL_GAL::OPENGL_GAL( const KIGFX::VC_SETTINGS& aVcSettings, GAL_DISPLAY_OPTIO
 
     m_bitmapCache = std::make_unique<GL_BITMAP_CACHE>();
 
-    m_compositor = new OPENGL_COMPOSITOR;
-    m_compositor->SetAntialiasingMode( m_options.antialiasing_mode );
+    //m_compositor = new OPENGL_COMPOSITOR;
+    //m_compositor->SetAntialiasingMode( m_options.antialiasing_mode );
 
     // Initialize the flags
     m_isFramebufferInitialized = false;
@@ -355,52 +324,22 @@ OPENGL_GAL::OPENGL_GAL( const KIGFX::VC_SETTINGS& aVcSettings, GAL_DISPLAY_OPTIO
     m_isGrouping = false;
     m_groupCounter = 0;
 
-    // Connect the native cursor handler
-    Connect( wxEVT_SET_CURSOR, wxSetCursorEventHandler( OPENGL_GAL::onSetNativeCursor ), nullptr,
-             this );
 
-    // Connecting the event handlers
-    Connect( wxEVT_PAINT, wxPaintEventHandler( OPENGL_GAL::onPaint ) );
+    resize(aParent->size());
 
-    // Mouse events are skipped to the parent
-    Connect( wxEVT_MOTION, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_LEFT_DOWN, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_LEFT_UP, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_LEFT_DCLICK, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_MIDDLE_DOWN, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_MIDDLE_UP, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_MIDDLE_DCLICK, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_RIGHT_DOWN, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_RIGHT_UP, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_RIGHT_DCLICK, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_AUX1_DOWN, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_AUX1_UP, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_AUX1_DCLICK, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_AUX2_DOWN, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_AUX2_UP, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_AUX2_DCLICK, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_MOUSEWHEEL, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-    Connect( wxEVT_MAGNIFY, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-
-#if defined _WIN32 || defined _WIN64
-    Connect( wxEVT_ENTER_WINDOW, wxMouseEventHandler( OPENGL_GAL::skipMouseEvent ) );
-#endif
-
-    Bind( wxEVT_GESTURE_ZOOM, &OPENGL_GAL::skipGestureEvent, this );
-    Bind( wxEVT_GESTURE_PAN, &OPENGL_GAL::skipGestureEvent, this );
-
-    SetSize( aParent->GetClientSize() );
-    m_screenSize = ToVECTOR2I( GetNativePixelSize() );
+    qreal dpr = devicePixelRatioF();  // 高 DPI 缩放因子
+    QSize nativeSize = size() * dpr;
+    m_screenSize = ToVECTOR2I(nativeSize); // 你自己把 QSizeF 转成 VECTOR2I
 
     // Grid color settings are different in Cairo and OpenGL
     SetGridColor( COLOR4D( 0.8, 0.8, 0.8, 0.1 ) );
     SetAxesColor( COLOR4D( BLUE ) );
 
     // Tesselator initialization
-    m_tesselator = gluNewTess();
-    InitTesselatorCallbacks( m_tesselator );
+    //m_tesselator = gluNewTess();
+    //InitTesselatorCallbacks( m_tesselator );
 
-    gluTessProperty( m_tesselator, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_POSITIVE );
+    //gluTessProperty( m_tesselator, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_POSITIVE );
 
     SetTarget( TARGET_NONCACHED );
 
@@ -416,15 +355,15 @@ OPENGL_GAL::OPENGL_GAL( const KIGFX::VC_SETTINGS& aVcSettings, GAL_DISPLAY_OPTIO
 OPENGL_GAL::~OPENGL_GAL()
 {
 
-    GL_CONTEXT_MANAGER* gl_mgr = Pgm().GetGLContextManager();
+    GL_CONTEXT_MANAGER* gl_mgr = GetGLContextManager();
     gl_mgr->LockCtx( m_glPrivContext, this );
 
     --m_instanceCounter;
     glFlush();
-    gluDeleteTess( m_tesselator );
+    //gluDeleteTess( m_tesselator );
     ClearCache();
 
-    delete m_compositor;
+    //delete m_compositor;
 
     if( m_isInitialized )
     {
@@ -461,22 +400,22 @@ OPENGL_GAL::~OPENGL_GAL()
 }
 
 
-wxString OPENGL_GAL::CheckFeatures( GAL_DISPLAY_OPTIONS& aOptions )
+std::string OPENGL_GAL::CheckFeatures( GAL_DISPLAY_OPTIONS& aOptions )
 {
-    wxString retVal = wxEmptyString;
+    std::string retVal;
 
-    wxFrame* testFrame = new wxFrame( nullptr, wxID_ANY, wxT( "" ), wxDefaultPosition,
-                                      wxSize( 1, 1 ), wxFRAME_TOOL_WINDOW | wxNO_BORDER );
+    QWidget* testFrame = new QWidget(nullptr, Qt::Tool | Qt::FramelessWindowHint);
+    testFrame->resize(1, 1);
+    testFrame->setWindowTitle("");
 
     KIGFX::OPENGL_GAL* opengl_gal = nullptr;
 
     try
     {
-        KIGFX::VC_SETTINGS dummy;
-        opengl_gal = new KIGFX::OPENGL_GAL( dummy, aOptions, testFrame );
+        opengl_gal = new KIGFX::OPENGL_GAL(aOptions, testFrame );
 
-        testFrame->Raise();
-        testFrame->Show();
+        testFrame->raise();
+        testFrame->show();
 
         GAL_CONTEXT_LOCKER lock( opengl_gal );
         opengl_gal->init();
@@ -484,7 +423,7 @@ wxString OPENGL_GAL::CheckFeatures( GAL_DISPLAY_OPTIONS& aOptions )
     catch( std::runtime_error& err )
     {
         //Test failed
-        retVal = wxString( err.what() );
+        retVal = std::string( err.what() );
     }
 
     delete opengl_gal;
@@ -494,11 +433,10 @@ wxString OPENGL_GAL::CheckFeatures( GAL_DISPLAY_OPTIONS& aOptions )
 }
 
 
-void OPENGL_GAL::PostPaint( wxPaintEvent& aEvent )
+void OPENGL_GAL::PostPaint()
 {
     // posts an event to m_paint_listener to ask for redraw the canvas.
-    if( m_paintListener )
-        wxPostEvent( m_paintListener, aEvent );
+    emit paintRequested();
 }
 
 
@@ -508,18 +446,18 @@ bool OPENGL_GAL::updatedGalDisplayOptions( const GAL_DISPLAY_OPTIONS& aOptions )
 
     bool refresh = false;
 
-    if( m_options.antialiasing_mode != m_compositor->GetAntialiasingMode() )
-    {
-        m_compositor->SetAntialiasingMode( m_options.antialiasing_mode );
-        m_isFramebufferInitialized = false;
-        refresh = true;
-    }
+    //if( m_options.antialiasing_mode != m_compositor->GetAntialiasingMode() )
+    //{
+    //    m_compositor->SetAntialiasingMode( m_options.antialiasing_mode );
+    //    m_isFramebufferInitialized = false;
+    //    refresh = true;
+    //}
 
-    if( super::updatedGalDisplayOptions( aOptions ) || refresh )
-    {
-        Refresh();
-        refresh = true;
-    }
+    //if( super::updatedGalDisplayOptions( aOptions ) || refresh )
+    //{
+    //    Refresh();
+    //    refresh = true;
+    //}
 
     return refresh;
 }
@@ -546,12 +484,12 @@ void OPENGL_GAL::BeginDrawing()
     PROF_TIMER totalRealTime( "OPENGL_GAL::beginDrawing()", true );
 #endif /* KICAD_GAL_PROFILE */
 
-    wxASSERT_MSG( m_isContextLocked, "GAL_DRAWING_CONTEXT RAII object should have locked context. "
-                                     "Calling GAL::beginDrawing() directly is not allowed." );
+    //wxASSERT_MSG( m_isContextLocked, "GAL_DRAWING_CONTEXT RAII object should have locked context. "
+    //                                 "Calling GAL::beginDrawing() directly is not allowed." );
 
-    wxASSERT_MSG( IsVisible(), "GAL::beginDrawing() must not be entered when GAL is not visible. "
-                               "Other drawing routines will expect everything to be initialized "
-                               "which will not be the case." );
+    //wxASSERT_MSG( IsVisible(), "GAL::beginDrawing() must not be entered when GAL is not visible. "
+    //                           "Other drawing routines will expect everything to be initialized "
+    //                           "which will not be the case." );
 
     if( !m_isInitialized )
         init();
@@ -575,7 +513,7 @@ void OPENGL_GAL::BeginDrawing()
         }
         catch( const std::runtime_error& )
         {
-            wxLogVerbose( "Could not create a framebuffer for diff mode blending.\n" );
+            spdlog::trace( "Could not create a framebuffer for diff mode blending.\n" );
             m_tempBuffer = 0;
         }
         try
@@ -584,7 +522,7 @@ void OPENGL_GAL::BeginDrawing()
         }
         catch( const std::runtime_error& )
         {
-            wxLogVerbose( "Could not create a framebuffer for overlays.\n" );
+            spdlog::trace( "Could not create a framebuffer for overlays.\n" );
             m_overlayBuffer = 0;
         }
 
@@ -771,37 +709,37 @@ void OPENGL_GAL::EndDrawing()
 
 void OPENGL_GAL::LockContext( int aClientCookie )
 {
-    wxASSERT_MSG( !m_isContextLocked, "Context already locked." );
+    //wxASSERT_MSG( !m_isContextLocked, "Context already locked." );
     m_isContextLocked = true;
     m_lockClientCookie = aClientCookie;
 
-    Pgm().GetGLContextManager()->LockCtx( m_glPrivContext, this );
+    GetGLContextManager()->LockCtx( m_glPrivContext, this );
 }
 
 
 void OPENGL_GAL::UnlockContext( int aClientCookie )
 {
-    wxASSERT_MSG( m_isContextLocked, "Context not locked.  A GAL_CONTEXT_LOCKER RAII object must "
-                                     "be stacked rather than making separate lock/unlock calls." );
+    //wxASSERT_MSG( m_isContextLocked, "Context not locked.  A GAL_CONTEXT_LOCKER RAII object must "
+    //                                 "be stacked rather than making separate lock/unlock calls." );
 
-    wxASSERT_MSG( m_lockClientCookie == aClientCookie,
-                  "Context was locked by a different client. "
-                  "Should not be possible with RAII objects." );
+    //wxASSERT_MSG( m_lockClientCookie == aClientCookie,
+    //              "Context was locked by a different client. "
+    //              "Should not be possible with RAII objects." );
 
     m_isContextLocked = false;
 
-    Pgm().GetGLContextManager()->UnlockCtx( m_glPrivContext );
+    GetGLContextManager()->UnlockCtx( m_glPrivContext );
 }
 
 
 void OPENGL_GAL::beginUpdate()
 {
-    wxASSERT_MSG( m_isContextLocked, "GAL_UPDATE_CONTEXT RAII object should have locked context. "
-                                     "Calling this from anywhere else is not allowed." );
+    //wxASSERT_MSG( m_isContextLocked, "GAL_UPDATE_CONTEXT RAII object should have locked context. "
+    //                                 "Calling this from anywhere else is not allowed." );
 
-    wxASSERT_MSG( IsVisible(), "GAL::beginUpdate() must not be entered when GAL is not visible. "
-                               "Other update routines will expect everything to be initialized "
-                               "which will not be the case." );
+    //wxASSERT_MSG( IsVisible(), "GAL::beginUpdate() must not be entered when GAL is not visible. "
+    //                           "Other update routines will expect everything to be initialized "
+    //                           "which will not be the case." );
 
     if( !m_isInitialized )
         init();
@@ -1063,7 +1001,7 @@ void OPENGL_GAL::DrawArcSegment( const VECTOR2D& aCenterPoint, double aRadius,
 
     // Calculate the seg count to approximate the arc with aMaxError or less
     int segCount360 = GetArcToSegmentCount( aRadius, aMaxError, FULL_CIRCLE );
-    segCount360 = std::max( SEG_PER_CIRCLE_COUNT, segCount360 );
+    segCount360 = std::max<int>( SEG_PER_CIRCLE_COUNT, segCount360 );
     double alphaIncrement = 2.0 * M_PI / segCount360;
 
     // Refinement: Use a segment count multiple of 2, because we have a control point
@@ -1577,7 +1515,7 @@ void OPENGL_GAL::DrawBitmap( const BITMAP_BASE& aBitmap, double alphaBlend )
 }
 
 
-void OPENGL_GAL::BitmapText( const wxString& aText, const VECTOR2I& aPosition,
+void OPENGL_GAL::BitmapText( const std::string& aText, const VECTOR2I& aPosition,
                              const EDA_ANGLE& aAngle )
 {
     // Fallback to generic impl (which uses the stroke font) on cases we don't handle
@@ -2165,14 +2103,6 @@ bool OPENGL_GAL::SetNativeCursorStyle( KICURSOR aCursor, bool aHiDPI )
 }
 
 
-void OPENGL_GAL::onSetNativeCursor( wxSetCursorEvent& aEvent )
-{
-#if wxCHECK_VERSION( 3, 3, 0 )
-    aEvent.SetCursor( m_currentwxCursor.GetCursorFor( this ) );
-#else
-    aEvent.SetCursor( m_currentwxCursor );
-#endif
-}
 
 
 void OPENGL_GAL::DrawCursor( const VECTOR2D& aCursorPosition )
@@ -2613,25 +2543,25 @@ std::pair<VECTOR2D, float> OPENGL_GAL::computeBitmapTextSize( const UTF8& aText 
 }
 
 
-void OPENGL_GAL::onPaint( wxPaintEvent& aEvent )
+void OPENGL_GAL::onPaint()
 {
-    PostPaint( aEvent );
+    PostPaint();
 }
 
 
-void OPENGL_GAL::skipMouseEvent( wxMouseEvent& aEvent )
+void OPENGL_GAL::skipMouseEvent( QMouseEvent& aEvent )
 {
     // Post the mouse event to the event listener registered in constructor, if any
-    if( m_mouseListener )
-        wxPostEvent( m_mouseListener, aEvent );
+    //if( m_mouseListener )
+    //    wxPostEvent( m_mouseListener, aEvent );
 }
 
 
-void OPENGL_GAL::skipGestureEvent( wxGestureEvent& aEvent )
+void OPENGL_GAL::skipGestureEvent( QGesture& aEvent )
 {
     // Post the gesture event to the event listener registered in constructor, if any
-    if( m_mouseListener )
-        wxPostEvent( m_mouseListener, aEvent );
+    //if( m_mouseListener )
+    //    wxPostEvent( m_mouseListener, aEvent );
 }
 
 
@@ -2683,14 +2613,15 @@ unsigned int OPENGL_GAL::getNewGroupNumber()
 void OPENGL_GAL::init()
 {
 #ifndef KICAD_USE_EGL
-    wxASSERT( IsShownOnScreen() );
+    //assert( IsShownOnScreen() );
 #endif // KICAD_USE_EGL
-
-    wxASSERT_MSG( m_isContextLocked, "This should only be called from within a locked context." );
+    assert(m_isContextLocked);
+    //wxASSERT_MSG( m_isContextLocked, "This should only be called from within a locked context." );
 
     // Check correct initialization from the constructor
-    if( m_tesselator == nullptr )
-        throw std::runtime_error( "Could not create the tesselator" );
+    //if( m_tesselator == nullptr )
+    //    throw std::runtime_error( "Could not create the tesselator" );
+    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
     GLenum err = glewInit();
 
 #ifdef KICAD_USE_EGL
@@ -2706,15 +2637,15 @@ void OPENGL_GAL::init()
 
 #endif // KICAD_USE_EGL
 
-    SetOpenGLInfo( (const char*) glGetString( GL_VENDOR ), (const char*) glGetString( GL_RENDERER ),
-                   (const char*) glGetString( GL_VERSION ) );
+    //SetOpenGLInfo( (const char*) glGetString( GL_VENDOR ), (const char*) glGetString( GL_RENDERER ),
+    //               (const char*) glGetString( GL_VERSION ) );
 
     if( GLEW_OK != err )
         throw std::runtime_error( (const char*) glewGetErrorString( err ) );
 
     // Check the OpenGL version (minimum 2.1 is required)
-    if( !GLEW_VERSION_2_1 )
-        throw std::runtime_error( "OpenGL 2.1 or higher is required!" );
+    //if( !GLEW_VERSION_2_1 )
+    //    throw std::runtime_error( "OpenGL 2.1 or higher is required!" );
 
 #if defined( __LINUX__ ) // calling enableGlDebug crashes opengl on some OS (OSX and some Windows)
 #ifdef DEBUG
@@ -2724,24 +2655,24 @@ void OPENGL_GAL::init()
 #endif
 
     // Framebuffers have to be supported
-    if( !GLEW_EXT_framebuffer_object )
-        throw std::runtime_error( "Framebuffer objects are not supported!" );
+    //if( !GLEW_EXT_framebuffer_object )
+    //    throw std::runtime_error( "Framebuffer objects are not supported!" );
 
     // Vertex buffer has to be supported
-    if( !GLEW_ARB_vertex_buffer_object )
-        throw std::runtime_error( "Vertex buffer objects are not supported!" );
+    //if( !GLEW_ARB_vertex_buffer_object )
+    //    throw std::runtime_error( "Vertex buffer objects are not supported!" );
 
     // Prepare shaders
     if( !m_shader->IsLinked()
-        && !m_shader->LoadShaderFromStrings( SHADER_TYPE_VERTEX,
-                                             BUILTIN_SHADERS::glsl_kicad_vert ) )
+        && !m_shader->LoadShaderFromFile( QOpenGLShader::Vertex,
+                                             "mini_vert"))
     {
         throw std::runtime_error( "Cannot compile vertex shader!" );
     }
 
     if( !m_shader->IsLinked()
-        && !m_shader->LoadShaderFromStrings( SHADER_TYPE_FRAGMENT,
-                                             BUILTIN_SHADERS::glsl_kicad_frag ) )
+        && !m_shader->LoadShaderFromFile( QOpenGLShader::Fragment,
+                                             "mini_frag"))
     {
         throw std::runtime_error( "Cannot compile fragment shader!" );
     }
@@ -2819,13 +2750,13 @@ void CALLBACK ErrorCallback( GLenum aErrorCode )
 }
 
 
-static void InitTesselatorCallbacks( GLUtesselator* aTesselator )
-{
-    gluTessCallback( aTesselator, GLU_TESS_VERTEX_DATA, (void( CALLBACK* )()) VertexCallback );
-    gluTessCallback( aTesselator, GLU_TESS_COMBINE_DATA, (void( CALLBACK* )()) CombineCallback );
-    gluTessCallback( aTesselator, GLU_TESS_EDGE_FLAG, (void( CALLBACK* )()) EdgeCallback );
-    gluTessCallback( aTesselator, GLU_TESS_ERROR, (void( CALLBACK* )()) ErrorCallback );
-}
+//static void InitTesselatorCallbacks( GLUtesselator* aTesselator )
+//{
+//    gluTessCallback( aTesselator, GLU_TESS_VERTEX_DATA, (void( CALLBACK* )()) VertexCallback );
+//    gluTessCallback( aTesselator, GLU_TESS_COMBINE_DATA, (void( CALLBACK* )()) CombineCallback );
+//    gluTessCallback( aTesselator, GLU_TESS_EDGE_FLAG, (void( CALLBACK* )()) EdgeCallback );
+//    gluTessCallback( aTesselator, GLU_TESS_ERROR, (void( CALLBACK* )()) ErrorCallback );
+//}
 
 
 void OPENGL_GAL::EnableDepthTest( bool aEnabled )
@@ -2856,140 +2787,140 @@ void OPENGL_GAL::ComputeWorldScreenMatrix()
 }
 
 
-void OPENGL_GAL::DrawGlyph( const KIFONT::GLYPH& aGlyph, int aNth, int aTotal )
-{
-    if( aGlyph.IsStroke() )
-    {
-        const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( aGlyph );
-
-        DrawPolylines( strokeGlyph );
-    }
-    else if( aGlyph.IsOutline() )
-    {
-        const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( aGlyph );
-
-        m_currentManager->Shader( SHADER_NONE );
-        m_currentManager->Color( m_fillColor );
-
-        outlineGlyph.Triangulate(
-                [&]( const VECTOR2D& aPt1, const VECTOR2D& aPt2, const VECTOR2D& aPt3 )
-                {
-                    m_currentManager->Reserve( 3 );
-
-                    m_currentManager->Vertex( aPt1.x, aPt1.y, m_layerDepth );
-                    m_currentManager->Vertex( aPt2.x, aPt2.y, m_layerDepth );
-                    m_currentManager->Vertex( aPt3.x, aPt3.y, m_layerDepth );
-                } );
-    }
-}
-
-
-void OPENGL_GAL::DrawGlyphs( const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs )
-{
-    if( aGlyphs.empty() )
-        return;
-
-    bool allGlyphsAreStroke = true;
-    bool allGlyphsAreOutline = true;
-
-    for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-    {
-        if( !glyph->IsStroke() )
-        {
-            allGlyphsAreStroke = false;
-            break;
-        }
-    }
-
-    for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-    {
-        if( !glyph->IsOutline() )
-        {
-            allGlyphsAreOutline = false;
-            break;
-        }
-    }
-
-    if( allGlyphsAreStroke )
-    {
-        // Optimized path for stroke fonts that pre-reserves line quads.
-        int lineQuadCount = 0;
-
-        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-        {
-            const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( *glyph );
-
-            for( const std::vector<VECTOR2D>& points : strokeGlyph )
-                lineQuadCount += points.size() - 1;
-        }
-
-        reserveLineQuads( lineQuadCount );
-
-        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-        {
-            const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( *glyph );
-
-            for( const std::vector<VECTOR2D>& points : strokeGlyph )
-            {
-                drawPolyline(
-                        [&]( int idx )
-                        {
-                            return points[idx];
-                        },
-                        points.size(), false );
-            }
-        }
-
-        return;
-    }
-    else if( allGlyphsAreOutline )
-    {
-        // Optimized path for outline fonts that pre-reserves glyph triangles.
-        int triangleCount = 0;
-
-        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-        {
-            const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( *glyph );
-
-            for( unsigned int i = 0; i < outlineGlyph.TriangulatedPolyCount(); i++ )
-            {
-                const SHAPE_POLY_SET::TRIANGULATED_POLYGON* polygon =
-                        outlineGlyph.TriangulatedPolygon( i );
-
-                triangleCount += polygon->GetTriangleCount();
-            }
-        }
-
-        m_currentManager->Shader( SHADER_NONE );
-        m_currentManager->Color( m_fillColor );
-
-        m_currentManager->Reserve( 3 * triangleCount );
-
-        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-        {
-            const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( *glyph );
-
-            for( unsigned int i = 0; i < outlineGlyph.TriangulatedPolyCount(); i++ )
-            {
-                const SHAPE_POLY_SET::TRIANGULATED_POLYGON* polygon =
-                        outlineGlyph.TriangulatedPolygon( i );
-
-                for( size_t j = 0; j < polygon->GetTriangleCount(); j++ )
-                {
-                    VECTOR2I a, b, c;
-                    polygon->GetTriangle( j, a, b, c );
-
-                    m_currentManager->Vertex( a.x, a.y, m_layerDepth );
-                    m_currentManager->Vertex( b.x, b.y, m_layerDepth );
-                    m_currentManager->Vertex( c.x, c.y, m_layerDepth );
-                }
-            }
-        }
-    }
-    else
-    {
-        // Regular path
-        for( size_t i = 0; i < aGlyphs.size(); i++ )
-            DrawGlyph( *aGlyphs[i], i, aGlyphs.size() );
-    }
-}
+//void OPENGL_GAL::DrawGlyph( const KIFONT::GLYPH& aGlyph, int aNth, int aTotal )
+//{
+//    if( aGlyph.IsStroke() )
+//    {
+//        const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( aGlyph );
+//
+//        DrawPolylines( strokeGlyph );
+//    }
+//    else if( aGlyph.IsOutline() )
+//    {
+//        const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( aGlyph );
+//
+//        m_currentManager->Shader( SHADER_NONE );
+//        m_currentManager->Color( m_fillColor );
+//
+//        outlineGlyph.Triangulate(
+//                [&]( const VECTOR2D& aPt1, const VECTOR2D& aPt2, const VECTOR2D& aPt3 )
+//                {
+//                    m_currentManager->Reserve( 3 );
+//
+//                    m_currentManager->Vertex( aPt1.x, aPt1.y, m_layerDepth );
+//                    m_currentManager->Vertex( aPt2.x, aPt2.y, m_layerDepth );
+//                    m_currentManager->Vertex( aPt3.x, aPt3.y, m_layerDepth );
+//                } );
+//    }
+//}
+//
+//
+//void OPENGL_GAL::DrawGlyphs( const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs )
+//{
+//    if( aGlyphs.empty() )
+//        return;
+//
+//    bool allGlyphsAreStroke = true;
+//    bool allGlyphsAreOutline = true;
+//
+//    for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+//    {
+//        if( !glyph->IsStroke() )
+//        {
+//            allGlyphsAreStroke = false;
+//            break;
+//        }
+//    }
+//
+//    for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+//    {
+//        if( !glyph->IsOutline() )
+//        {
+//            allGlyphsAreOutline = false;
+//            break;
+//        }
+//    }
+//
+//    if( allGlyphsAreStroke )
+//    {
+//        // Optimized path for stroke fonts that pre-reserves line quads.
+//        int lineQuadCount = 0;
+//
+//        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+//        {
+//            const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( *glyph );
+//
+//            for( const std::vector<VECTOR2D>& points : strokeGlyph )
+//                lineQuadCount += points.size() - 1;
+//        }
+//
+//        reserveLineQuads( lineQuadCount );
+//
+//        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+//        {
+//            const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( *glyph );
+//
+//            for( const std::vector<VECTOR2D>& points : strokeGlyph )
+//            {
+//                drawPolyline(
+//                        [&]( int idx )
+//                        {
+//                            return points[idx];
+//                        },
+//                        points.size(), false );
+//            }
+//        }
+//
+//        return;
+//    }
+//    else if( allGlyphsAreOutline )
+//    {
+//        // Optimized path for outline fonts that pre-reserves glyph triangles.
+//        int triangleCount = 0;
+//
+//        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+//        {
+//            const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( *glyph );
+//
+//            for( unsigned int i = 0; i < outlineGlyph.TriangulatedPolyCount(); i++ )
+//            {
+//                const SHAPE_POLY_SET::TRIANGULATED_POLYGON* polygon =
+//                        outlineGlyph.TriangulatedPolygon( i );
+//
+//                triangleCount += polygon->GetTriangleCount();
+//            }
+//        }
+//
+//        m_currentManager->Shader( SHADER_NONE );
+//        m_currentManager->Color( m_fillColor );
+//
+//        m_currentManager->Reserve( 3 * triangleCount );
+//
+//        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+//        {
+//            const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( *glyph );
+//
+//            for( unsigned int i = 0; i < outlineGlyph.TriangulatedPolyCount(); i++ )
+//            {
+//                const SHAPE_POLY_SET::TRIANGULATED_POLYGON* polygon =
+//                        outlineGlyph.TriangulatedPolygon( i );
+//
+//                for( size_t j = 0; j < polygon->GetTriangleCount(); j++ )
+//                {
+//                    VECTOR2I a, b, c;
+//                    polygon->GetTriangle( j, a, b, c );
+//
+//                    m_currentManager->Vertex( a.x, a.y, m_layerDepth );
+//                    m_currentManager->Vertex( b.x, b.y, m_layerDepth );
+//                    m_currentManager->Vertex( c.x, c.y, m_layerDepth );
+//                }
+//            }
+//        }
+//    }
+//    else
+//    {
+//        // Regular path
+//        for( size_t i = 0; i < aGlyphs.size(); i++ )
+//            DrawGlyph( *aGlyphs[i], i, aGlyphs.size() );
+//    }
+//}

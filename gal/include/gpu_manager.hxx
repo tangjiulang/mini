@@ -98,7 +98,7 @@ protected:
 
     ///< true: enable Z test when drawing
     bool m_enableDepthTest;
-};
+};  
 
 
 class GPU_CACHED_MANAGER : public GPU_MANAGER
