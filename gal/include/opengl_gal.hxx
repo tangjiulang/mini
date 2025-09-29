@@ -40,7 +40,7 @@
 #include "gal/include/vertex_item.hxx"
 #include "gal/include/cached_container.hxx"
 #include "gal/include/noncached_container.hxx"
-//#include <gal/opengl/opengl_compositor.h>
+#include <gal/include/opengl_compositor.hxx>
 //#include <gal/hidpi_gl_canvas.h>
 
 #include <unordered_map>

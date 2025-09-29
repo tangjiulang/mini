@@ -10,7 +10,7 @@
 //#include "gr_basic.hxx"
 #include "util.hxx"    // for KiROUND
 //#include <plotters/plotter.h>
-#include "richio.hxx"
+//#include "richio.hxx"
 
 
 
@@ -192,13 +192,13 @@ bool BITMAP_BASE::LoadLegacyData( LINE_READER& aLine, QString& aErrorMsg )
 
     while( true )
     {
-        if( !aLine.ReadLine() )
-        {
-            aErrorMsg = "Unexpected end of data";
-            return false;
-        }
+        //if( !aLine.ReadLine() )
+        //{
+        //    aErrorMsg = "Unexpected end of data";
+        //    return false;
+        //}
 
-        line = aLine.Line();
+        //line = aLine.Line();
 
         if( strnicmp( line, "EndData", 4) == 0 )
         {

@@ -7,14 +7,14 @@
 #include "gal/include/shader.hxx"
 #include "vector2wx.hxx"
 #include "bitmap_base.hxx"
-#include <bezier_curves.h>
+#include <bezier_curves.hxx>
 #include "util.hxx" // for KiROUND
 //#include <pgm_base.h>
 
 
-#include <macros.h>
-#include "geometry/shape_poly_set.h"
-#include <geometry/geometry_utils.h>
+//#include <macros.h>
+#include "shape_poly_set.hxx"
+#include "geometry_utils.hxx"
 //#include <thread_pool.h>
 
 #include "profile.hxx"
@@ -621,7 +621,7 @@ void OPENGL_GAL::BeginDrawing()
 
     m_shader->Use();
     m_shader->SetParameter( ufm_worldPixelSize,
-                            (float) ( getWorldPixelSize() / GetScaleFactor() ) );
+                            (float) ( getWorldPixelSize() / devicePixelRatioF() ) );
     const VECTOR2D& screenPixelSize = getScreenPixelSize();
     m_shader->SetParameter( ufm_screenPixelSize, screenPixelSize );
     double pixelSizeMultiplier = m_compositor->GetAntialiasSupersamplingFactor();
@@ -649,7 +649,7 @@ void OPENGL_GAL::BeginDrawing()
 
 void OPENGL_GAL::EndDrawing()
 {
-    wxASSERT_MSG( m_isContextLocked, "What happened to the context lock?" );
+    //wxASSERT_MSG( m_isContextLocked, "What happened to the context lock?" );
 
     PROF_TIMER cntTotal( "gl-end-total" );
     PROF_TIMER cntEndCached( "gl-end-cached" );
@@ -701,7 +701,7 @@ void OPENGL_GAL::EndDrawing()
 
     cntTotal.Stop();
 
-    KI_TRACE( traceGalProfile, "Timing: %s %s %s %s %s %s\n", cntTotal.to_string(),
+    KI_TRACE( traceGalProfile.data(), "Timing: %s %s %s %s %s %s\n", cntTotal.to_string(),
               cntEndCached.to_string(), cntEndNoncached.to_string(), cntEndOverlay.to_string(),
               cntComposite.to_string(), cntSwap.to_string() );
 }
@@ -1269,7 +1269,8 @@ void OPENGL_GAL::DrawPolylines( const std::vector<std::vector<VECTOR2D>>& aPoint
 
 void OPENGL_GAL::DrawPolygon( const std::deque<VECTOR2D>& aPointList )
 {
-    wxCHECK( aPointList.size() >= 2, /* void */ );
+    if (aPointList.size() >= 2)
+        return;
     auto      points = std::unique_ptr<GLdouble[]>( new GLdouble[3 * aPointList.size()] );
     GLdouble* ptr = points.get();
 
@@ -1286,7 +1287,7 @@ void OPENGL_GAL::DrawPolygon( const std::deque<VECTOR2D>& aPointList )
 
 void OPENGL_GAL::DrawPolygon( const VECTOR2D aPointList[], int aListSize )
 {
-    wxCHECK( aListSize >= 2, /* void */ );
+    if ( aListSize >= 2) return;
     auto            points = std::unique_ptr<GLdouble[]>( new GLdouble[3 * aListSize] );
     GLdouble*       target = points.get();
     const VECTOR2D* src = aPointList;
@@ -1350,7 +1351,7 @@ void OPENGL_GAL::drawTriangulatedPolyset( const SHAPE_POLY_SET& aPolySet,
         }
     }
 
-    if( ADVANCED_CFG::GetCfg().m_DrawTriangulationOutlines )
+    //if( ADVANCED_CFG::GetCfg().m_DrawTriangulationOutlines )
     {
         aStrokeTriangulation = true;
         SetStrokeColor( COLOR4D( 0.0, 1.0, 0.2, 1.0 ) );
@@ -1439,395 +1440,395 @@ void OPENGL_GAL::DrawCurve( const VECTOR2D& aStartPoint, const VECTOR2D& aContro
 
 void OPENGL_GAL::DrawBitmap( const BITMAP_BASE& aBitmap, double alphaBlend )
 {
-    GLfloat alpha = std::clamp( alphaBlend, 0.0, 1.0 );
-
-    // We have to calculate the pixel size in users units to draw the image.
-    // m_worldUnitLength is a factor used for converting IU to inches
-    double scale = 1.0 / ( aBitmap.GetPPI() * m_worldUnitLength );
-    double w = (double) aBitmap.GetSizePixels().x * scale;
-    double h = (double) aBitmap.GetSizePixels().y * scale;
-
-    auto xform = m_currentManager->GetTransformation();
-
-    glm::vec4 v0 = xform * glm::vec4( -w / 2, -h / 2, 0.0, 0.0 );
-    glm::vec4 v1 = xform * glm::vec4( w / 2, h / 2, 0.0, 0.0 );
-    glm::vec4 trans = xform[3];
-
-    auto texture_id = m_bitmapCache->RequestBitmap( &aBitmap );
-
-    if( !glIsTexture( texture_id ) ) // ensure the bitmap texture is still valid
-        return;
-
-    glDepthFunc( GL_ALWAYS );
-
-    glAlphaFunc( GL_GREATER, 0.01f );
-    glEnable( GL_ALPHA_TEST );
-
-    glMatrixMode( GL_TEXTURE );
-    glPushMatrix();
-    glTranslated( 0.5, 0.5, 0.5 );
-    glRotated( aBitmap.Rotation().AsDegrees(), 0, 0, 1 );
-    glTranslated( -0.5, -0.5, -0.5 );
-
-    glMatrixMode( GL_MODELVIEW );
-    glPushMatrix();
-    glTranslated( trans.x, trans.y, trans.z );
-
-    glEnable( GL_TEXTURE_2D );
-    glActiveTexture( GL_TEXTURE0 );
-    glBindTexture( GL_TEXTURE_2D, texture_id );
-
-    float texStartX = aBitmap.IsMirroredX() ? 1.0 : 0.0;
-    float texEndX   = aBitmap.IsMirroredX() ? 0.0 : 1.0;
-    float texStartY = aBitmap.IsMirroredY() ? 1.0 : 0.0;
-    float texEndY   = aBitmap.IsMirroredY() ? 0.0 : 1.0;
-
-    glBegin( GL_QUADS );
-    glColor4f( 1.0, 1.0, 1.0, alpha );
-    glTexCoord2f( texStartX, texStartY );
-    glVertex3f( v0.x, v0.y, m_layerDepth );
-    glColor4f( 1.0, 1.0, 1.0, alpha );
-    glTexCoord2f( texEndX,  texStartY);
-    glVertex3f( v1.x, v0.y, m_layerDepth );
-    glColor4f( 1.0, 1.0, 1.0, alpha );
-    glTexCoord2f( texEndX, texEndY);
-    glVertex3f( v1.x, v1.y, m_layerDepth );
-    glColor4f( 1.0, 1.0, 1.0, alpha );
-    glTexCoord2f( texStartX, texEndY);
-    glVertex3f( v0.x, v1.y, m_layerDepth );
-    glEnd();
-
-    glBindTexture( GL_TEXTURE_2D, 0 );
-
-#ifdef DISABLE_BITMAP_CACHE
-    glDeleteTextures( 1, &texture_id );
-#endif
-
-    glPopMatrix();
-
-    glMatrixMode( GL_TEXTURE );
-    glPopMatrix();
-    glMatrixMode( GL_MODELVIEW );
-
-    glDisable( GL_ALPHA_TEST );
-
-    glDepthFunc( GL_LESS );
+//    GLfloat alpha = std::clamp( alphaBlend, 0.0, 1.0 );
+//
+//    // We have to calculate the pixel size in users units to draw the image.
+//    // m_worldUnitLength is a factor used for converting IU to inches
+//    double scale = 1.0 / ( aBitmap.GetPPI() * m_worldUnitLength );
+//    double w = (double) aBitmap.GetSizePixels().x * scale;
+//    double h = (double) aBitmap.GetSizePixels().y * scale;
+//
+//    auto xform = m_currentManager->GetTransformation();
+//
+//    glm::vec4 v0 = xform * glm::vec4( -w / 2, -h / 2, 0.0, 0.0 );
+//    glm::vec4 v1 = xform * glm::vec4( w / 2, h / 2, 0.0, 0.0 );
+//    glm::vec4 trans = xform[3];
+//
+//    auto texture_id = m_bitmapCache->RequestBitmap( &aBitmap );
+//
+//    if( !glIsTexture( texture_id ) ) // ensure the bitmap texture is still valid
+//        return;
+//
+//    glDepthFunc( GL_ALWAYS );
+//
+//    glAlphaFunc( GL_GREATER, 0.01f );
+//    glEnable( GL_ALPHA_TEST );
+//
+//    glMatrixMode( GL_TEXTURE );
+//    glPushMatrix();
+//    glTranslated( 0.5, 0.5, 0.5 );
+//    glRotated( aBitmap.Rotation().AsDegrees(), 0, 0, 1 );
+//    glTranslated( -0.5, -0.5, -0.5 );
+//
+//    glMatrixMode( GL_MODELVIEW );
+//    glPushMatrix();
+//    glTranslated( trans.x, trans.y, trans.z );
+//
+//    glEnable( GL_TEXTURE_2D );
+//    glActiveTexture( GL_TEXTURE0 );
+//    glBindTexture( GL_TEXTURE_2D, texture_id );
+//
+//    float texStartX = aBitmap.IsMirroredX() ? 1.0 : 0.0;
+//    float texEndX   = aBitmap.IsMirroredX() ? 0.0 : 1.0;
+//    float texStartY = aBitmap.IsMirroredY() ? 1.0 : 0.0;
+//    float texEndY   = aBitmap.IsMirroredY() ? 0.0 : 1.0;
+//
+//    glBegin( GL_QUADS );
+//    glColor4f( 1.0, 1.0, 1.0, alpha );
+//    glTexCoord2f( texStartX, texStartY );
+//    glVertex3f( v0.x, v0.y, m_layerDepth );
+//    glColor4f( 1.0, 1.0, 1.0, alpha );
+//    glTexCoord2f( texEndX,  texStartY);
+//    glVertex3f( v1.x, v0.y, m_layerDepth );
+//    glColor4f( 1.0, 1.0, 1.0, alpha );
+//    glTexCoord2f( texEndX, texEndY);
+//    glVertex3f( v1.x, v1.y, m_layerDepth );
+//    glColor4f( 1.0, 1.0, 1.0, alpha );
+//    glTexCoord2f( texStartX, texEndY);
+//    glVertex3f( v0.x, v1.y, m_layerDepth );
+//    glEnd();
+//
+//    glBindTexture( GL_TEXTURE_2D, 0 );
+//
+//#ifdef DISABLE_BITMAP_CACHE
+//    glDeleteTextures( 1, &texture_id );
+//#endif
+//
+//    glPopMatrix();
+//
+//    glMatrixMode( GL_TEXTURE );
+//    glPopMatrix();
+//    glMatrixMode( GL_MODELVIEW );
+//
+//    glDisable( GL_ALPHA_TEST );
+//
+//    glDepthFunc( GL_LESS );
 }
 
 
 void OPENGL_GAL::BitmapText( const std::string& aText, const VECTOR2I& aPosition,
                              const EDA_ANGLE& aAngle )
 {
-    // Fallback to generic impl (which uses the stroke font) on cases we don't handle
-    if( IsTextMirrored()
-            || aText.Contains( wxT( "^{" ) )
-            || aText.Contains( wxT( "_{" ) )
-            || aText.Contains( wxT( "\n" ) ) )
-    {
-        return GAL::BitmapText( aText, aPosition, aAngle );
-    }
+    //// Fallback to generic impl (which uses the stroke font) on cases we don't handle
+    //if( IsTextMirrored()
+    //        || aText.Contains( wxT( "^{" ) )
+    //        || aText.Contains( wxT( "_{" ) )
+    //        || aText.Contains( wxT( "\n" ) ) )
+    //{
+    //    return GAL::BitmapText( aText, aPosition, aAngle );
+    //}
 
-    const UTF8   text( aText );
-    VECTOR2D     textSize;
-    float        commonOffset;
-    std::tie( textSize, commonOffset ) = computeBitmapTextSize( text );
+    //const UTF8   text( aText );
+    //VECTOR2D     textSize;
+    //float        commonOffset;
+    //std::tie( textSize, commonOffset ) = computeBitmapTextSize( text );
 
-    const double SCALE = 1.4 * GetGlyphSize().y / textSize.y;
-    double       overbarHeight = textSize.y;
+    //const double SCALE = 1.4 * GetGlyphSize().y / textSize.y;
+    //double       overbarHeight = textSize.y;
 
-    Save();
+    //Save();
 
-    m_currentManager->Color( m_strokeColor.r, m_strokeColor.g, m_strokeColor.b, m_strokeColor.a );
-    m_currentManager->Translate( aPosition.x, aPosition.y, m_layerDepth );
-    m_currentManager->Rotate( aAngle.AsRadians(), 0.0f, 0.0f, -1.0f );
+    //m_currentManager->Color( m_strokeColor.r, m_strokeColor.g, m_strokeColor.b, m_strokeColor.a );
+    //m_currentManager->Translate( aPosition.x, aPosition.y, m_layerDepth );
+    //m_currentManager->Rotate( aAngle.AsRadians(), 0.0f, 0.0f, -1.0f );
 
-    double sx = SCALE * ( m_globalFlipX ? -1.0 : 1.0 );
-    double sy = SCALE * ( m_globalFlipY ? -1.0 : 1.0 );
+    //double sx = SCALE * ( m_globalFlipX ? -1.0 : 1.0 );
+    //double sy = SCALE * ( m_globalFlipY ? -1.0 : 1.0 );
 
-    m_currentManager->Scale( sx, sy, 0 );
-    m_currentManager->Translate( 0, -commonOffset, 0 );
+    //m_currentManager->Scale( sx, sy, 0 );
+    //m_currentManager->Translate( 0, -commonOffset, 0 );
 
-    switch( GetHorizontalJustify() )
-    {
-    case GR_TEXT_H_ALIGN_CENTER:
-        Translate( VECTOR2D( -textSize.x / 2.0, 0 ) );
-        break;
+    //switch( GetHorizontalJustify() )
+    //{
+    //case GR_TEXT_H_ALIGN_CENTER:
+    //    Translate( VECTOR2D( -textSize.x / 2.0, 0 ) );
+    //    break;
 
-    case GR_TEXT_H_ALIGN_RIGHT:
-        //if( !IsTextMirrored() )
-        Translate( VECTOR2D( -textSize.x, 0 ) );
-        break;
+    //case GR_TEXT_H_ALIGN_RIGHT:
+    //    //if( !IsTextMirrored() )
+    //    Translate( VECTOR2D( -textSize.x, 0 ) );
+    //    break;
 
-    case GR_TEXT_H_ALIGN_LEFT:
-        //if( IsTextMirrored() )
-        //Translate( VECTOR2D( -textSize.x, 0 ) );
-        break;
+    //case GR_TEXT_H_ALIGN_LEFT:
+    //    //if( IsTextMirrored() )
+    //    //Translate( VECTOR2D( -textSize.x, 0 ) );
+    //    break;
 
-    case GR_TEXT_H_ALIGN_INDETERMINATE:
-        wxFAIL_MSG( wxT( "Indeterminate state legal only in dialogs." ) );
-        break;
-    }
+    //case GR_TEXT_H_ALIGN_INDETERMINATE:
+    //    wxFAIL_MSG( wxT( "Indeterminate state legal only in dialogs." ) );
+    //    break;
+    //}
 
-    switch( GetVerticalJustify() )
-    {
-    case GR_TEXT_V_ALIGN_TOP:
-        break;
+    //switch( GetVerticalJustify() )
+    //{
+    //case GR_TEXT_V_ALIGN_TOP:
+    //    break;
 
-    case GR_TEXT_V_ALIGN_CENTER:
-        Translate( VECTOR2D( 0, -textSize.y / 2.0 ) );
-        overbarHeight = 0;
-        break;
+    //case GR_TEXT_V_ALIGN_CENTER:
+    //    Translate( VECTOR2D( 0, -textSize.y / 2.0 ) );
+    //    overbarHeight = 0;
+    //    break;
 
-    case GR_TEXT_V_ALIGN_BOTTOM:
-        Translate( VECTOR2D( 0, -textSize.y ) );
-        overbarHeight = -textSize.y / 2.0;
-        break;
+    //case GR_TEXT_V_ALIGN_BOTTOM:
+    //    Translate( VECTOR2D( 0, -textSize.y ) );
+    //    overbarHeight = -textSize.y / 2.0;
+    //    break;
 
-    case GR_TEXT_V_ALIGN_INDETERMINATE:
-        wxFAIL_MSG( wxT( "Indeterminate state legal only in dialogs." ) );
-        break;
-    }
+    //case GR_TEXT_V_ALIGN_INDETERMINATE:
+    //    wxFAIL_MSG( wxT( "Indeterminate state legal only in dialogs." ) );
+    //    break;
+    //}
 
-    int overbarLength = 0;
-    int overbarDepth = -1;
-    int braceNesting = 0;
+    //int overbarLength = 0;
+    //int overbarDepth = -1;
+    //int braceNesting = 0;
 
-    auto iterateString =
-            [&]( const std::function<void( int aOverbarLength, int aOverbarHeight )>& overbarFn,
-                 const std::function<int( unsigned long aChar )>& bitmapCharFn )
-            {
-                for( UTF8::uni_iter chIt = text.ubegin(), end = text.uend(); chIt < end; ++chIt )
-                {
-                    wxASSERT_MSG( *chIt != '\n' && *chIt != '\r',
-                                  "No support for multiline bitmap text yet" );
+    //auto iterateString =
+    //        [&]( const std::function<void( int aOverbarLength, int aOverbarHeight )>& overbarFn,
+    //             const std::function<int( unsigned long aChar )>& bitmapCharFn )
+    //        {
+    //            for( UTF8::uni_iter chIt = text.ubegin(), end = text.uend(); chIt < end; ++chIt )
+    //            {
+    //                wxASSERT_MSG( *chIt != '\n' && *chIt != '\r',
+    //                              "No support for multiline bitmap text yet" );
 
-                    if( *chIt == '~' && overbarDepth == -1 )
-                    {
-                        UTF8::uni_iter lookahead = chIt;
+    //                if( *chIt == '~' && overbarDepth == -1 )
+    //                {
+    //                    UTF8::uni_iter lookahead = chIt;
 
-                        if( ++lookahead != end && *lookahead == '{' )
-                        {
-                            chIt = lookahead;
-                            overbarDepth = braceNesting;
-                            braceNesting++;
-                            continue;
-                        }
-                    }
-                    else if( *chIt == '{' )
-                    {
-                        braceNesting++;
-                    }
-                    else if( *chIt == '}' )
-                    {
-                        if( braceNesting > 0 )
-                            braceNesting--;
+    //                    if( ++lookahead != end && *lookahead == '{' )
+    //                    {
+    //                        chIt = lookahead;
+    //                        overbarDepth = braceNesting;
+    //                        braceNesting++;
+    //                        continue;
+    //                    }
+    //                }
+    //                else if( *chIt == '{' )
+    //                {
+    //                    braceNesting++;
+    //                }
+    //                else if( *chIt == '}' )
+    //                {
+    //                    if( braceNesting > 0 )
+    //                        braceNesting--;
 
-                        if( braceNesting == overbarDepth )
-                        {
-                            overbarFn( overbarLength, overbarHeight );
-                            overbarLength = 0;
+    //                    if( braceNesting == overbarDepth )
+    //                    {
+    //                        overbarFn( overbarLength, overbarHeight );
+    //                        overbarLength = 0;
 
-                            overbarDepth = -1;
-                            continue;
-                        }
-                    }
+    //                        overbarDepth = -1;
+    //                        continue;
+    //                    }
+    //                }
 
-                    if( overbarDepth != -1 )
-                        overbarLength += bitmapCharFn( *chIt );
-                    else
-                        bitmapCharFn( *chIt );
-                }
-            };
+    //                if( overbarDepth != -1 )
+    //                    overbarLength += bitmapCharFn( *chIt );
+    //                else
+    //                    bitmapCharFn( *chIt );
+    //            }
+    //        };
 
-    // First, calculate the amount of characters and overbars to reserve
+    //// First, calculate the amount of characters and overbars to reserve
 
-    int charsCount = 0;
-    int overbarsCount = 0;
+    //int charsCount = 0;
+    //int overbarsCount = 0;
 
-    iterateString(
-            [&overbarsCount]( int aOverbarLength, int aOverbarHeight )
-            {
-                overbarsCount++;
-            },
-            [&charsCount]( unsigned long aChar ) -> int
-            {
-                if( aChar != ' ' )
-                    charsCount++;
+    //iterateString(
+    //        [&overbarsCount]( int aOverbarLength, int aOverbarHeight )
+    //        {
+    //            overbarsCount++;
+    //        },
+    //        [&charsCount]( unsigned long aChar ) -> int
+    //        {
+    //            if( aChar != ' ' )
+    //                charsCount++;
 
-                return 0;
-            } );
+    //            return 0;
+    //        } );
 
-    m_currentManager->Reserve( 6 * charsCount + 6 * overbarsCount );
+    //m_currentManager->Reserve( 6 * charsCount + 6 * overbarsCount );
 
-    // Now reset the state and actually draw the characters and overbars
-    overbarLength = 0;
-    overbarDepth = -1;
-    braceNesting = 0;
+    //// Now reset the state and actually draw the characters and overbars
+    //overbarLength = 0;
+    //overbarDepth = -1;
+    //braceNesting = 0;
 
-    iterateString(
-            [&]( int aOverbarLength, int aOverbarHeight )
-            {
-                drawBitmapOverbar( aOverbarLength, aOverbarHeight, false );
-            },
-            [&]( unsigned long aChar ) -> int
-            {
-                return drawBitmapChar( aChar, false );
-            } );
+    //iterateString(
+    //        [&]( int aOverbarLength, int aOverbarHeight )
+    //        {
+    //            drawBitmapOverbar( aOverbarLength, aOverbarHeight, false );
+    //        },
+    //        [&]( unsigned long aChar ) -> int
+    //        {
+    //            return drawBitmapChar( aChar, false );
+    //        } );
 
-    // Handle the case when overbar is active till the end of the drawn text
-    m_currentManager->Translate( 0, commonOffset, 0 );
+    //// Handle the case when overbar is active till the end of the drawn text
+    //m_currentManager->Translate( 0, commonOffset, 0 );
 
-    if( overbarDepth != -1 && overbarLength > 0 )
-        drawBitmapOverbar( overbarLength, overbarHeight );
+    //if( overbarDepth != -1 && overbarLength > 0 )
+    //    drawBitmapOverbar( overbarLength, overbarHeight );
 
-    Restore();
+    //Restore();
 }
 
 
 void OPENGL_GAL::DrawGrid()
 {
-    SetTarget( TARGET_NONCACHED );
-    m_compositor->SetBuffer( m_mainBuffer );
+    //SetTarget( TARGET_NONCACHED );
+    //m_compositor->SetBuffer( m_mainBuffer );
 
-    m_nonCachedManager->EnableDepthTest( false );
+    //m_nonCachedManager->EnableDepthTest( false );
 
-    // sub-pixel lines all render the same
-    float minorLineWidth = std::fmax( 1.0f,
-                                      m_gridLineWidth ) * getWorldPixelSize() / GetScaleFactor();
-    float majorLineWidth = minorLineWidth * 2.0f;
+    //// sub-pixel lines all render the same
+    //float minorLineWidth = std::fmax( 1.0f,
+    //                                  m_gridLineWidth ) * getWorldPixelSize() / GetScaleFactor();
+    //float majorLineWidth = minorLineWidth * 2.0f;
 
-    // Draw the axis and grid
-    // For the drawing the start points, end points and increments have
-    // to be calculated in world coordinates
-    VECTOR2D worldStartPoint = m_screenWorldMatrix * VECTOR2D( 0.0, 0.0 );
-    VECTOR2D worldEndPoint = m_screenWorldMatrix * VECTOR2D( m_screenSize );
+    //// Draw the axis and grid
+    //// For the drawing the start points, end points and increments have
+    //// to be calculated in world coordinates
+    //VECTOR2D worldStartPoint = m_screenWorldMatrix * VECTOR2D( 0.0, 0.0 );
+    //VECTOR2D worldEndPoint = m_screenWorldMatrix * VECTOR2D( m_screenSize );
 
-    // Draw axes if desired
-    if( m_axesEnabled )
-    {
-        SetLineWidth( minorLineWidth );
-        SetStrokeColor( m_axesColor );
+    //// Draw axes if desired
+    //if( m_axesEnabled )
+    //{
+    //    SetLineWidth( minorLineWidth );
+    //    SetStrokeColor( m_axesColor );
 
-        DrawLine( VECTOR2D( worldStartPoint.x, 0 ), VECTOR2D( worldEndPoint.x, 0 ) );
-        DrawLine( VECTOR2D( 0, worldStartPoint.y ), VECTOR2D( 0, worldEndPoint.y ) );
-    }
+    //    DrawLine( VECTOR2D( worldStartPoint.x, 0 ), VECTOR2D( worldEndPoint.x, 0 ) );
+    //    DrawLine( VECTOR2D( 0, worldStartPoint.y ), VECTOR2D( 0, worldEndPoint.y ) );
+    //}
 
-    // force flush
-    m_nonCachedManager->EndDrawing();
+    //// force flush
+    //m_nonCachedManager->EndDrawing();
 
-    if( !m_gridVisibility || m_gridSize.x == 0 || m_gridSize.y == 0 )
-        return;
+    //if( !m_gridVisibility || m_gridSize.x == 0 || m_gridSize.y == 0 )
+    //    return;
 
-    VECTOR2D gridScreenSize = GetVisibleGridSize();
+    //VECTOR2D gridScreenSize = GetVisibleGridSize();
 
-    // Compute grid starting and ending indexes to draw grid points on the
-    // visible screen area
-    // Note: later any point coordinate will be offset by m_gridOrigin
-    int gridStartX = KiROUND( ( worldStartPoint.x - m_gridOrigin.x ) / gridScreenSize.x );
-    int gridEndX = KiROUND( ( worldEndPoint.x - m_gridOrigin.x ) / gridScreenSize.x );
-    int gridStartY = KiROUND( ( worldStartPoint.y - m_gridOrigin.y ) / gridScreenSize.y );
-    int gridEndY = KiROUND( ( worldEndPoint.y - m_gridOrigin.y ) / gridScreenSize.y );
+    //// Compute grid starting and ending indexes to draw grid points on the
+    //// visible screen area
+    //// Note: later any point coordinate will be offset by m_gridOrigin
+    //int gridStartX = KiROUND( ( worldStartPoint.x - m_gridOrigin.x ) / gridScreenSize.x );
+    //int gridEndX = KiROUND( ( worldEndPoint.x - m_gridOrigin.x ) / gridScreenSize.x );
+    //int gridStartY = KiROUND( ( worldStartPoint.y - m_gridOrigin.y ) / gridScreenSize.y );
+    //int gridEndY = KiROUND( ( worldEndPoint.y - m_gridOrigin.y ) / gridScreenSize.y );
 
-    // Ensure start coordinate < end coordinate
-    normalize( gridStartX, gridEndX );
-    normalize( gridStartY, gridEndY );
+    //// Ensure start coordinate < end coordinate
+    //normalize( gridStartX, gridEndX );
+    //normalize( gridStartY, gridEndY );
 
-    // Ensure the grid fills the screen
-    --gridStartX;
-    ++gridEndX;
-    --gridStartY;
-    ++gridEndY;
+    //// Ensure the grid fills the screen
+    //--gridStartX;
+    //++gridEndX;
+    //--gridStartY;
+    //++gridEndY;
 
-    glDisable( GL_DEPTH_TEST );
-    glDisable( GL_TEXTURE_2D );
+    //glDisable( GL_DEPTH_TEST );
+    //glDisable( GL_TEXTURE_2D );
 
-    if( m_gridStyle == GRID_STYLE::DOTS )
-    {
-        glEnable( GL_STENCIL_TEST );
-        glStencilFunc( GL_ALWAYS, 1, 1 );
-        glStencilOp( GL_KEEP, GL_KEEP, GL_INCR );
-        glColor4d( 0.0, 0.0, 0.0, 0.0 );
-        SetStrokeColor( COLOR4D( 0.0, 0.0, 0.0, 0.0 ) );
-    }
-    else
-    {
-        glColor4d( m_gridColor.r, m_gridColor.g, m_gridColor.b, m_gridColor.a );
-        SetStrokeColor( m_gridColor );
-    }
+    //if( m_gridStyle == GRID_STYLE::DOTS )
+    //{
+    //    glEnable( GL_STENCIL_TEST );
+    //    glStencilFunc( GL_ALWAYS, 1, 1 );
+    //    glStencilOp( GL_KEEP, GL_KEEP, GL_INCR );
+    //    glColor4d( 0.0, 0.0, 0.0, 0.0 );
+    //    SetStrokeColor( COLOR4D( 0.0, 0.0, 0.0, 0.0 ) );
+    //}
+    //else
+    //{
+    //    glColor4d( m_gridColor.r, m_gridColor.g, m_gridColor.b, m_gridColor.a );
+    //    SetStrokeColor( m_gridColor );
+    //}
 
-    if( m_gridStyle == GRID_STYLE::SMALL_CROSS )
-    {
-        // Vertical positions
-        for( int j = gridStartY; j <= gridEndY; j++ )
-        {
-            bool         tickY = ( j % m_gridTick == 0 );
-            const double posY = j * gridScreenSize.y + m_gridOrigin.y;
+    //if( m_gridStyle == GRID_STYLE::SMALL_CROSS )
+    //{
+    //    // Vertical positions
+    //    for( int j = gridStartY; j <= gridEndY; j++ )
+    //    {
+    //        bool         tickY = ( j % m_gridTick == 0 );
+    //        const double posY = j * gridScreenSize.y + m_gridOrigin.y;
 
-            // Horizontal positions
-            for( int i = gridStartX; i <= gridEndX; i++ )
-            {
-                bool tickX = ( i % m_gridTick == 0 );
-                SetLineWidth( ( ( tickX && tickY ) ? majorLineWidth : minorLineWidth ) );
-                auto lineLen = 2.0 * GetLineWidth();
-                auto posX = i * gridScreenSize.x + m_gridOrigin.x;
+    //        // Horizontal positions
+    //        for( int i = gridStartX; i <= gridEndX; i++ )
+    //        {
+    //            bool tickX = ( i % m_gridTick == 0 );
+    //            SetLineWidth( ( ( tickX && tickY ) ? majorLineWidth : minorLineWidth ) );
+    //            auto lineLen = 2.0 * GetLineWidth();
+    //            auto posX = i * gridScreenSize.x + m_gridOrigin.x;
 
-                DrawLine( VECTOR2D( posX - lineLen, posY ), VECTOR2D( posX + lineLen, posY ) );
-                DrawLine( VECTOR2D( posX, posY - lineLen ), VECTOR2D( posX, posY + lineLen ) );
-            }
-        }
+    //            DrawLine( VECTOR2D( posX - lineLen, posY ), VECTOR2D( posX + lineLen, posY ) );
+    //            DrawLine( VECTOR2D( posX, posY - lineLen ), VECTOR2D( posX, posY + lineLen ) );
+    //        }
+    //    }
 
-        m_nonCachedManager->EndDrawing();
-    }
-    else
-    {
-        // Vertical lines
-        for( int j = gridStartY; j <= gridEndY; j++ )
-        {
-            const double y = j * gridScreenSize.y + m_gridOrigin.y;
+    //    m_nonCachedManager->EndDrawing();
+    //}
+    //else
+    //{
+    //    // Vertical lines
+    //    for( int j = gridStartY; j <= gridEndY; j++ )
+    //    {
+    //        const double y = j * gridScreenSize.y + m_gridOrigin.y;
 
-            // If axes are drawn, skip the lines that would cover them
-            if( m_axesEnabled && y == 0.0 )
-                continue;
+    //        // If axes are drawn, skip the lines that would cover them
+    //        if( m_axesEnabled && y == 0.0 )
+    //            continue;
 
-            SetLineWidth( ( j % m_gridTick == 0 ) ? majorLineWidth : minorLineWidth );
-            VECTOR2D a( gridStartX * gridScreenSize.x + m_gridOrigin.x, y );
-            VECTOR2D b( gridEndX * gridScreenSize.x + m_gridOrigin.x, y );
+    //        SetLineWidth( ( j % m_gridTick == 0 ) ? majorLineWidth : minorLineWidth );
+    //        VECTOR2D a( gridStartX * gridScreenSize.x + m_gridOrigin.x, y );
+    //        VECTOR2D b( gridEndX * gridScreenSize.x + m_gridOrigin.x, y );
 
-            DrawLine( a, b );
-        }
+    //        DrawLine( a, b );
+    //    }
 
-        m_nonCachedManager->EndDrawing();
+    //    m_nonCachedManager->EndDrawing();
 
-        if( m_gridStyle == GRID_STYLE::DOTS )
-        {
-            glStencilFunc( GL_NOTEQUAL, 0, 1 );
-            glColor4d( m_gridColor.r, m_gridColor.g, m_gridColor.b, m_gridColor.a );
-            SetStrokeColor( m_gridColor );
-        }
+    //    if( m_gridStyle == GRID_STYLE::DOTS )
+    //    {
+    //        glStencilFunc( GL_NOTEQUAL, 0, 1 );
+    //        glColor4d( m_gridColor.r, m_gridColor.g, m_gridColor.b, m_gridColor.a );
+    //        SetStrokeColor( m_gridColor );
+    //    }
 
-        // Horizontal lines
-        for( int i = gridStartX; i <= gridEndX; i++ )
-        {
-            const double x = i * gridScreenSize.x + m_gridOrigin.x;
+    //    // Horizontal lines
+    //    for( int i = gridStartX; i <= gridEndX; i++ )
+    //    {
+    //        const double x = i * gridScreenSize.x + m_gridOrigin.x;
 
-            // If axes are drawn, skip the lines that would cover them
-            if( m_axesEnabled && x == 0.0 )
-                continue;
+    //        // If axes are drawn, skip the lines that would cover them
+    //        if( m_axesEnabled && x == 0.0 )
+    //            continue;
 
-            SetLineWidth( ( i % m_gridTick == 0 ) ? majorLineWidth : minorLineWidth );
-            VECTOR2D a( x, gridStartY * gridScreenSize.y + m_gridOrigin.y );
-            VECTOR2D b( x, gridEndY * gridScreenSize.y + m_gridOrigin.y );
-            DrawLine( a, b );
-        }
+    //        SetLineWidth( ( i % m_gridTick == 0 ) ? majorLineWidth : minorLineWidth );
+    //        VECTOR2D a( x, gridStartY * gridScreenSize.y + m_gridOrigin.y );
+    //        VECTOR2D b( x, gridEndY * gridScreenSize.y + m_gridOrigin.y );
+    //        DrawLine( a, b );
+    //    }
 
-        m_nonCachedManager->EndDrawing();
+    //    m_nonCachedManager->EndDrawing();
 
-        if( m_gridStyle == GRID_STYLE::DOTS )
-            glDisable( GL_STENCIL_TEST );
-    }
+    //    if( m_gridStyle == GRID_STYLE::DOTS )
+    //        glDisable( GL_STENCIL_TEST );
+    //}
 
-    glEnable( GL_DEPTH_TEST );
-    glEnable( GL_TEXTURE_2D );
+    //glEnable( GL_DEPTH_TEST );
+    //glEnable( GL_TEXTURE_2D );
 }
 
 
@@ -1836,20 +1837,21 @@ void OPENGL_GAL::ResizeScreen( int aWidth, int aHeight )
     m_screenSize = VECTOR2I( aWidth, aHeight );
 
     // Resize framebuffers
-    const float scaleFactor = GetScaleFactor();
+    const float scaleFactor = devicePixelRatioF();
     m_compositor->Resize( aWidth * scaleFactor, aHeight * scaleFactor );
     m_isFramebufferInitialized = false;
-
-    wxGLCanvas::SetSize( aWidth, aHeight );
+    QSize size = { aWidth, aHeight };
+    this->resize(size);
 }
 
 
 bool OPENGL_GAL::Show( bool aShow )
 {
-    bool s = wxGLCanvas::Show( aShow );
+    bool s = IsVisible();
+    setVisible(aShow);
 
     if( aShow )
-        wxGLCanvas::Raise();
+        raise();
 
     return s;
 }
@@ -2096,7 +2098,7 @@ bool OPENGL_GAL::SetNativeCursorStyle( KICURSOR aCursor, bool aHiDPI )
 #if wxCHECK_VERSION( 3, 3, 0 )
     wxWindow::SetCursorBundle( m_currentwxCursor );
 #else
-    wxWindow::SetCursor( m_currentwxCursor );
+    this->setCursor(m_currentwxCursor);
 #endif
 
     return true;
@@ -2296,7 +2298,7 @@ void OPENGL_GAL::drawPolygon( GLdouble* aPoints, int aPointCount )
 void OPENGL_GAL::drawPolyline( const std::function<VECTOR2D( int )>& aPointGetter, int aPointCount,
                                bool aReserve )
 {
-    wxCHECK( aPointCount > 0, /* return */ );
+    Q_ASSERT( aPointCount > 0);
 
     m_currentManager->Color( m_strokeColor.r, m_strokeColor.g, m_strokeColor.b, m_strokeColor.a );
 
@@ -2324,7 +2326,7 @@ void OPENGL_GAL::drawPolyline( const std::function<VECTOR2D( int )>& aPointGette
 void OPENGL_GAL::drawSegmentChain( const std::function<VECTOR2D( int )>& aPointGetter,
                                    int aPointCount, double aWidth, bool aReserve )
 {
-    wxCHECK( aPointCount >= 2, /* return */ );
+    if ( aPointCount >= 2) return;
 
     m_currentManager->Color( m_strokeColor.r, m_strokeColor.g, m_strokeColor.b, m_strokeColor.a );
 
@@ -2382,7 +2384,7 @@ int OPENGL_GAL::drawBitmapChar( unsigned long aChar, bool aReserve )
     if( aChar == ' ' )
     {
         const FONT_GLYPH_TYPE* g = LookupGlyph( 'x' );
-        wxCHECK( g, 0 );
+        if (g) return 0;
 
         // Match stroke font as well as possible
         double spaceWidth = g->advance * 0.74;
@@ -2456,7 +2458,7 @@ void OPENGL_GAL::drawBitmapOverbar( double aLength, double aHeight, bool aReserv
 {
     // To draw an overbar, simply draw an overbar
     const FONT_GLYPH_TYPE* glyph = LookupGlyph( '_' );
-    wxCHECK( glyph, /* void */ );
+    if (glyph) return;
 
     const float H = glyph->maxy - glyph->miny;
 
@@ -2488,7 +2490,7 @@ std::pair<VECTOR2D, float> OPENGL_GAL::computeBitmapTextSize( const UTF8& aText 
     static const FONT_GLYPH_TYPE* defaultGlyph = LookupGlyph( '(' ); // for strange chars
 
     VECTOR2D textSize( 0, 0 );
-    float    commonOffset = std::numeric_limits<float>::max();
+    float    commonOffset = MAXINT;
     float    charHeight = font_information.max_y - defaultGlyph->miny;
     int      overbarDepth = -1;
     int braceNesting = 0;
@@ -2600,8 +2602,8 @@ void OPENGL_GAL::blitCursor()
 
 unsigned int OPENGL_GAL::getNewGroupNumber()
 {
-    wxASSERT_MSG( m_groups.size() < std::numeric_limits<unsigned int>::max(),
-                  wxT( "There are no free slots to store a group" ) );
+    assert( m_groups.size() < MAXINT,
+                  "There are no free slots to store a group");
 
     while( m_groups.find( m_groupCounter ) != m_groups.end() )
         m_groupCounter++;

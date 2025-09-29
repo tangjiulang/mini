@@ -8,6 +8,7 @@
 #include "matrix3x3.hxx"
 
 #include "gal/include/gal.hxx"
+#include "box2.hxx"
 #include "color4d.hxx"
 #include "gal/include/cursors.hxx"
 #include "gal/include/definitions.hxx"
@@ -425,34 +426,34 @@ public:
      */
     void ResetTextAttributes();
 
-    void SetGlyphSize( const VECTOR2I aSize )         { m_attributes.m_Size = aSize; }
-    const VECTOR2I& GetGlyphSize() const              { return m_attributes.m_Size; }
+    //void SetGlyphSize( const VECTOR2I aSize )         { m_attributes.m_Size = aSize; }
+    //const VECTOR2I& GetGlyphSize() const              { return m_attributes.m_Size; }
 
-    inline void SetFontBold( const bool aBold )       { m_attributes.m_Bold = aBold; }
-    inline bool IsFontBold() const                    { return m_attributes.m_Bold; }
+    //inline void SetFontBold( const bool aBold )       { m_attributes.m_Bold = aBold; }
+    //inline bool IsFontBold() const                    { return m_attributes.m_Bold; }
 
-    inline void SetFontItalic( bool aItalic )         { m_attributes.m_Italic = aItalic; }
-    inline bool IsFontItalic() const                  { return m_attributes.m_Italic; }
+    //inline void SetFontItalic( bool aItalic )         { m_attributes.m_Italic = aItalic; }
+    //inline bool IsFontItalic() const                  { return m_attributes.m_Italic; }
 
-    inline void SetFontUnderlined( bool aUnderlined ) { m_attributes.m_Underlined = aUnderlined; }
-    inline bool IsFontUnderlined() const              { return m_attributes.m_Underlined; }
+    //inline void SetFontUnderlined( bool aUnderlined ) { m_attributes.m_Underlined = aUnderlined; }
+    //inline bool IsFontUnderlined() const              { return m_attributes.m_Underlined; }
 
-    void SetTextMirrored( const bool aMirrored )      { m_attributes.m_Mirrored = aMirrored; }
-    bool IsTextMirrored() const                       { return m_attributes.m_Mirrored; }
+    //void SetTextMirrored( const bool aMirrored )      { m_attributes.m_Mirrored = aMirrored; }
+    //bool IsTextMirrored() const                       { return m_attributes.m_Mirrored; }
 
-    void SetHorizontalJustify( const GR_TEXT_H_ALIGN_T aHorizontalJustify )
-    {
-        m_attributes.m_Halign = aHorizontalJustify;
-    }
+    //void SetHorizontalJustify( const GR_TEXT_H_ALIGN_T aHorizontalJustify )
+    //{
+    //    m_attributes.m_Halign = aHorizontalJustify;
+    //}
 
-    GR_TEXT_H_ALIGN_T GetHorizontalJustify() const { return m_attributes.m_Halign; }
+    //GR_TEXT_H_ALIGN_T GetHorizontalJustify() const { return m_attributes.m_Halign; }
 
-    void SetVerticalJustify( const GR_TEXT_V_ALIGN_T aVerticalJustify )
-    {
-        m_attributes.m_Valign = aVerticalJustify;
-    }
+    //void SetVerticalJustify( const GR_TEXT_V_ALIGN_T aVerticalJustify )
+    //{
+    //    m_attributes.m_Valign = aVerticalJustify;
+    //}
 
-    GR_TEXT_V_ALIGN_T GetVerticalJustify() const { return m_attributes.m_Valign; }
+    //GR_TEXT_V_ALIGN_T GetVerticalJustify() const { return m_attributes.m_Valign; }
 
 
     // --------------

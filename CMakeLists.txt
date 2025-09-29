@@ -29,6 +29,7 @@ message(STATUS "Qt6 OpenGLWidgets include dirs: ${Qt6OpenGLWidgets_INCLUDE_DIRS}
 
 message(${CMAKE_TOOLCHAIN_FILE})
 
+add_subdirectory(thirdparty)
 add_subdirectory(base)
 add_subdirectory(core)
 add_subdirectory(math)

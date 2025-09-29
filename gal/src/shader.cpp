@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <cassert>
+#include <QFile>
 
 #include "gal/include/shader.hxx"
 #include <vector>
@@ -67,6 +68,23 @@ bool SHADER::LoadShaderFromFile(QOpenGLShader::ShaderType aShaderType, const std
     return program.addShader(vs);
 }
 
+QString SHADER::LoadShaderSourceFromStrings(const std::string& aShaderSourceName) {
+    QString filename = aShaderSourceName.data();
+    QFile file(filename);
+    file.open(QIODevice::ReadOnly);
+    QTextStream in(&file);
+    return in.readAll();
+
+}
+
+bool SHADER::LoadShaderFromString(QOpenGLShader::ShaderType aShaderType, const QString& aShaderSource) {
+    QOpenGLShader* vs = new QOpenGLShader(aShaderType);
+    vs->compileSourceCode(aShaderSource);
+    if (!vs->isCompiled()) {
+        delete vs;
+    }
+    return program.addShader(vs);
+}
 
 void SHADER::ConfigureGeometryShader( GLuint maxVertices, GLuint geometryInputType,
                                       GLuint geometryOutputType )
@@ -142,10 +160,13 @@ void SHADER::SetParameter( int parameterNumber, float f0, float f1, float f2, fl
 }
 
 
-void SHADER::SetParameter( int aParameterNumber, const QVector2D& aValue )
+void SHADER::SetParameter( int aParameterNumber, const VECTOR2D& aValue )
 {
+    QVector2D value;
+    value.setX(aValue.x);
+    value.setY(aValue.y);
     assert( (unsigned) aParameterNumber < parameterLocation.size() );
-    program.setUniformValue(parameterLocation[aParameterNumber], aValue);
+    program.setUniformValue(parameterLocation[aParameterNumber], value);
 }
 
 

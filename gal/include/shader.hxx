@@ -72,7 +72,11 @@ public:
      * @return True in case of success, false otherwise.
      */
     bool LoadShaderFromFile(QOpenGLShader::ShaderType, const std::string& aShaderSourceName );
+    
+    
+    QString LoadShaderSourceFromStrings(const std::string& aShaderSourceName);
 
+    bool LoadShaderFromString(QOpenGLShader::ShaderType aShaderType, const QString& aShaderSource);
     /**
      * Link the shaders.
      *
@@ -148,7 +152,7 @@ public:
      */
     void SetParameter( int aParameterNumber, float aValue );
     void SetParameter( int aParameterNumber, int aValue );
-    void SetParameter( int aParameterNumber, const QVector2D& aValue );
+    void SetParameter( int aParameterNumber, const VECTOR2D& aValue );
     void SetParameter( int aParameterNumber, float f0, float f1, float f2, float f3 );
 
     /**

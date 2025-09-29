@@ -132,15 +132,15 @@ void GAL::ResetTextAttributes()
 {
      // Tiny but non-zero - this will always need setting
      // there is no built-in default
-    SetGlyphSize( { 1, 1 } );
+    //SetGlyphSize( { 1, 1 } );
 
-    SetHorizontalJustify( GR_TEXT_H_ALIGN_CENTER );
-    SetVerticalJustify( GR_TEXT_V_ALIGN_CENTER );
+    //SetHorizontalJustify( GR_TEXT_H_ALIGN_CENTER );
+    //SetVerticalJustify( GR_TEXT_V_ALIGN_CENTER );
 
-    SetFontBold( false );
-    SetFontItalic( false );
-    SetFontUnderlined( false );
-    SetTextMirrored( false );
+    //SetFontBold( false );
+    //SetFontItalic( false );
+    //SetFontUnderlined( false );
+    //SetTextMirrored( false );
 }
 
 

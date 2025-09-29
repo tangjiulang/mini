@@ -39,13 +39,13 @@ inline constexpr ret_type KiCheckedCast(in_type v)
     {
         if (v > std::numeric_limits<int>::max())
         {
-            kimathLogOverflow(double(v), typeid(int).name());
+            mathLogOverflow(double(v), typeid(int).name());
 
             return std::numeric_limits<int>::max();
         }
         else if (v < std::numeric_limits<int>::lowest())
         {
-            kimathLogOverflow(double(v), typeid(int).name());
+            mathLogOverflow(double(v), typeid(int).name());
 
             return std::numeric_limits<int>::lowest();
         }
@@ -76,7 +76,7 @@ constexpr ret_type KiROUND(fp_type v, bool aQuiet = false)
         if (std::isnan(v))
         {
             if (!aQuiet)
-                kimathLogOverflow(double(v), typeid(ret_type).name());
+                mathLogOverflow(double(v), typeid(ret_type).name());
 
             return 0;
         }
