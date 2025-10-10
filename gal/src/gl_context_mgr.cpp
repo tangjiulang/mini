@@ -4,11 +4,20 @@
 
 QOpenGLContext* GL_CONTEXT_MANAGER::CreateCtx( QOpenGLWidget* aCanvas, const QOpenGLContext* aOther )
 {
-    QOpenGLContext* context = aCanvas->context();
-    Q_ASSERT( context!= nullptr );
+    QOpenGLContext* context = new QOpenGLContext();
 
-    if( !context->isValid() )
-    {
+    if (aOther)
+        context->setShareContext(const_cast<QOpenGLContext*>(aOther));
+
+    if (aCanvas) {
+        context->setFormat(static_cast<QOpenGLWidget*>(aCanvas)->format());
+    }
+    else {
+        context->setFormat(QSurfaceFormat::defaultFormat());
+    }
+
+    if (!context->create()) {
+        qWarning() << "Failed to create QOpenGLContext!";
         delete context;
         return nullptr;
     }
@@ -76,7 +85,7 @@ void GL_CONTEXT_MANAGER::LockCtx(QOpenGLContext* aContext, QOpenGLWidget* aCanva
 
 void GL_CONTEXT_MANAGER::UnlockCtx(QOpenGLContext* aContext )
 {
-    Q_ASSERT( aContext && m_glContexts.count( aContext ) > 0);
+    if( aContext && m_glContexts.count( aContext ) > 0) return;
 
     if( m_glCtx == aContext )
     {
@@ -85,8 +94,8 @@ void GL_CONTEXT_MANAGER::UnlockCtx(QOpenGLContext* aContext )
     }
     else
     {
-        spdlog::trace( std::format( "Trying to unlock GL context mutex from "
-                    "a wrong context: aContext {} m_glCtx {}", aContext, m_glCtx ) );
+        spdlog::trace("Trying to unlock GL context mutex from "
+                    "a wrong context: aContext {} m_glCtx {}", (int64_t)aContext, (int64_t)m_glCtx );
     }
 }
 

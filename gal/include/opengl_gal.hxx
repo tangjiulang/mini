@@ -1,36 +1,9 @@
-/*
- * This program source code file is part of KICAD, a free EDA CAD application.
- *
- * Copyright (C) 2012 Torsten Hueter, torstenhtr <at> gmx.de
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- * Copyright (C) 2013-2017 CERN
- * @author Maciej Suminski <maciej.suminski@cern.ch>
- *
- * Graphics Abstraction Layer (GAL) for OpenGL
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, you may find one here:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * or you may search the http://www.gnu.org website for the version 2 license,
- * or you may write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
- */
-
 #ifndef OPENGLGAL_H_
 #define OPENGLGAL_H_
 
 #include <QOpenGLWidget>
-// GAL imports
+#include <QGesture>
+ // GAL imports
 #include "utf8.hxx"
 #include "gal/include/gal.hxx"
 #include "gal/include/graphics_abstraction_layer.hxx"
@@ -68,7 +41,7 @@ class GL_BITMAP_CACHE;
  * and quads. The purpose is to provide a fast graphics interface, that takes advantage of modern
  * graphics card GPUs. All methods here benefit thus from the hardware acceleration.
  */
-class OPENGL_GAL : public GAL, public QOpenGLWidget
+class OPENGL_GAL : public GAL, public QOpenGLWidget, protected QOpenGLFunctions
 {
 public:
     /**
@@ -104,13 +77,13 @@ public:
     bool IsInitialized() const override
     {
         // is*Initialized flags, but it is enough for OpenGL to show up
-        //return IsShownOnScreen() && !GetClientRect().IsEmpty();
+        return isVisible() && rect().isEmpty();
     }
 
     ///< @copydoc GAL::IsVisible()
     bool IsVisible() const override
     {
-        //return IsShownOnScreen() && !GetClientRect().IsEmpty();
+        return isVisible() && rect().isEmpty();
     }
 
     // ---------------
@@ -325,6 +298,10 @@ public:
         /// Intersect points, that have to be freed after tessellation
         std::deque<std::shared_ptr<GLdouble>>& intersectPoints;
     };
+protected:
+    virtual void initializeGL() override;
+    virtual void resizeGL(int w, int h) override;
+    virtual void paintGL() override;
 signals:
     void paintRequested();
 private:
@@ -355,7 +332,7 @@ private:
     VERTEX_MANAGER*         m_tempManager;
 
     // Framebuffer & compositing
-    //OPENGL_COMPOSITOR*      m_compositor;       ///< Handles multiple rendering targets
+    OPENGL_COMPOSITOR*      m_compositor;       ///< Handles multiple rendering targets
     unsigned int            m_mainBuffer;       ///< Main rendering target
     unsigned int            m_overlayBuffer;    ///< Auxiliary rendering target (for menus etc.)
     unsigned int            m_tempBuffer;       ///< Temporary rendering target (for diffing etc.)

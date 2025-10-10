@@ -30,16 +30,15 @@
  * later compositing into a single image (OpenGL flavour).
  */
 
-#include <gal/opengl/opengl_compositor.h>
-#include <gal/opengl/utils.h>
+#include <gal/include/opengl_compositor.hxx>
+#include <gal/include/utils.hxx>
 
-#include <gal/color4d.h>
+#include <color4d.hxx>
 
 #include <cassert>
 #include <memory>
 #include <stdexcept>
-#include <wx/log.h>
-#include <wx/debug.h>
+#include <spdlog/spdlog.h>
 
 using namespace KIGFX;
 
@@ -65,8 +64,7 @@ OPENGL_COMPOSITOR::~OPENGL_COMPOSITOR()
         }
         catch( const std::runtime_error& exc )
         {
-            wxLogError( wxT( "Run time exception `%s` occurred in OPENGL_COMPOSITOR destructor." ),
-                        exc.what() );
+            spdlog::error("Run time exception `{}` occurred in OPENGL_COMPOSITOR destructor.", exc.what() );
         }
     }
 }
@@ -91,7 +89,7 @@ void OPENGL_COMPOSITOR::Initialize()
 {
     if( m_initialized )
         return;
-
+    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
     switch( m_currentAntialiasingMode )
     {
     case GAL_ANTIALIASING_MODE::AA_FAST:
@@ -109,27 +107,27 @@ void OPENGL_COMPOSITOR::Initialize()
     assert( dims.x != 0 && dims.y != 0 );
 
     GLint maxBufSize;
-    glGetIntegerv( GL_MAX_RENDERBUFFER_SIZE_EXT, &maxBufSize );
+    function->glGetIntegerv( GL_MAX_RENDERBUFFER_SIZE_EXT, &maxBufSize );
 
     if( dims.x < 0 || dims.y < 0 || dims.x > maxBufSize || dims.y >= maxBufSize )
         throw std::runtime_error( "Requested render buffer size is not supported" );
 
     // We need framebuffer objects for drawing the screen contents
     // Generate framebuffer and a depth buffer
-    glGenFramebuffersEXT( 1, &m_mainFbo );
+    function->glGenFramebuffers( 1, &m_mainFbo );
     checkGlError( "generating framebuffer", __FILE__, __LINE__ );
     bindFb( m_mainFbo );
 
     // Allocate memory for the depth buffer
     // Attach the depth buffer to the framebuffer
-    glGenRenderbuffersEXT( 1, &m_depthBuffer );
+    function->glGenRenderbuffers( 1, &m_depthBuffer );
     checkGlError( "generating renderbuffer", __FILE__, __LINE__ );
-    glBindRenderbufferEXT( GL_RENDERBUFFER_EXT, m_depthBuffer );
+    function->glBindRenderbuffer( GL_RENDERBUFFER_EXT, m_depthBuffer );
     checkGlError( "binding renderbuffer", __FILE__, __LINE__ );
 
-    glRenderbufferStorageEXT( GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8, dims.x, dims.y );
+    function->glRenderbufferStorage( GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8, dims.x, dims.y );
     checkGlError( "creating renderbuffer storage", __FILE__, __LINE__ );
-    glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT,
+    function->glFramebufferRenderbuffer( GL_FRAMEBUFFER_EXT, GL_DEPTH_STENCIL_ATTACHMENT,
                                   GL_RENDERBUFFER_EXT, m_depthBuffer );
     checkGlError( "attaching renderbuffer", __FILE__, __LINE__ );
 
@@ -163,11 +161,11 @@ unsigned int OPENGL_COMPOSITOR::CreateBuffer()
 unsigned int OPENGL_COMPOSITOR::CreateBuffer( VECTOR2I aDimensions )
 {
     assert( m_initialized );
-
+    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
     int maxBuffers, maxTextureSize;
 
     // Get the maximum number of buffers
-    glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, (GLint*) &maxBuffers );
+    function->glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, (GLint*) &maxBuffers );
 
     if( (int) usedBuffers() >= maxBuffers )
     {
@@ -175,7 +173,7 @@ unsigned int OPENGL_COMPOSITOR::CreateBuffer( VECTOR2I aDimensions )
                                   "least 3 framebuffers. You may try to update/change your graphic drivers." );
     }
 
-    glGetIntegerv( GL_MAX_TEXTURE_SIZE, (GLint*) &maxTextureSize );
+    function->glGetIntegerv( GL_MAX_TEXTURE_SIZE, (GLint*) &maxTextureSize );
 
     if( maxTextureSize < (int) aDimensions.x || maxTextureSize < (int) aDimensions.y )
     {
@@ -187,25 +185,25 @@ unsigned int OPENGL_COMPOSITOR::CreateBuffer( VECTOR2I aDimensions )
     GLuint textureTarget;
 
     // Generate the texture for the pixel storage
-    glActiveTexture( GL_TEXTURE0 );
-    glGenTextures( 1, &textureTarget );
+    function->glActiveTexture( GL_TEXTURE0 );
+    function->glGenTextures( 1, &textureTarget );
     checkGlError( "generating framebuffer texture target", __FILE__, __LINE__ );
-    glBindTexture( GL_TEXTURE_2D, textureTarget );
+    function->glBindTexture( GL_TEXTURE_2D, textureTarget );
     checkGlError( "binding framebuffer texture target", __FILE__, __LINE__ );
 
     // Set texture parameters
     glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, aDimensions.x, aDimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
+    function->glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, aDimensions.x, aDimensions.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr );
     checkGlError( "creating framebuffer texture", __FILE__, __LINE__ );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+    function->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+    function->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 
     // Bind the texture to the specific attachment point, clear and rebind the screen
     bindFb( m_mainFbo );
-    glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, attachmentPoint, GL_TEXTURE_2D, textureTarget, 0 );
+    function->glFramebufferTexture2D( GL_FRAMEBUFFER_EXT, attachmentPoint, GL_TEXTURE_2D, textureTarget, 0 );
 
     // Check the status, exit if the framebuffer can't be created
-    GLenum status = glCheckFramebufferStatusEXT( GL_FRAMEBUFFER_EXT );
+    GLenum status = function->glCheckFramebufferStatus( GL_FRAMEBUFFER_EXT );
 
     if( status != GL_FRAMEBUFFER_COMPLETE_EXT )
     {
@@ -256,14 +254,14 @@ unsigned int OPENGL_COMPOSITOR::CreateBuffer( VECTOR2I aDimensions )
 
 GLenum OPENGL_COMPOSITOR::GetBufferTexture( unsigned int aBufferHandle )
 {
-    wxCHECK( aBufferHandle > 0 && aBufferHandle <= usedBuffers(), 0 );
+    if ( aBufferHandle > 0 && aBufferHandle <= usedBuffers()) return 0;
     return m_buffers[aBufferHandle - 1].textureTarget;
 }
 
 
 void OPENGL_COMPOSITOR::SetBuffer( unsigned int aBufferHandle )
 {
-    wxCHECK( m_initialized && aBufferHandle <= usedBuffers(), /* void */ );
+    if ( m_initialized && aBufferHandle <= usedBuffers()) return;
 
     // Either unbind the FBO for direct rendering, or bind the one with target textures
     bindFb( aBufferHandle == DIRECT_RENDERING ? DIRECT_RENDERING : m_mainFbo );
@@ -286,7 +284,7 @@ void OPENGL_COMPOSITOR::SetBuffer( unsigned int aBufferHandle )
 
 void OPENGL_COMPOSITOR::ClearBuffer( const COLOR4D& aColor )
 {
-    wxCHECK( m_initialized, /* void */ );
+    if( m_initialized) return;
 
     glClearColor( aColor.r, aColor.g, aColor.b, m_curFbo == DIRECT_RENDERING ? 1.0f : 0.0f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
@@ -296,8 +294,8 @@ void OPENGL_COMPOSITOR::ClearBuffer( const COLOR4D& aColor )
 VECTOR2I OPENGL_COMPOSITOR::GetScreenSize() const
 {
     typedef VECTOR2I::coord_type coord_t;
-    wxASSERT( m_width <= static_cast<unsigned int>( std::numeric_limits<coord_t>::max() ) );
-    wxASSERT( m_height <= static_cast<unsigned int>( std::numeric_limits<coord_t>::max() ) );
+    Q_ASSERT( m_width <= static_cast<unsigned int>( std::numeric_limits<coord_t>::max() ) );
+    Q_ASSERT( m_height <= static_cast<unsigned int>( std::numeric_limits<coord_t>::max() ) );
 
     return { static_cast<coord_t>( m_width ), static_cast<coord_t>( m_height ) };
 }
@@ -317,8 +315,8 @@ void OPENGL_COMPOSITOR::DrawBuffer( unsigned int aBufferHandle )
 
 void OPENGL_COMPOSITOR::DrawBuffer( unsigned int aSourceHandle, unsigned int aDestHandle )
 {
-    wxCHECK( m_initialized && aSourceHandle != 0 && aSourceHandle <= usedBuffers(), /* void */ );
-    wxCHECK( aDestHandle <= usedBuffers(), /* void */ );
+    if ( m_initialized && aSourceHandle != 0 && aSourceHandle <= usedBuffers()) return;
+    if( aDestHandle <= usedBuffers()) return;
 
     // Switch to the destination buffer and blit the scene
     SetBuffer( aDestHandle );
@@ -369,12 +367,13 @@ void OPENGL_COMPOSITOR::Present()
 
 void OPENGL_COMPOSITOR::bindFb( unsigned int aFb )
 {
+    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
     // Currently there are only 2 valid FBOs
-    wxASSERT( aFb == DIRECT_RENDERING || aFb == m_mainFbo );
+    Q_ASSERT( aFb == DIRECT_RENDERING || aFb == m_mainFbo );
 
     if( m_curFbo != aFb )
     {
-        glBindFramebufferEXT( GL_FRAMEBUFFER, aFb );
+        function->glBindFramebuffer( GL_FRAMEBUFFER, aFb );
         checkGlError( "switching framebuffer", __FILE__, __LINE__ );
         m_curFbo = aFb;
     }
@@ -383,20 +382,19 @@ void OPENGL_COMPOSITOR::bindFb( unsigned int aFb )
 
 void OPENGL_COMPOSITOR::clean()
 {
-    wxCHECK( m_initialized, /* void */ );
+    if ( m_initialized) return;
 
     bindFb( DIRECT_RENDERING );
 
+    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
     for( const OPENGL_BUFFER& buffer : m_buffers )
-        glDeleteTextures( 1, &buffer.textureTarget );
+        function->glDeleteTextures( 1, &buffer.textureTarget );
 
     m_buffers.clear();
 
-    if( glDeleteFramebuffersEXT )
-        glDeleteFramebuffersEXT( 1, &m_mainFbo );
+    function->glDeleteFramebuffers( 1, &m_mainFbo );
 
-    if( glDeleteRenderbuffersEXT )
-        glDeleteRenderbuffersEXT( 1, &m_depthBuffer );
+    function->glDeleteRenderbuffers( 1, &m_depthBuffer );
 
     m_initialized = false;
 }

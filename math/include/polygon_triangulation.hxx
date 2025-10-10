@@ -273,7 +273,7 @@ private:
      */
     bool earcutList( VERTEX* aPoint, int pass = 0 )
     {
-        spdlog::trace("{} earcutList starting at {} for pass {}", TRIANGULATE_TRACE, aPoint, pass );
+        spdlog::trace("{} earcutList starting at {} {} for pass {}", TRIANGULATE_TRACE, aPoint->x, aPoint->y, pass );
 
         if( !aPoint )
             return true;

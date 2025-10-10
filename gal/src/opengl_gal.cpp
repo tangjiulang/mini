@@ -292,22 +292,10 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
         m_isContextLocked( false ),
         m_lockClientCookie( 0 )
 {
-    if( m_glMainContext == nullptr )
-    {
-        m_glMainContext = GetGLContextManager()->CreateCtx( this );
-
-        if( !m_glMainContext )
-            throw std::runtime_error( "Could not create the main OpenGL context" );
-
-        m_glPrivContext = m_glMainContext;
-    }
-    else
-    {
-        m_glPrivContext = GetGLContextManager()->CreateCtx( this, m_glMainContext );
-
-        if( !m_glPrivContext )
-            throw std::runtime_error( "Could not create a private OpenGL context" );
-    }
+    QSurfaceFormat fmt;
+    fmt.setProfile(QSurfaceFormat::CoreProfile);
+    fmt.setDepthBufferSize(24);
+    setFormat(fmt);
 
     m_shader = new SHADER();
     ++m_instanceCounter;
@@ -324,9 +312,9 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
     m_isGrouping = false;
     m_groupCounter = 0;
 
-
-    resize(aParent->size());
-
+    if (aParent != nullptr)
+        resize(aParent->size());
+    else resize(QSize(800, 1000));
     qreal dpr = devicePixelRatioF();  // 高 DPI 缩放因子
     QSize nativeSize = size() * dpr;
     m_screenSize = ToVECTOR2I(nativeSize); // 你自己把 QSizeF 转成 VECTOR2I
@@ -439,6 +427,9 @@ void OPENGL_GAL::PostPaint()
     emit paintRequested();
 }
 
+void OPENGL_GAL::paintRequested() {
+    paintGL();
+}
 
 bool OPENGL_GAL::updatedGalDisplayOptions( const GAL_DISPLAY_OPTIONS& aOptions )
 {
@@ -472,7 +463,7 @@ double OPENGL_GAL::getWorldPixelSize() const
 
 VECTOR2D OPENGL_GAL::getScreenPixelSize() const
 {
-    double sf = GetScaleFactor();
+    double sf = devicePixelRatio();
     return VECTOR2D( 2.0 / (double) ( m_screenSize.x * sf ), 2.0 /
                      (double) ( m_screenSize.y * sf ) );
 }
@@ -493,7 +484,7 @@ void OPENGL_GAL::BeginDrawing()
 
     if( !m_isInitialized )
         init();
-
+    QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
     // Set up the view port
     glMatrixMode( GL_PROJECTION );
     glLoadIdentity();
@@ -582,24 +573,24 @@ void OPENGL_GAL::BeginDrawing()
         // Either load the font atlas to video memory, or simply bind it to a texture unit
         if( !m_isBitmapFontLoaded )
         {
-            glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
-            glGenTextures( 1, &g_fontTexture );
-            glBindTexture( GL_TEXTURE_2D, g_fontTexture );
-            glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, font_image.width, font_image.height, 0, GL_RGB,
+            functions->glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
+            functions->glGenTextures( 1, &g_fontTexture );
+            functions->glBindTexture( GL_TEXTURE_2D, g_fontTexture );
+            functions->glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, font_image.width, font_image.height, 0, GL_RGB,
                           GL_UNSIGNED_BYTE, font_image.pixels );
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+            functions->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+            functions->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
             checkGlError( "loading bitmap font", __FILE__, __LINE__ );
 
-            glActiveTexture( GL_TEXTURE0 );
+            functions->glActiveTexture( GL_TEXTURE0 );
 
             m_isBitmapFontLoaded = true;
         }
         else
         {
-            glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
-            glBindTexture( GL_TEXTURE_2D, g_fontTexture );
-            glActiveTexture( GL_TEXTURE0 );
+            functions->glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
+            functions->glBindTexture( GL_TEXTURE_2D, g_fontTexture );
+            functions->glActiveTexture( GL_TEXTURE0 );
         }
 
         // Set shader parameter
@@ -634,7 +625,7 @@ void OPENGL_GAL::BeginDrawing()
 
     // Something between BeginDrawing and EndDrawing seems to depend on
     // this texture unit being active, but it does not assure it itself.
-    glActiveTexture( GL_TEXTURE0 );
+    functions->glActiveTexture( GL_TEXTURE0 );
 
     // Unbind buffers - set compositor for direct drawing
     m_compositor->SetBuffer( OPENGL_COMPOSITOR::DIRECT_RENDERING );
@@ -696,12 +687,12 @@ void OPENGL_GAL::EndDrawing()
     cntComposite.Stop();
 
     cntSwap.Start();
-    SwapBuffers();
+
     cntSwap.Stop();
 
     cntTotal.Stop();
 
-    KI_TRACE( traceGalProfile.data(), "Timing: %s %s %s %s %s %s\n", cntTotal.to_string(),
+    spdlog::trace("{} Timing: {} {} {} {} {} {}\n", traceGalProfile.data(), cntTotal.to_string(),
               cntEndCached.to_string(), cntEndNoncached.to_string(), cntEndOverlay.to_string(),
               cntComposite.to_string(), cntSwap.to_string() );
 }
@@ -2069,20 +2060,21 @@ void OPENGL_GAL::StartDiffLayer()
 
 void OPENGL_GAL::EndDiffLayer()
 {
+    QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
     if( m_tempBuffer )
     {
-        glBlendEquation( GL_MAX );
+        functions->glBlendEquation( GL_MAX );
         m_currentManager->EndDrawing();
-        glBlendEquation( GL_FUNC_ADD );
+        functions->glBlendEquation( GL_FUNC_ADD );
 
         m_compositor->DrawBuffer( m_tempBuffer, m_mainBuffer );
     }
     else
     {
         // Fall back to imperfect alpha blending on single buffer
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+        functions->glBlendFunc( GL_SRC_ALPHA, GL_ONE );
         m_currentManager->EndDrawing();
-        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        functions->glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     }
 }
 
@@ -2257,41 +2249,41 @@ void OPENGL_GAL::drawStrokedSemiCircle( const VECTOR2D& aCenterPoint, double aRa
 
 void OPENGL_GAL::drawPolygon( GLdouble* aPoints, int aPointCount )
 {
-    if( m_isFillEnabled )
-    {
-        m_currentManager->Shader( SHADER_NONE );
-        m_currentManager->Color( m_fillColor.r, m_fillColor.g, m_fillColor.b, m_fillColor.a );
+    //if( m_isFillEnabled )
+    //{
+    //    m_currentManager->Shader( SHADER_NONE );
+    //    m_currentManager->Color( m_fillColor.r, m_fillColor.g, m_fillColor.b, m_fillColor.a );
 
-        // Any non convex polygon needs to be tesselated
-        // for this purpose the GLU standard functions are used
-        TessParams params = { m_currentManager, m_tessIntersects };
-        gluTessBeginPolygon( m_tesselator, &params );
-        gluTessBeginContour( m_tesselator );
+    //    // Any non convex polygon needs to be tesselated
+    //    // for this purpose the GLU standard functions are used
+    //    TessParams params = { m_currentManager, m_tessIntersects };
+    //    gluTessBeginPolygon( m_tesselator, &params );
+    //    gluTessBeginContour( m_tesselator );
 
-        GLdouble* point = aPoints;
+    //    GLdouble* point = aPoints;
 
-        for( int i = 0; i < aPointCount; ++i )
-        {
-            gluTessVertex( m_tesselator, point, point );
-            point += 3; // 3 coordinates
-        }
+    //    for( int i = 0; i < aPointCount; ++i )
+    //    {
+    //        gluTessVertex( m_tesselator, point, point );
+    //        point += 3; // 3 coordinates
+    //    }
 
-        gluTessEndContour( m_tesselator );
-        gluTessEndPolygon( m_tesselator );
+    //    gluTessEndContour( m_tesselator );
+    //    gluTessEndPolygon( m_tesselator );
 
-        // Free allocated intersecting points
-        m_tessIntersects.clear();
-    }
+    //    // Free allocated intersecting points
+    //    m_tessIntersects.clear();
+    //}
 
-    if( m_isStrokeEnabled )
-    {
-        drawPolyline(
-                [&]( int idx )
-                {
-                    return VECTOR2D( aPoints[idx * 3], aPoints[idx * 3 + 1] );
-                },
-                aPointCount );
-    }
+    //if( m_isStrokeEnabled )
+    //{
+    //    drawPolyline(
+    //            [&]( int idx )
+    //            {
+    //                return VECTOR2D( aPoints[idx * 3], aPoints[idx * 3 + 1] );
+    //            },
+    //            aPointCount );
+    //}
 }
 
 
@@ -2490,7 +2482,7 @@ std::pair<VECTOR2D, float> OPENGL_GAL::computeBitmapTextSize( const UTF8& aText 
     static const FONT_GLYPH_TYPE* defaultGlyph = LookupGlyph( '(' ); // for strange chars
 
     VECTOR2D textSize( 0, 0 );
-    float    commonOffset = MAXINT;
+    float    commonOffset = std::numeric_limits<int>::max();
     float    charHeight = font_information.max_y - defaultGlyph->miny;
     int      overbarDepth = -1;
     int braceNesting = 0;
@@ -2581,13 +2573,13 @@ void OPENGL_GAL::blitCursor()
     VECTOR2D cursorCenter = ( cursorBegin + cursorEnd ) / 2;
 
     const COLOR4D color = getCursorColor();
+    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
+    function->glActiveTexture( GL_TEXTURE0 );
+    function->glDisable( GL_TEXTURE_2D );
+    function->glEnable( GL_BLEND );
+    function->glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-    glActiveTexture( GL_TEXTURE0 );
-    glDisable( GL_TEXTURE_2D );
-    glEnable( GL_BLEND );
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
-    glLineWidth( 1.0 );
+    function->glLineWidth( 1.0 );
     glColor4d( color.r, color.g, color.b, color.a );
 
     glBegin( GL_LINES );
@@ -2602,7 +2594,7 @@ void OPENGL_GAL::blitCursor()
 
 unsigned int OPENGL_GAL::getNewGroupNumber()
 {
-    assert( m_groups.size() < MAXINT,
+    assert( m_groups.size() < std::numeric_limits<int>::max(),
                   "There are no free slots to store a group");
 
     while( m_groups.find( m_groupCounter ) != m_groups.end() )
@@ -2617,14 +2609,13 @@ void OPENGL_GAL::init()
 #ifndef KICAD_USE_EGL
     //assert( IsShownOnScreen() );
 #endif // KICAD_USE_EGL
-    assert(m_isContextLocked);
+    assert(!m_isContextLocked);
     //wxASSERT_MSG( m_isContextLocked, "This should only be called from within a locked context." );
 
     // Check correct initialization from the constructor
     //if( m_tesselator == nullptr )
     //    throw std::runtime_error( "Could not create the tesselator" );
-    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
-    GLenum err = glewInit();
+    //GLenum err = glewInit();
 
 #ifdef KICAD_USE_EGL
     // TODO: better way to check when EGL is ready (init fails at "getString(GL_VERSION)")
@@ -2642,8 +2633,8 @@ void OPENGL_GAL::init()
     //SetOpenGLInfo( (const char*) glGetString( GL_VENDOR ), (const char*) glGetString( GL_RENDERER ),
     //               (const char*) glGetString( GL_VERSION ) );
 
-    if( GLEW_OK != err )
-        throw std::runtime_error( (const char*) glewGetErrorString( err ) );
+    //if( GLEW_OK != err )
+    //    throw std::runtime_error( (const char*) glewGetErrorString( err ) );
 
     // Check the OpenGL version (minimum 2.1 is required)
     //if( !GLEW_VERSION_2_1 )
@@ -2667,7 +2658,7 @@ void OPENGL_GAL::init()
     // Prepare shaders
     if( !m_shader->IsLinked()
         && !m_shader->LoadShaderFromFile( QOpenGLShader::Vertex,
-                                             "mini_vert"))
+                                             "shaders/mini_vert.glsl"))
     {
         throw std::runtime_error( "Cannot compile vertex shader!" );
     }
@@ -2926,3 +2917,32 @@ void OPENGL_GAL::ComputeWorldScreenMatrix()
 //            DrawGlyph( *aGlyphs[i], i, aGlyphs.size() );
 //    }
 //}
+
+void OPENGL_GAL::initializeGL() {
+    initializeOpenGLFunctions();
+
+    if (m_glMainContext == nullptr)
+    {
+        m_glMainContext = GetGLContextManager()->CreateCtx(this);
+
+        if (!m_glMainContext)
+            throw std::runtime_error("Could not create the main OpenGL context");
+
+        m_glPrivContext = m_glMainContext;
+    }
+    else
+    {
+        m_glPrivContext = GetGLContextManager()->CreateCtx(this, m_glMainContext);
+
+        if (!m_glPrivContext)
+            throw std::runtime_error("Could not create a private OpenGL context");
+    }
+
+    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
+}
+void OPENGL_GAL::resizeGL(int w, int h) {
+    glViewport(0, 0, w, h);
+}
+void OPENGL_GAL::paintGL() {
+    m_currentManager->EndDrawing();
+}

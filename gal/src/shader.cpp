@@ -5,7 +5,7 @@
 #include <cstring>
 #include <cassert>
 #include <QFile>
-
+#include <QDir>
 #include "gal/include/shader.hxx"
 #include <vector>
 
@@ -56,7 +56,14 @@ SHADER::~SHADER()
 bool SHADER::LoadShaderFromFile(QOpenGLShader::ShaderType aShaderType, const std::string& aShaderSourceName )
 {
     // Load shader sources
+    qDebug() << "Current path:" << QDir::currentPath();
+    QString file(__FILE__);
+    file += "../shaders/mini_vert.glsl";
+    QFileInfo info(file);
+    qDebug() << "Absolute path:" << info.absoluteFilePath()
+        << "Exists:" << info.exists();
     QOpenGLShader* vs = new QOpenGLShader(aShaderType);
+
     QString source = aShaderSourceName.data();
     vs->compileSourceFile(source);
 

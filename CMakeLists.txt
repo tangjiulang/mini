@@ -36,7 +36,7 @@ add_subdirectory(math)
 add_subdirectory(gal)
 add_subdirectory(resources)
 
-add_executable (mini "mini.cpp" "mini.h")
+add_executable (mini "mini.cpp" "mini.h" )
 
 target_link_libraries(mini PUBLIC 
                         Qt6::Core
@@ -45,6 +45,23 @@ target_link_libraries(mini PUBLIC
                         Qt6::OpenGL
                         Qt6::OpenGLWidgets
 						spdlog::spdlog 
+						math
+                        gal
+                        GLEW::GLEW
+)
+
+project("Test")
+
+add_executable(Test "test/testGal.cpp")
+target_link_libraries(Test PUBLIC 
+                        Qt6::Core
+                        Qt6::Gui
+                        Qt6::Widgets
+                        Qt6::OpenGL
+                        Qt6::OpenGLWidgets
+						spdlog::spdlog 
+                        base
+                        core
 						math
                         gal
                         GLEW::GLEW

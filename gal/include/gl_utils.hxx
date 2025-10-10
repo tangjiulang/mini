@@ -3,8 +3,8 @@
 
 #include <QOpenGLFunctions>
 #include <QSurfaceFormat>
-#include <GL/wglew.h>
-#include <GL/glew.h>
+//#include <GL/wglew.h>
+//#include <GL/glew.h>
 
 #ifdef _WIN32
     #ifdef __MINGW32__
