@@ -98,6 +98,12 @@ protected:
 
     ///< true: enable Z test when drawing
     bool m_enableDepthTest;
+
+    ///< vao
+    QOpenGLVertexArrayObject m_vertexArrayObject;
+
+    ///< vbo
+    QOpenGLBuffer m_vertexBuffer;
 };  
 
 
@@ -168,7 +174,6 @@ protected:
     ///< Size of the current VRANGE
     unsigned int m_curVrangeSize;
 
-    QOpenGLVertexArrayObject m_vertexArrayObject;
 };
 
 

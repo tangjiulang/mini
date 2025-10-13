@@ -355,6 +355,10 @@ private:
     GLint                   ufm_screenPixelSize;
     GLint                   ufm_pixelSizeMultiplier;
     GLint                   ufm_antialiasingOffset;
+    GLint                   ufm_minLinePixelWidth;
+    GLint                   ufm_fontTexture;
+    GLint                   ufm_fontTextureWidth;
+    GLint                   ufm_mvp;
 
     /// wx cursor showing the current native cursor.
     QCURSOR_TYPE          m_currentwxCursor;
@@ -563,6 +567,13 @@ private:
     double getWorldPixelSize() const;
 
     VECTOR2D getScreenPixelSize() const;
+
+    /**
+     * Set up the shader parameters for OpenGL rendering.
+     * This method initializes all the uniform parameter locations
+     * after the shader has been linked.
+     */
+    void setupShaderParameters();
 
     /**
      * Basic OpenGL initialization and feature checks.

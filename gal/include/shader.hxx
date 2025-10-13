@@ -142,7 +142,7 @@ public:
      * @param aParameterName is the name of the parameter.
      * @return the added parameter location.
      */
-    int AddParameter( const std::string& aParameterName );
+    int AddParameter( const char* aParameterName );
 
     /**
      * Set a parameter of the shader.
@@ -154,7 +154,7 @@ public:
     void SetParameter( int aParameterNumber, int aValue );
     void SetParameter( int aParameterNumber, const VECTOR2D& aValue );
     void SetParameter( int aParameterNumber, float f0, float f1, float f2, float f3 );
-
+    void SetParameter(int parameterNumber, GLfloat f[16]);
     /**
      * Get an attribute location.
      *

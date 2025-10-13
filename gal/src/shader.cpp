@@ -55,24 +55,26 @@ SHADER::~SHADER()
 
 bool SHADER::LoadShaderFromFile(QOpenGLShader::ShaderType aShaderType, const std::string& aShaderSourceName )
 {
-    // Load shader sources
-    qDebug() << "Current path:" << QDir::currentPath();
-    QString file(__FILE__);
-    file += "../shaders/mini_vert.glsl";
-    QFileInfo info(file);
-    qDebug() << "Absolute path:" << info.absoluteFilePath()
-        << "Exists:" << info.exists();
-    QOpenGLShader* vs = new QOpenGLShader(aShaderType);
+    QFileInfo thisFile(__FILE__);
+    QString shaderPath = QDir(thisFile.absolutePath()).filePath(aShaderSourceName.data());
+    
+    QFileInfo info(shaderPath);
+    if (!info.exists()) {
+        qWarning() << "Shader file not found:" << info.absoluteFilePath();
+    }
+    
+    QOpenGLShader *shader = new QOpenGLShader(aShaderType);
+    if (!shader->compileSourceFile(shaderPath)) {
+        qWarning() << "Shader compile failed!";
+        qWarning() << shader->log();
+    }
 
-    QString source = aShaderSourceName.data();
-    vs->compileSourceFile(source);
-
-    if (!vs->isCompiled()) {
-        delete vs;
+    if (!shader->isCompiled()) {
+        delete shader;
     }
 
     
-    return program.addShader(vs);
+    return program.addShader(shader);
 }
 
 QString SHADER::LoadShaderSourceFromStrings(const std::string& aShaderSourceName) {
@@ -105,38 +107,27 @@ void SHADER::ConfigureGeometryShader( GLuint maxVertices, GLuint geometryInputTy
 bool SHADER::Link()
 {
     // Shader linking
-    program.link();
+    if (!program.link()) {
+        qDebug() << program.log();
+    }
+    
     //glLinkProgram( programNumber );
     programInfo( programNumber );
 
     // Check the Link state
     isShaderLinked = program.isLinked();
 
-#ifdef DEBUG
-    if( !isShaderLinked )
-    {
-        int maxLength;
-        glGetProgramiv( programNumber, GL_INFO_LOG_LENGTH, &maxLength );
-        maxLength = maxLength + 1;
-        char* linkInfoLog = new char[maxLength];
-        glGetProgramInfoLog( programNumber, maxLength, &maxLength, linkInfoLog );
-        std::cerr << "Shader linking error:" << std::endl;
-        std::cerr << linkInfoLog;
-        delete[] linkInfoLog;
-    }
-#endif /* DEBUG */
-
     return isShaderLinked;
 }
 
 
-int SHADER::AddParameter( const std::string& aParameterName )
+int SHADER::AddParameter( const char* aParameterName )
 {
-    GLint location = program.uniformLocation(aParameterName.data());
+    GLint location = program.uniformLocation(aParameterName);
     if( location >= 0 )
         parameterLocation.push_back( location );
     else
-        throw std::runtime_error( "Could not find shader uniform: " + aParameterName );
+        throw std::runtime_error( "Could not find shader uniform: " + std::string(aParameterName) );
 
     return static_cast<int>( parameterLocation.size() ) - 1;
 }
@@ -166,6 +157,18 @@ void SHADER::SetParameter( int parameterNumber, float f0, float f1, float f2, fl
     program.setUniformValue(parameterLocation[parameterNumber], f0, f1, f2, f3);
 }
 
+void SHADER::SetParameter(int parameterNumber, GLfloat f[16])
+{
+    assert((unsigned)parameterNumber < parameterLocation.size());
+    GLfloat mvp[4][4];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            int idx = i * 4 + j;
+            mvp[i][j] = f[idx];
+        }
+    }
+    program.setUniformValue(parameterLocation[parameterNumber], mvp);
+}
 
 void SHADER::SetParameter( int aParameterNumber, const VECTOR2D& aValue )
 {

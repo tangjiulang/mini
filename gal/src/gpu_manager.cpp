@@ -35,8 +35,11 @@ GPU_MANAGER::GPU_MANAGER( VERTEX_CONTAINER* aContainer ) :
         m_container( aContainer ),
         m_shader( nullptr ),
         m_shaderAttrib( 0 ),
-        m_enableDepthTest( true )
+        m_enableDepthTest( true ),
+        m_vertexBuffer(QOpenGLBuffer::VertexBuffer)
 {
+    m_vertexArrayObject.create();
+    m_vertexBuffer.create();
 }
 
 
@@ -68,7 +71,6 @@ GPU_CACHED_MANAGER::GPU_CACHED_MANAGER( VERTEX_CONTAINER* aContainer ) :
         m_indexBufMaxSize( 0 ),
         m_curVrangeSize( 0 )
 {
-    m_vertexArrayObject.create();
 }
 
 
@@ -141,8 +143,6 @@ void GPU_CACHED_MANAGER::EndDrawing()
     glEnableClientState( GL_COLOR_ARRAY );
 
     // Bind vertices data buffers
-    QOpenGLBuffer* cachedBuffer = cached->GetBuffer();
-    cachedBuffer->bind();
     glVertexPointer( COORD_STRIDE, GL_FLOAT, VERTEX_SIZE, (GLvoid*) COORD_OFFSET );
     glColorPointer( COLOR_STRIDE, GL_UNSIGNED_BYTE, VERTEX_SIZE, (GLvoid*) COLOR_OFFSET );
 
@@ -206,7 +206,6 @@ void GPU_CACHED_MANAGER::EndDrawing()
         traceGalProfile, cached->AllItemsSize(), m_vranges.size(), m_indexBufMaxSize, drawCalls );
     spdlog::trace( "{} Timing: {}\n", traceGalProfile, cntDraw.to_string() );
 
-    cachedBuffer->release();
     cached->ClearDirty();
 
     // Deactivate vertex array
@@ -253,62 +252,57 @@ void GPU_NONCACHED_MANAGER::DrawIndices( const VERTEX_ITEM* aItem )
 
 void GPU_NONCACHED_MANAGER::EndDrawing()
 {
-#ifdef KICAD_GAL_PROFILE
-    PROF_TIMER totalRealTime;
-#endif /* KICAD_GAL_PROFILE */
     QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
     if( m_container->GetSize() == 0 )
         return;
 
     VERTEX*  vertices = m_container->GetAllVertices();
-    GLfloat* coordinates = (GLfloat*) ( vertices );
-    GLubyte* colors = (GLubyte*) ( vertices ) + COLOR_OFFSET;
 
-    if( m_enableDepthTest )
-        function->glEnable( GL_DEPTH_TEST );
-    else
-        function->glDisable( GL_DEPTH_TEST );
+    //if( m_enableDepthTest )
+    //    function->glEnable( GL_DEPTH_TEST );
+    //else
+    //    function->glDisable( GL_DEPTH_TEST );
 
     // Prepare buffers
-    glEnableClientState( GL_VERTEX_ARRAY );
-    glEnableClientState( GL_COLOR_ARRAY );
+    m_vertexBuffer.bind();
+    function->glBufferData(GL_ARRAY_BUFFER, m_container->GetSize() * sizeof(VERTEX),
+        vertices, GL_DYNAMIC_DRAW);
 
-    glVertexPointer( COORD_STRIDE, GL_FLOAT, VERTEX_SIZE, coordinates );
-    glColorPointer( COLOR_STRIDE, GL_UNSIGNED_BYTE, VERTEX_SIZE, colors );
 
-    if( m_shader != nullptr ) // Use shader if applicable
+    m_shader->Use();
+    m_vertexArrayObject.bind();
+
     {
-        GLfloat* shaders = (GLfloat*) ( vertices ) + SHADER_OFFSET / sizeof( GLfloat );
 
-        m_shader->Use();
-        function->glEnableVertexAttribArray( m_shaderAttrib );
-        function->glVertexAttribPointer( m_shaderAttrib, SHADER_STRIDE, GL_FLOAT, GL_FALSE, VERTEX_SIZE,
-                               shaders );
+
+        function->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_SIZE,
+            reinterpret_cast<void*>(offsetof(VERTEX, x)));
+        function->glEnableVertexAttribArray(0);
+
+        function->glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, VERTEX_SIZE,
+            reinterpret_cast<void*>(offsetof(VERTEX, r)));
+        function->glEnableVertexAttribArray(1);
+
+        function->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, VERTEX_SIZE,
+            reinterpret_cast<void*>(offsetof(VERTEX, shader)));
+        function->glEnableVertexAttribArray(2);
     }
-
+    bool res = function->glGetError();
     function->glDrawArrays( GL_TRIANGLES, 0, m_container->GetSize() );
 
-#ifdef KICAD_GAL_PROFILE
-    wxLogTrace( traceGalProfile, wxT( "Noncached manager size: %d" ), m_container->GetSize() );
-#endif /* KICAD_GAL_PROFILE */
-
     // Deactivate vertex array
-    glDisableClientState( GL_COLOR_ARRAY );
-    glDisableClientState( GL_VERTEX_ARRAY );
-
     if( m_shader != nullptr )
     {
-        function->glDisableVertexAttribArray( m_shaderAttrib );
+        function->glDisableVertexAttribArray(0);
+        function->glDisableVertexAttribArray(1);
+        function->glDisableVertexAttribArray(2);
         m_shader->Deactivate();
     }
 
-    m_container->Clear();
+    m_vertexArrayObject.release();
+    m_vertexBuffer.release();
+    //m_container->Clear();
 
-#ifdef KICAD_GAL_PROFILE
-    totalRealTime.Stop();
-    wxLogTrace( traceGalProfile, wxT( "GPU_NONCACHED_MANAGER::EndDrawing(): %.1f ms" ),
-                totalRealTime.msecs() );
-#endif /* KICAD_GAL_PROFILE */
 }
 
 void GPU_MANAGER::EnableDepthTest( bool aEnabled )

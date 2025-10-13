@@ -302,8 +302,8 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
 
     m_bitmapCache = std::make_unique<GL_BITMAP_CACHE>();
 
-    //m_compositor = new OPENGL_COMPOSITOR;
-    //m_compositor->SetAntialiasingMode( m_options.antialiasing_mode );
+    m_compositor = new OPENGL_COMPOSITOR;
+    m_compositor->SetAntialiasingMode( m_options.antialiasing_mode );
 
     // Initialize the flags
     m_isFramebufferInitialized = false;
@@ -351,7 +351,7 @@ OPENGL_GAL::~OPENGL_GAL()
     //gluDeleteTess( m_tesselator );
     ClearCache();
 
-    //delete m_compositor;
+    delete m_compositor;
 
     if( m_isInitialized )
     {
@@ -437,12 +437,12 @@ bool OPENGL_GAL::updatedGalDisplayOptions( const GAL_DISPLAY_OPTIONS& aOptions )
 
     bool refresh = false;
 
-    //if( m_options.antialiasing_mode != m_compositor->GetAntialiasingMode() )
-    //{
-    //    m_compositor->SetAntialiasingMode( m_options.antialiasing_mode );
-    //    m_isFramebufferInitialized = false;
-    //    refresh = true;
-    //}
+    if( m_options.antialiasing_mode != m_compositor->GetAntialiasingMode() )
+    {
+        m_compositor->SetAntialiasingMode( m_options.antialiasing_mode );
+        m_isFramebufferInitialized = false;
+        refresh = true;
+    }
 
     //if( super::updatedGalDisplayOptions( aOptions ) || refresh )
     //{
@@ -539,7 +539,7 @@ void OPENGL_GAL::BeginDrawing()
 
     // Set up the world <-> screen transformation
     ComputeWorldScreenMatrix();
-    GLdouble matrixData[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+    GLfloat matrixData[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
     matrixData[0] = m_worldScreenMatrix.m_data[0][0];
     matrixData[1] = m_worldScreenMatrix.m_data[1][0];
     matrixData[2] = m_worldScreenMatrix.m_data[2][0];
@@ -549,7 +549,7 @@ void OPENGL_GAL::BeginDrawing()
     matrixData[12] = m_worldScreenMatrix.m_data[0][2];
     matrixData[13] = m_worldScreenMatrix.m_data[1][2];
     matrixData[14] = m_worldScreenMatrix.m_data[2][2];
-    glLoadMatrixd( matrixData );
+    //glLoadMatrixd( matrixData );
 
     // Set defaults
     SetFillColor( m_fillColor );
@@ -593,13 +593,6 @@ void OPENGL_GAL::BeginDrawing()
             functions->glActiveTexture( GL_TEXTURE0 );
         }
 
-        // Set shader parameter
-        GLint ufm_fontTexture = m_shader->AddParameter( "u_fontTexture" );
-        GLint ufm_fontTextureWidth = m_shader->AddParameter( "u_fontTextureWidth" );
-        ufm_worldPixelSize = m_shader->AddParameter( "u_worldPixelSize" );
-        ufm_screenPixelSize = m_shader->AddParameter( "u_screenPixelSize" );
-        ufm_pixelSizeMultiplier = m_shader->AddParameter( "u_pixelSizeMultiplier" );
-        ufm_antialiasingOffset = m_shader->AddParameter( "u_antialiasingOffset" );
 
         m_shader->Use();
         m_shader->SetParameter( ufm_fontTexture, (int) FONT_TEXTURE_UNIT );
@@ -611,6 +604,7 @@ void OPENGL_GAL::BeginDrawing()
     }
 
     m_shader->Use();
+    m_shader->SetParameter(ufm_mvp, matrixData);
     m_shader->SetParameter( ufm_worldPixelSize,
                             (float) ( getWorldPixelSize() / devicePixelRatioF() ) );
     const VECTOR2D& screenPixelSize = getScreenPixelSize();
@@ -2658,20 +2652,23 @@ void OPENGL_GAL::init()
     // Prepare shaders
     if( !m_shader->IsLinked()
         && !m_shader->LoadShaderFromFile( QOpenGLShader::Vertex,
-                                             "shaders/mini_vert.glsl"))
+                                             "../shaders/mini_vert.glsl"))
     {
         throw std::runtime_error( "Cannot compile vertex shader!" );
     }
 
     if( !m_shader->IsLinked()
         && !m_shader->LoadShaderFromFile( QOpenGLShader::Fragment,
-                                             "mini_frag"))
+                                             "../shaders/mini_frag.glsl"))
     {
         throw std::runtime_error( "Cannot compile fragment shader!" );
     }
 
     if( !m_shader->IsLinked() && !m_shader->Link() )
         throw std::runtime_error( "Cannot link the shaders!" );
+
+    // Set up shader parameters after linking
+    setupShaderParameters();
 
     // Check if video card supports textures big enough to fit the font atlas
     int maxTextureSize;
@@ -2700,6 +2697,18 @@ void OPENGL_GAL::init()
     m_isInitialized = true;
 }
 
+void OPENGL_GAL::setupShaderParameters()
+{
+    // Initialize shader uniform parameter locations
+    ufm_fontTexture = m_shader->AddParameter("u_fontTexture");
+    ufm_fontTextureWidth = m_shader->AddParameter("u_fontTextureWidth");
+    ufm_worldPixelSize = m_shader->AddParameter("u_worldPixelSize");
+    ufm_screenPixelSize = m_shader->AddParameter("u_screenPixelSize");
+    ufm_pixelSizeMultiplier = m_shader->AddParameter("u_pixelSizeMultiplier");
+    ufm_antialiasingOffset = m_shader->AddParameter("u_antialiasingOffset");
+    ufm_minLinePixelWidth = m_shader->AddParameter("u_minLinePixelWidth");
+    ufm_mvp = m_shader->AddParameter("u_mvp");
+}
 
 // Callback functions for the tesselator.  Compare Redbook Chapter 11.
 void CALLBACK VertexCallback( GLvoid* aVertexPtr, void* aData )
@@ -2944,5 +2953,6 @@ void OPENGL_GAL::resizeGL(int w, int h) {
     glViewport(0, 0, w, h);
 }
 void OPENGL_GAL::paintGL() {
-    m_currentManager->EndDrawing();
+    if (m_currentManager != nullptr)
+        m_currentManager->EndDrawing();
 }
