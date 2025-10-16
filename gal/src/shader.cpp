@@ -62,19 +62,22 @@ bool SHADER::LoadShaderFromFile(QOpenGLShader::ShaderType aShaderType, const std
     if (!info.exists()) {
         qWarning() << "Shader file not found:" << info.absoluteFilePath();
     }
-    
-    QOpenGLShader *shader = new QOpenGLShader(aShaderType);
-    if (!shader->compileSourceFile(shaderPath)) {
-        qWarning() << "Shader compile failed!";
-        qWarning() << shader->log();
+    bool res = program->addShaderFromSourceFile(aShaderType, shaderPath);
+    if (!res) {
+        qDebug() << "Shader Create Error" << program->log();
     }
+    //QOpenGLShader *shader = new QOpenGLShader(aShaderType);
+    //if (!shader->compileSourceFile(shaderPath)) {
+    //    qWarning() << "Shader compile failed!";
+    //    qWarning() << shader->log();
+    //}
 
-    if (!shader->isCompiled()) {
-        delete shader;
-    }
+    //if (!shader->isCompiled()) {
+    //    delete shader;
+    //}
 
     
-    return program.addShader(shader);
+    return res;
 }
 
 QString SHADER::LoadShaderSourceFromStrings(const std::string& aShaderSourceName) {
@@ -87,12 +90,16 @@ QString SHADER::LoadShaderSourceFromStrings(const std::string& aShaderSourceName
 }
 
 bool SHADER::LoadShaderFromString(QOpenGLShader::ShaderType aShaderType, const QString& aShaderSource) {
-    QOpenGLShader* vs = new QOpenGLShader(aShaderType);
-    vs->compileSourceCode(aShaderSource);
-    if (!vs->isCompiled()) {
-        delete vs;
+    bool res = program->addShaderFromSourceCode(aShaderType, aShaderSource);
+    if (!res) {
+        qDebug() << "Shader Create Error" << program->log();
     }
-    return program.addShader(vs);
+    //QOpenGLShader* vs = new QOpenGLShader(aShaderType);
+    //vs->compileSourceCode(aShaderSource);
+    //if (!vs->isCompiled()) {
+    //    delete vs;
+    //}
+    return res;
 }
 
 void SHADER::ConfigureGeometryShader( GLuint maxVertices, GLuint geometryInputType,
@@ -107,15 +114,15 @@ void SHADER::ConfigureGeometryShader( GLuint maxVertices, GLuint geometryInputTy
 bool SHADER::Link()
 {
     // Shader linking
-    if (!program.link()) {
-        qDebug() << program.log();
+    if (!program->link()) {
+        qDebug() << program->log();
     }
     
     //glLinkProgram( programNumber );
     programInfo( programNumber );
 
     // Check the Link state
-    isShaderLinked = program.isLinked();
+    isShaderLinked = program->isLinked();
 
     return isShaderLinked;
 }
@@ -123,7 +130,7 @@ bool SHADER::Link()
 
 int SHADER::AddParameter( const char* aParameterName )
 {
-    GLint location = program.uniformLocation(aParameterName);
+    GLint location = program->uniformLocation(aParameterName);
     if( location >= 0 )
         parameterLocation.push_back( location );
     else
@@ -137,7 +144,7 @@ void SHADER::SetParameter( int parameterNumber, float value )
 {
     assert( (unsigned) parameterNumber < parameterLocation.size() );
 
-    program.setUniformValue((int)parameterLocation[parameterNumber], (GLfloat)value);
+    program->setUniformValue((int)parameterLocation[parameterNumber], (GLfloat)value);
 
 }
 
@@ -146,7 +153,8 @@ void SHADER::SetParameter( int parameterNumber, int value )
 {
     assert( (unsigned) parameterNumber < parameterLocation.size() );
 
-    program.setUniformValue(parameterLocation[parameterNumber], value);
+    program->setUniformValue(parameterLocation[parameterNumber], value);
+    int res = glGetError();
 }
 
 
@@ -154,20 +162,20 @@ void SHADER::SetParameter( int parameterNumber, float f0, float f1, float f2, fl
 {
     assert( (unsigned) parameterNumber < parameterLocation.size() );
     float arr[4] = { f0, f1, f2, f3 };
-    program.setUniformValue(parameterLocation[parameterNumber], f0, f1, f2, f3);
+    program->setUniformValue(parameterLocation[parameterNumber], f0, f1, f2, f3);
 }
 
 void SHADER::SetParameter(int parameterNumber, GLfloat f[16])
 {
     assert((unsigned)parameterNumber < parameterLocation.size());
-    GLfloat mvp[4][4];
+    GLfloat mvp[4][4] = { 0 };
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
             int idx = i * 4 + j;
             mvp[i][j] = f[idx];
         }
     }
-    program.setUniformValue(parameterLocation[parameterNumber], mvp);
+    program->setUniformValue(parameterLocation[parameterNumber], mvp);
 }
 
 void SHADER::SetParameter( int aParameterNumber, const VECTOR2D& aValue )
@@ -176,14 +184,14 @@ void SHADER::SetParameter( int aParameterNumber, const VECTOR2D& aValue )
     value.setX(aValue.x);
     value.setY(aValue.y);
     assert( (unsigned) aParameterNumber < parameterLocation.size() );
-    program.setUniformValue(parameterLocation[aParameterNumber], value);
+    program->setUniformValue(parameterLocation[aParameterNumber], value);
 }
 
 
 int SHADER::GetAttribute( const std::string& aAttributeName ) const
 {
     QString attribute = aAttributeName.data();
-    return program.attributeLocation(attribute);
+    return program->attributeLocation(attribute);
 }
 
 
@@ -193,7 +201,7 @@ void SHADER::programInfo( GLuint aProgram )
     GLint writtenChars = 0;
 
     // Get the length of the info string
-    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     function->glGetProgramiv(aProgram, GL_INFO_LOG_LENGTH, &glInfoLogLength);
 
     // Print the information
@@ -214,7 +222,7 @@ void SHADER::shaderInfo( GLuint aShader )
     GLint writtenChars = 0;
 
     // Get the length of the info string
-    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     function->glGetShaderiv( aShader, GL_INFO_LOG_LENGTH, &glInfoLogLength );
 
     // Print the information

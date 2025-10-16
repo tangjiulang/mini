@@ -8,6 +8,9 @@
 #include "vector2wx.hxx"
 #include "bitmap_base.hxx"
 #include <bezier_curves.hxx>
+#include <QOpenGLVersionFunctionsFactory>
+#include <QFileInfo>
+#include <QDir>
 #include "util.hxx" // for KiROUND
 //#include <pgm_base.h>
 
@@ -292,11 +295,11 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
         m_isContextLocked( false ),
         m_lockClientCookie( 0 )
 {
-    QSurfaceFormat fmt;
-    fmt.setProfile(QSurfaceFormat::CoreProfile);
-    fmt.setDepthBufferSize(24);
-    setFormat(fmt);
-
+    //QSurfaceFormat fmt;
+    //fmt.setProfile(QSurfaceFormat::CoreProfile);
+    //fmt.setDepthBufferSize(24);
+    //setFormat(fmt);
+    setMinimumSize(400, 400);
     m_shader = new SHADER();
     ++m_instanceCounter;
 
@@ -312,9 +315,9 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
     m_isGrouping = false;
     m_groupCounter = 0;
 
-    if (aParent != nullptr)
-        resize(aParent->size());
-    else resize(QSize(800, 1000));
+    //if (aParent != nullptr)
+    //    resize(aParent->size());
+    //else resize(QSize(800, 1000));
     qreal dpr = devicePixelRatioF();  // 高 DPI 缩放因子
     QSize nativeSize = size() * dpr;
     m_screenSize = ToVECTOR2I(nativeSize); // 你自己把 QSizeF 转成 VECTOR2I
@@ -484,60 +487,59 @@ void OPENGL_GAL::BeginDrawing()
 
     if( !m_isInitialized )
         init();
-    QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
     // Set up the view port
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
+    //glMatrixMode( GL_PROJECTION );
+    //glLoadIdentity();
 
-    // Create the screen transformation (Do the RH-LH conversion here)
-    glOrtho( 0, (GLint) m_screenSize.x, (GLsizei) m_screenSize.y, 0,
-             -m_depthRange.x, -m_depthRange.y );
+    //// Create the screen transformation (Do the RH-LH conversion here)
+    //glOrtho( 0, (GLint) m_screenSize.x, (GLsizei) m_screenSize.y, 0,
+    //         -m_depthRange.x, -m_depthRange.y );
 
-    if( !m_isFramebufferInitialized )
-    {
-        // Prepare rendering target buffers
-        m_compositor->Initialize();
-        m_mainBuffer = m_compositor->CreateBuffer();
-        try
-        {
-            m_tempBuffer = m_compositor->CreateBuffer();
-        }
-        catch( const std::runtime_error& )
-        {
-            spdlog::trace( "Could not create a framebuffer for diff mode blending.\n" );
-            m_tempBuffer = 0;
-        }
-        try
-        {
-            m_overlayBuffer = m_compositor->CreateBuffer();
-        }
-        catch( const std::runtime_error& )
-        {
-            spdlog::trace( "Could not create a framebuffer for overlays.\n" );
-            m_overlayBuffer = 0;
-        }
+    //if( !m_isFramebufferInitialized )
+    //{
+    //    // Prepare rendering target buffers
+    //    m_compositor->Initialize();
+    //    m_mainBuffer = m_compositor->CreateBuffer();
+    //    try
+    //    {
+    //        m_tempBuffer = m_compositor->CreateBuffer();
+    //    }
+    //    catch( const std::runtime_error& )
+    //    {
+    //        spdlog::trace( "Could not create a framebuffer for diff mode blending.\n" );
+    //        m_tempBuffer = 0;
+    //    }
+    //    try
+    //    {
+    //        m_overlayBuffer = m_compositor->CreateBuffer();
+    //    }
+    //    catch( const std::runtime_error& )
+    //    {
+    //        spdlog::trace( "Could not create a framebuffer for overlays.\n" );
+    //        m_overlayBuffer = 0;
+    //    }
 
-        m_isFramebufferInitialized = true;
-    }
+    //    m_isFramebufferInitialized = true;
+    //}
 
-    m_compositor->Begin();
+    //m_compositor->Begin();
 
-    // Disable 2D Textures
-    glDisable( GL_TEXTURE_2D );
+    //// Disable 2D Textures
+    //glDisable( GL_TEXTURE_2D );
 
-    glShadeModel( GL_FLAT );
+    //glShadeModel( GL_FLAT );
 
-    // Enable the depth buffer
-    glEnable( GL_DEPTH_TEST );
-    glDepthFunc( GL_LESS );
+    //// Enable the depth buffer
+    //glEnable( GL_DEPTH_TEST );
+    //glDepthFunc( GL_LESS );
 
-    // Setup blending, required for transparent objects
-    glEnable( GL_BLEND );
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    //// Setup blending, required for transparent objects
+    //glEnable( GL_BLEND );
+    //glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-    glMatrixMode( GL_MODELVIEW );
+    //glMatrixMode( GL_MODELVIEW );
 
-    // Set up the world <-> screen transformation
+    //// Set up the world <-> screen transformation
     ComputeWorldScreenMatrix();
     GLfloat matrixData[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
     matrixData[0] = m_worldScreenMatrix.m_data[0][0];
@@ -549,22 +551,21 @@ void OPENGL_GAL::BeginDrawing()
     matrixData[12] = m_worldScreenMatrix.m_data[0][2];
     matrixData[13] = m_worldScreenMatrix.m_data[1][2];
     matrixData[14] = m_worldScreenMatrix.m_data[2][2];
-    //glLoadMatrixd( matrixData );
+    ////glLoadMatrixd( matrixData );
 
-    // Set defaults
-    SetFillColor( m_fillColor );
-    SetStrokeColor( m_strokeColor );
+    //// Set defaults
+    //SetFillColor( m_fillColor );
+    //SetStrokeColor( m_strokeColor );
 
-    // Remove all previously stored items
-    m_nonCachedManager->Clear();
-    m_overlayManager->Clear();
-    m_tempManager->Clear();
+    //// Remove all previously stored items
+    //m_nonCachedManager->Clear();
+    //m_overlayManager->Clear();
+    //m_tempManager->Clear();
 
-    m_cachedManager->BeginDrawing();
+    //m_cachedManager->BeginDrawing();
     m_nonCachedManager->BeginDrawing();
-    m_overlayManager->BeginDrawing();
-    m_tempManager->BeginDrawing();
-
+    //m_overlayManager->BeginDrawing();
+    //m_tempManager->BeginDrawing();
     if( !m_isBitmapFontInitialized )
     {
         // Keep bitmap font texture always bound to the second texturing unit
@@ -573,29 +574,30 @@ void OPENGL_GAL::BeginDrawing()
         // Either load the font atlas to video memory, or simply bind it to a texture unit
         if( !m_isBitmapFontLoaded )
         {
-            functions->glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
-            functions->glGenTextures( 1, &g_fontTexture );
-            functions->glBindTexture( GL_TEXTURE_2D, g_fontTexture );
-            functions->glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, font_image.width, font_image.height, 0, GL_RGB,
-                          GL_UNSIGNED_BYTE, font_image.pixels );
-            functions->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-            functions->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+            glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
+            glGenTextures( 1, &g_fontTexture );
+            glBindTexture( GL_TEXTURE_2D, g_fontTexture );
+            glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, font_image.width, font_image.height, 0, GL_RGB,
+               GL_UNSIGNED_BYTE, font_image.pixels );
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
             checkGlError( "loading bitmap font", __FILE__, __LINE__ );
 
-            functions->glActiveTexture( GL_TEXTURE0 );
+            glActiveTexture( GL_TEXTURE0 );
 
             m_isBitmapFontLoaded = true;
         }
         else
         {
-            functions->glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
-            functions->glBindTexture( GL_TEXTURE_2D, g_fontTexture );
-            functions->glActiveTexture( GL_TEXTURE0 );
+            glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
+            glBindTexture( GL_TEXTURE_2D, g_fontTexture );
+            glActiveTexture( GL_TEXTURE0 );
         }
 
-
         m_shader->Use();
+        int res = glGetError();
         m_shader->SetParameter( ufm_fontTexture, (int) FONT_TEXTURE_UNIT );
+
         m_shader->SetParameter( ufm_fontTextureWidth, (int) font_image.width );
         m_shader->Deactivate();
         checkGlError( "setting bitmap font sampler as shader parameter", __FILE__, __LINE__ );
@@ -619,10 +621,10 @@ void OPENGL_GAL::BeginDrawing()
 
     // Something between BeginDrawing and EndDrawing seems to depend on
     // this texture unit being active, but it does not assure it itself.
-    functions->glActiveTexture( GL_TEXTURE0 );
+    //glActiveTexture( GL_TEXTURE0 );
 
     // Unbind buffers - set compositor for direct drawing
-    m_compositor->SetBuffer( OPENGL_COMPOSITOR::DIRECT_RENDERING );
+    //m_compositor->SetBuffer( OPENGL_COMPOSITOR::DIRECT_RENDERING );
 
 #ifdef KICAD_GAL_PROFILE
     totalRealTime.Stop();
@@ -648,47 +650,53 @@ void OPENGL_GAL::EndDrawing()
     // Cached & non-cached containers are rendered to the same buffer
     m_compositor->SetBuffer( m_mainBuffer );
 
-    cntEndNoncached.Start();
-    m_nonCachedManager->EndDrawing();
-    cntEndNoncached.Stop();
+    if (m_nonCachedManager != nullptr) {
+        cntEndNoncached.Start();
+        m_nonCachedManager->EndDrawing();
+        cntEndNoncached.Stop();
+    }
+{
+        //if (m_cachedManager != nullptr) {
+        //    cntEndCached.Start();
+        //    m_cachedManager->EndDrawing();
+        //    cntEndCached.Stop();
+        //}
 
-    cntEndCached.Start();
-    m_cachedManager->EndDrawing();
-    cntEndCached.Stop();
+        //if (m_overlayManager != nullptr) {
+        //    cntEndOverlay.Start();
+        //    // Overlay container is rendered to a different buffer
+        //    if (m_overlayBuffer)
+        //        m_compositor->SetBuffer(m_overlayBuffer);
 
-    cntEndOverlay.Start();
-    // Overlay container is rendered to a different buffer
-    if( m_overlayBuffer )
-        m_compositor->SetBuffer( m_overlayBuffer );
+        //    m_overlayManager->EndDrawing();
+        //    cntEndOverlay.Stop();
+        //}
+        //
+        //cntComposite.Start();
 
-    m_overlayManager->EndDrawing();
-    cntEndOverlay.Stop();
 
-    cntComposite.Start();
+        // Draw the remaining contents, blit the rendering targets to the screen, swap the buffers
+        //m_compositor->DrawBuffer( m_mainBuffer );
 
-    // Be sure that the framebuffer is not colorized (happens on specific GPU&drivers combinations)
-    glColor4d( 1.0, 1.0, 1.0, 1.0 );
+        //if( m_overlayBuffer )
+        //    m_compositor->DrawBuffer( m_overlayBuffer );
 
-    // Draw the remaining contents, blit the rendering targets to the screen, swap the buffers
-    m_compositor->DrawBuffer( m_mainBuffer );
+        //m_compositor->Present();
+        //blitCursor();
 
-    if( m_overlayBuffer )
-        m_compositor->DrawBuffer( m_overlayBuffer );
+        //cntComposite.Stop();
 
-    m_compositor->Present();
-    blitCursor();
+        //cntSwap.Start();
 
-    cntComposite.Stop();
-
-    cntSwap.Start();
-
-    cntSwap.Stop();
-
+        //cntSwap.Stop();
+    }
     cntTotal.Stop();
 
     spdlog::trace("{} Timing: {} {} {} {} {} {}\n", traceGalProfile.data(), cntTotal.to_string(),
-              cntEndCached.to_string(), cntEndNoncached.to_string(), cntEndOverlay.to_string(),
-              cntComposite.to_string(), cntSwap.to_string() );
+                cntEndCached.to_string(), cntEndNoncached.to_string(), cntEndOverlay.to_string(),
+                cntComposite.to_string(), cntSwap.to_string() );
+
+
 }
 
 
@@ -2054,21 +2062,20 @@ void OPENGL_GAL::StartDiffLayer()
 
 void OPENGL_GAL::EndDiffLayer()
 {
-    QOpenGLFunctions* functions = QOpenGLContext::currentContext()->functions();
     if( m_tempBuffer )
     {
-        functions->glBlendEquation( GL_MAX );
+        glBlendEquation( GL_MAX );
         m_currentManager->EndDrawing();
-        functions->glBlendEquation( GL_FUNC_ADD );
+        glBlendEquation( GL_FUNC_ADD );
 
         m_compositor->DrawBuffer( m_tempBuffer, m_mainBuffer );
     }
     else
     {
         // Fall back to imperfect alpha blending on single buffer
-        functions->glBlendFunc( GL_SRC_ALPHA, GL_ONE );
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE );
         m_currentManager->EndDrawing();
-        functions->glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+        glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     }
 }
 
@@ -2567,13 +2574,12 @@ void OPENGL_GAL::blitCursor()
     VECTOR2D cursorCenter = ( cursorBegin + cursorEnd ) / 2;
 
     const COLOR4D color = getCursorColor();
-    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
-    function->glActiveTexture( GL_TEXTURE0 );
-    function->glDisable( GL_TEXTURE_2D );
-    function->glEnable( GL_BLEND );
-    function->glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    glActiveTexture( GL_TEXTURE0 );
+    glDisable( GL_TEXTURE_2D );
+    glEnable( GL_BLEND );
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-    function->glLineWidth( 1.0 );
+    glLineWidth( 1.0 );
     glColor4d( color.r, color.g, color.b, color.a );
 
     glBegin( GL_LINES );
@@ -2929,6 +2935,7 @@ void OPENGL_GAL::ComputeWorldScreenMatrix()
 
 void OPENGL_GAL::initializeGL() {
     initializeOpenGLFunctions();
+    m_shader->program = new QOpenGLShaderProgram(this);
 
     if (m_glMainContext == nullptr)
     {
@@ -2947,12 +2954,16 @@ void OPENGL_GAL::initializeGL() {
             throw std::runtime_error("Could not create a private OpenGL context");
     }
 
-    glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
 }
 void OPENGL_GAL::resizeGL(int w, int h) {
-    glViewport(0, 0, w, h);
+    //glViewport(0, 0, w, h);
 }
 void OPENGL_GAL::paintGL() {
-    if (m_currentManager != nullptr)
-        m_currentManager->EndDrawing();
+    //if (m_isInitialized)
+    //    EndDrawing();
+    this->makeCurrent();
+    if (m_isInitialized) {
+        EndDrawing();
+    }
+
 }

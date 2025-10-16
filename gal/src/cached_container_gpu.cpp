@@ -1,5 +1,6 @@
 #include <list>
 #include <spdlog/spdlog.h>
+#include <QOpenGLVersionFunctionsFactory>
 #include <trace_helpers.hxx>
 #include "gal/include/cached_container_gpu.hxx"
 #include "gal/include/vertex_manager.hxx"
@@ -27,7 +28,7 @@ CACHED_CONTAINER_GPU::CACHED_CONTAINER_GPU( unsigned int aSize ) :
         m_glBufferHandle( -1 )
 {
     m_useCopyBuffer = 0;
-    QOpenGLFunctions* f = QOpenGLContext::currentContext()->functions();
+    QOpenGLFunctions_3_3_Core* f = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     QString vendor = QString::fromUtf8((const char*)f->glGetString(GL_VENDOR));
     m_buffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
     m_buffer.create();

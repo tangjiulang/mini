@@ -34,7 +34,7 @@ enum SHADER_MODE
 struct VERTEX
 {
     GLfloat x, y, z;        // Coordinates
-    GLubyte r, g, b, a;     // Color
+    GLfloat r, g, b, a;     // Color
     GLfloat shader[4];      // Shader type & params
 };
 

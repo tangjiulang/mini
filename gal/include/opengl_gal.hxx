@@ -3,6 +3,7 @@
 
 #include <QOpenGLWidget>
 #include <QGesture>
+#include <QOpenGLFunctions_3_3_Core>
  // GAL imports
 #include "utf8.hxx"
 #include "gal/include/gal.hxx"
@@ -41,7 +42,7 @@ class GL_BITMAP_CACHE;
  * and quads. The purpose is to provide a fast graphics interface, that takes advantage of modern
  * graphics card GPUs. All methods here benefit thus from the hardware acceleration.
  */
-class OPENGL_GAL : public GAL, public QOpenGLWidget, protected QOpenGLFunctions
+class OPENGL_GAL : public GAL, public QOpenGLWidget, protected QOpenGLFunctions_3_3_Core
 {
 public:
     /**
@@ -359,7 +360,8 @@ private:
     GLint                   ufm_fontTexture;
     GLint                   ufm_fontTextureWidth;
     GLint                   ufm_mvp;
-
+    QOpenGLShaderProgram *program;
+    GLuint vao = 0, vbo = 0;
     /// wx cursor showing the current native cursor.
     QCURSOR_TYPE          m_currentwxCursor;
 

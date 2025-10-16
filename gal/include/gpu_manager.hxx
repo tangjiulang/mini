@@ -190,6 +190,7 @@ public:
 
     ///< @copydoc GPU_MANAGER::EndDrawing()
     virtual void EndDrawing() override;
+    GLuint vao = 0, vbo = 0;
 };
 
 } // namespace KIGFX

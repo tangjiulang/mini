@@ -22,6 +22,7 @@
  */
 
 #include <gal/include/antialiasing.hxx>
+#include <QOpenGLVersionFunctionsFactory>
 #include <gal/include/opengl_compositor.hxx>
 #include <gal/include/utils.hxx>
 #include <color4d.hxx>
@@ -171,7 +172,7 @@ void ANTIALIASING_SUPERSAMPLING::DrawBuffer( GLuint aBuffer )
 
 void ANTIALIASING_SUPERSAMPLING::Present()
 {
-    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     function->glDisable( GL_BLEND );
     function->glDisable( GL_DEPTH_TEST );
     function->glActiveTexture( GL_TEXTURE0 );
@@ -226,7 +227,7 @@ VECTOR2I ANTIALIASING_SMAA::GetInternalBufferSize()
 
 void ANTIALIASING_SMAA::loadShaders()
 {
-    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     // Load constant textures
     function->glEnable( GL_TEXTURE_2D );
     function->glActiveTexture( GL_TEXTURE0 );
@@ -494,7 +495,7 @@ void draw_fullscreen_triangle()
 void ANTIALIASING_SMAA::Present()
 {
     auto sourceTexture = compositor->GetBufferTexture( smaaBaseBuffer );
-    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     function->glDisable( GL_BLEND );
     function->glDisable( GL_DEPTH_TEST );
     function->glEnable( GL_TEXTURE_2D );

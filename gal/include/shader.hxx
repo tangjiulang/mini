@@ -1,7 +1,8 @@
 #ifndef SHADER_H_
 #define SHADER_H_
 
-#include <QOpenGLFunctions>
+#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLVersionFunctionsFactory>
 #include <QOpenGLShaderProgram>
 
 #include "vector2d.hxx"
@@ -97,18 +98,20 @@ public:
      */
     inline void Use()
     {
-        program.bind();
-        //glUseProgram( programNumber );
+        program->bind();
+        //QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
+        //function->glUseProgram( programNumber );
         active = true;
     }
 
     /**
-     * Deactivate the shader and use the default OpenGL program.
+     * Deactivate the shader and use the default OpenGL program->
      */
     inline void Deactivate()
     {
-        program.release();
-        //glUseProgram( 0 );
+        program->release();
+        //QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
+        //function->glUseProgram(0);
         active = false;
     }
 
@@ -171,7 +174,7 @@ public:
      */
     static std::string ReadSource( const std::string& aShaderSourceName );
 
-    QOpenGLShaderProgram program;
+    QOpenGLShaderProgram *program = nullptr;
 
 private:
     /**

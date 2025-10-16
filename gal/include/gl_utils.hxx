@@ -1,7 +1,7 @@
 #ifndef GL_UTILS_H
 #define GL_UTILS_H
 
-#include <QOpenGLFunctions>
+#include <QOpenGLFunctions_3_3_Core>
 #include <QSurfaceFormat>
 //#include <GL/wglew.h>
 //#include <GL/glew.h>
@@ -90,7 +90,7 @@ public:
 #elif defined( _WIN32 )
         QOpenGLContext* ctx = QOpenGLContext::currentContext();
         if (!ctx) return 0;
-        QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
+        QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
         QString vendorStr = QString::fromLatin1(reinterpret_cast<const char*>(function->glGetString(GL_VENDOR)));
         QString versionStr = QString::fromLatin1(reinterpret_cast<const char*>(function->glGetString(GL_VERSION)));
         if (ctx->hasExtension("WGL_EXT_swap_control")) {

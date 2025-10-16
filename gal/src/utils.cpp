@@ -2,7 +2,8 @@
 
 #include <format>
 #include <stdexcept>
-#include <QOpenGLFunctions>
+#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLVersionFunctionsFactory>
 #include <spdlog/spdlog.h>
 
 /**
@@ -17,7 +18,7 @@ static const std::string const traceGalOpenGlError = "KICAD_GAL_OPENGL_ERROR";
 
 int checkGlError( const std::string& aInfo, const char* aFile, int aLine, bool aThrow )
 {
-    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     int      result = function->glGetError();
     std::string errorMsg;
 
@@ -159,7 +160,7 @@ static void debugMsgCallback( GLenum aSource, GLenum aType, GLuint aId, GLenum a
 
 void enableGlDebug( bool aEnable )
 {
-    QOpenGLFunctions* function = QOpenGLContext::currentContext()->functions();
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     if( aEnable )
     {
         function->glEnable( GL_DEBUG_OUTPUT );
