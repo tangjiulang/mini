@@ -165,6 +165,11 @@ void SHADER::SetParameter( int parameterNumber, float f0, float f1, float f2, fl
     program->setUniformValue(parameterLocation[parameterNumber], f0, f1, f2, f3);
 }
 
+void SHADER::SetParameter(int aParameterNumber, QMatrix4x4 mat) {
+    assert((unsigned)aParameterNumber < parameterLocation.size());
+    program->setUniformValue(parameterLocation[aParameterNumber], mat);
+}
+
 void SHADER::SetParameter(int parameterNumber, GLfloat f[16])
 {
     assert((unsigned)parameterNumber < parameterLocation.size());

@@ -158,6 +158,7 @@ public:
     void SetParameter( int aParameterNumber, const VECTOR2D& aValue );
     void SetParameter( int aParameterNumber, float f0, float f1, float f2, float f3 );
     void SetParameter(int parameterNumber, GLfloat f[16]);
+    void SetParameter(int aParameterNumber, QMatrix4x4 mat);
     /**
      * Get an attribute location.
      *
