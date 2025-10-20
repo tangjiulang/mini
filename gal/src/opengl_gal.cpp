@@ -541,8 +541,6 @@ void OPENGL_GAL::BeginDrawing()
 
     //// Set up the world <-> screen transformation
     ComputeWorldScreenMatrix();
-    QMatrix4x4 projection;
-    projection.ortho(0, (GLint)m_screenSize.x, (GLsizei)m_screenSize.y, 0, -m_depthRange.x, -m_depthRange.y);
     GLfloat matrixData[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
     matrixData[0] = m_worldScreenMatrix.m_data[0][0];
     matrixData[1] = m_worldScreenMatrix.m_data[1][0];
@@ -554,6 +552,10 @@ void OPENGL_GAL::BeginDrawing()
     matrixData[13] = m_worldScreenMatrix.m_data[1][2];
     matrixData[14] = m_worldScreenMatrix.m_data[2][2];
     QMatrix4x4 modelView(matrixData);
+    QMatrix4x4 m;
+    m.translate(800, 500, 0);
+    m.scale(3.5826771653543313e-06);
+    
     ////glLoadMatrixd( matrixData );
 
     //// Set defaults
@@ -609,7 +611,12 @@ void OPENGL_GAL::BeginDrawing()
     }
 
     m_shader->Use();
-    m_shader->SetParameter(ufm_mvp, modelView * projection);
+    QMatrix4x4 m1;
+    m1.ortho(0, (GLint)m_screenSize.x, (GLsizei)m_screenSize.y, 0, -m_depthRange.x, -m_depthRange.y);
+    m1.scale(3.5826771653543313e-06);
+    m1.translate(m_screenSize.x / 2, m_screenSize.y / 2, 0);
+
+    m_shader->SetParameter(ufm_mvp, m1);
     //m_shader->SetParameter(ufm_mvp, matrixData);
     m_shader->SetParameter( ufm_worldPixelSize,
                             (float) ( getWorldPixelSize() / devicePixelRatioF() ) );
