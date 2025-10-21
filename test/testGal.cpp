@@ -7,8 +7,8 @@ int main(int argc, char* argv[]) {
 	KIGFX::GAL_DISPLAY_OPTIONS option;
 	KIGFX::OPENGL_GAL gal(option, nullptr);
 	gal.show();
-	gal.SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);
 	gal.ResizeScreen(1600, 1000);
 	gal.BeginDrawing();
+	gal.SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);
 	return app.exec();
 }

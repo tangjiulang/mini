@@ -552,9 +552,10 @@ void OPENGL_GAL::BeginDrawing()
     matrixData[13] = m_worldScreenMatrix.m_data[1][2];
     matrixData[14] = m_worldScreenMatrix.m_data[2][2];
     QMatrix4x4 modelView(matrixData);
-    QMatrix4x4 m;
-    m.translate(800, 500, 0);
-    m.scale(3.5826771653543313e-06);
+    modelView = modelView.transposed();
+    QMatrix4x4 projection;
+    projection.ortho(0, (GLint)m_screenSize.x, (GLsizei)m_screenSize.y, 0, -m_depthRange.x, -m_depthRange.y);
+
     
     ////glLoadMatrixd( matrixData );
 
@@ -611,12 +612,7 @@ void OPENGL_GAL::BeginDrawing()
     }
 
     m_shader->Use();
-    QMatrix4x4 m1;
-    m1.ortho(0, (GLint)m_screenSize.x, (GLsizei)m_screenSize.y, 0, -m_depthRange.x, -m_depthRange.y);
-    m1.scale(3.5826771653543313e-06);
-    m1.translate(m_screenSize.x / 2, m_screenSize.y / 2, 0);
-
-    m_shader->SetParameter(ufm_mvp, m1);
+    m_shader->SetParameter(ufm_mvp, projection * modelView);
     //m_shader->SetParameter(ufm_mvp, matrixData);
     m_shader->SetParameter( ufm_worldPixelSize,
                             (float) ( getWorldPixelSize() / devicePixelRatioF() ) );
@@ -657,6 +653,16 @@ void OPENGL_GAL::EndDrawing()
     PROF_TIMER cntSwap( "gl-swap" );
 
     cntTotal.Start();
+
+    VECTOR2D ver1 = VECTOR2D(0, 0);
+    VECTOR2D ver2 = VECTOR2D(0, 1000 / GetWorldScale());
+    VECTOR2D ver3 = VECTOR2D(1000 / GetWorldScale(), 1000 / GetWorldScale());
+    m_currentManager->Shader(SHADER_NONE, 0, 0, 0);
+    m_currentManager->Vertex(ver1, 0);
+    m_currentManager->Shader(SHADER_NONE, 0, 0, 0);
+    m_currentManager->Vertex(ver2, 0);
+    m_currentManager->Shader(SHADER_NONE, 0, 0, 0);
+    m_currentManager->Vertex(ver3, 0);
 
     // Cached & non-cached containers are rendered to the same buffer
     m_compositor->SetBuffer( m_mainBuffer );

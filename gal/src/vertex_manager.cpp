@@ -299,10 +299,14 @@ void VERTEX_MANAGER::putVertex( VERTEX& aTarget, GLfloat aX, GLfloat aY, GLfloat
     }
 
     // Apply currently used color
-    aTarget.r = m_color[0];
-    aTarget.g = m_color[1];
-    aTarget.b = m_color[2];
-    aTarget.a = m_color[3];
+    //aTarget.r = m_color[0];
+    //aTarget.g = m_color[1];
+    //aTarget.b = m_color[2];
+    //aTarget.a = m_color[3];
+    aTarget.r = 1;
+    aTarget.g = 1;
+    aTarget.b = 1;
+    aTarget.a = 1;
 
     // Apply currently used shader
     for( unsigned int j = 0; j < SHADER_STRIDE; ++j )
