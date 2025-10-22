@@ -6,9 +6,12 @@ int main(int argc, char* argv[]) {
 	QApplication app(argc, argv);
 	KIGFX::GAL_DISPLAY_OPTIONS option;
 	KIGFX::OPENGL_GAL gal(option, nullptr);
+	qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
 	gal.show();
+	gal.SetScreenDPI(dpi);
 	gal.ResizeScreen(1600, 1000);
 	gal.BeginDrawing();
 	gal.SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);
+	gal.DrawRectangle(gal.GetScreenWorldMatrix() * VECTOR2D(300, 300), gal.GetScreenWorldMatrix() * VECTOR2D(600, 600));
 	return app.exec();
 }

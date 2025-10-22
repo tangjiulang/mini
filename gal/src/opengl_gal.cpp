@@ -295,10 +295,6 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
         m_isContextLocked( false ),
         m_lockClientCookie( 0 )
 {
-    //QSurfaceFormat fmt;
-    //fmt.setProfile(QSurfaceFormat::CoreProfile);
-    //fmt.setDepthBufferSize(24);
-    //setFormat(fmt);
     setMinimumSize(400, 400);
     m_shader = new SHADER();
     ++m_instanceCounter;
@@ -318,9 +314,9 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
     //if (aParent != nullptr)
     //    resize(aParent->size());
     //else resize(QSize(800, 1000));
-    qreal dpr = devicePixelRatioF();  // 高 DPI 缩放因子
+    qreal dpr = devicePixelRatioF(); 
     QSize nativeSize = size() * dpr;
-    m_screenSize = ToVECTOR2I(nativeSize); // 你自己把 QSizeF 转成 VECTOR2I
+    m_screenSize = ToVECTOR2I(nativeSize);
 
     // Grid color settings are different in Cairo and OpenGL
     SetGridColor( COLOR4D( 0.8, 0.8, 0.8, 0.1 ) );
@@ -487,13 +483,6 @@ void OPENGL_GAL::BeginDrawing()
 
     if( !m_isInitialized )
         init();
-    // Set up the view port
-    //glMatrixMode( GL_PROJECTION );
-    //glLoadIdentity();
-
-    //// Create the screen transformation (Do the RH-LH conversion here)
-    //glOrtho( 0, (GLint) m_screenSize.x, (GLsizei) m_screenSize.y, 0,
-    //         -m_depthRange.x, -m_depthRange.y );
 
     //if( !m_isFramebufferInitialized )
     //{
@@ -537,7 +526,6 @@ void OPENGL_GAL::BeginDrawing()
     //glEnable( GL_BLEND );
     //glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-    //glMatrixMode( GL_MODELVIEW );
 
     //// Set up the world <-> screen transformation
     ComputeWorldScreenMatrix();
@@ -564,7 +552,7 @@ void OPENGL_GAL::BeginDrawing()
     //SetStrokeColor( m_strokeColor );
 
     //// Remove all previously stored items
-    //m_nonCachedManager->Clear();
+    m_nonCachedManager->Clear();
     //m_overlayManager->Clear();
     //m_tempManager->Clear();
 
@@ -624,7 +612,52 @@ void OPENGL_GAL::BeginDrawing()
     renderingOffset.x *= screenPixelSize.x;
     renderingOffset.y *= screenPixelSize.y;
     m_shader->SetParameter( ufm_antialiasingOffset, renderingOffset );
+    m_shader->SetParameter(ufm_minLinePixelWidth, 1);
     m_shader->Deactivate();
+
+    //{
+    //    VECTOR2D aStartPoint = GetScreenWorldMatrix() * VECTOR2D(0, 0);
+    //    VECTOR2D aEndPoint = GetScreenWorldMatrix() * VECTOR2D(500, 0);
+    //    {
+    //        auto v1 = m_nonCachedManager->GetTransformation()
+    //            * glm::vec4(aStartPoint.x, aStartPoint.y, 0.0, 0.0);
+    //        auto v2 = m_nonCachedManager->GetTransformation()
+    //            * glm::vec4(aEndPoint.x, aEndPoint.y, 0.0, 0.0);
+    //
+    //        QVector2D vs(v2.x - v1.x, v2.y - v1.y);
+    //        QVector2D vp(-vs.y(), vs.x());
+    //
+    //        m_lineWidth = 100 / GetWorldScale();
+    //        QVector4D position = QVector4D(aStartPoint.x, aStartPoint.y, 0, 1);
+    //        QVector4D position1 = QVector4D(aEndPoint.x, aEndPoint.y, 0, 1);
+    //        bool posture = abs(vs.x()) < abs(vs.y());
+    //
+    //        QVector4D pos = QVector4D(aStartPoint.x, aStartPoint.y, 0, 1);
+    //        pos = projection * modelView * pos;
+    //
+    //        computeLineCoords(posture, -vs, vp, QVector2D(-1, -1), QVector2D(-1, 0), m_lineWidth, false,
+    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
+    //            pixelSizeMultiplier, 1, position);
+    //        computeLineCoords(posture, -vs, -vp, QVector2D(-1, 1), QVector2D(1, 0), m_lineWidth, false,
+    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
+    //            pixelSizeMultiplier, 1, position);
+    //        computeLineCoords(posture, vs, -vp, QVector2D(1, 1), QVector2D(1, 0), m_lineWidth, true,
+    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
+    //            pixelSizeMultiplier, 1, position1);
+    //        computeLineCoords(posture, vs, -vp, QVector2D(-1, -1), QVector2D(1, 0), m_lineWidth, true,
+    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
+    //            pixelSizeMultiplier, 1, position1);
+    //        computeLineCoords(posture, vs, vp, QVector2D(-1, 1), QVector2D(-1, 0), m_lineWidth, true,
+    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
+    //            pixelSizeMultiplier, 1, position1);
+    //        computeLineCoords(posture, -vs, vp, QVector2D(1, 1), QVector2D(-1, 0), m_lineWidth, false,
+    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
+    //            pixelSizeMultiplier, 1, position);
+    //    }
+    //
+    //}
+
+
 
     // Something between BeginDrawing and EndDrawing seems to depend on
     // this texture unit being active, but it does not assure it itself.
@@ -654,15 +687,6 @@ void OPENGL_GAL::EndDrawing()
 
     cntTotal.Start();
 
-    VECTOR2D ver1 = VECTOR2D(0, 0);
-    VECTOR2D ver2 = VECTOR2D(0, 1000 / GetWorldScale());
-    VECTOR2D ver3 = VECTOR2D(1000 / GetWorldScale(), 1000 / GetWorldScale());
-    m_currentManager->Shader(SHADER_NONE, 0, 0, 0);
-    m_currentManager->Vertex(ver1, 0);
-    m_currentManager->Shader(SHADER_NONE, 0, 0, 0);
-    m_currentManager->Vertex(ver2, 0);
-    m_currentManager->Shader(SHADER_NONE, 0, 0, 0);
-    m_currentManager->Vertex(ver3, 0);
 
     // Cached & non-cached containers are rendered to the same buffer
     m_compositor->SetBuffer( m_mainBuffer );
@@ -672,42 +696,40 @@ void OPENGL_GAL::EndDrawing()
         m_nonCachedManager->EndDrawing();
         cntEndNoncached.Stop();
     }
-{
-        //if (m_cachedManager != nullptr) {
-        //    cntEndCached.Start();
-        //    m_cachedManager->EndDrawing();
-        //    cntEndCached.Stop();
-        //}
-
-        //if (m_overlayManager != nullptr) {
-        //    cntEndOverlay.Start();
-        //    // Overlay container is rendered to a different buffer
-        //    if (m_overlayBuffer)
-        //        m_compositor->SetBuffer(m_overlayBuffer);
-
-        //    m_overlayManager->EndDrawing();
-        //    cntEndOverlay.Stop();
-        //}
-        //
-        //cntComposite.Start();
-
-
-        // Draw the remaining contents, blit the rendering targets to the screen, swap the buffers
-        //m_compositor->DrawBuffer( m_mainBuffer );
-
-        //if( m_overlayBuffer )
-        //    m_compositor->DrawBuffer( m_overlayBuffer );
-
-        //m_compositor->Present();
-        //blitCursor();
-
-        //cntComposite.Stop();
-
-        //cntSwap.Start();
-
-        //cntSwap.Stop();
+    if (m_cachedManager != nullptr) {
+        cntEndCached.Start();
+        m_cachedManager->EndDrawing();
+        cntEndCached.Stop();
     }
-    cntTotal.Stop();
+
+    //if (m_overlayManager != nullptr) {
+    //    cntEndOverlay.Start();
+    //    // Overlay container is rendered to a different buffer
+    //    if (m_overlayBuffer)
+    //        m_compositor->SetBuffer(m_overlayBuffer);
+
+    //    m_overlayManager->EndDrawing();
+    //    cntEndOverlay.Stop();
+    //}
+    //    
+    //cntComposite.Start();
+
+
+    //    //Draw the remaining contents, blit the rendering targets to the screen, swap the buffers
+    //m_compositor->DrawBuffer( m_mainBuffer );
+
+    //if( m_overlayBuffer )
+    //    m_compositor->DrawBuffer( m_overlayBuffer );
+
+    //m_compositor->Present();
+    //blitCursor();
+
+    //cntComposite.Stop();
+
+    //cntSwap.Start();
+
+    //cntSwap.Stop();
+    //cntTotal.Stop();
 
     spdlog::trace("{} Timing: {} {} {} {} {} {}\n", traceGalProfile.data(), cntTotal.to_string(),
                 cntEndCached.to_string(), cntEndNoncached.to_string(), cntEndOverlay.to_string(),

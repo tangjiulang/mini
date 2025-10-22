@@ -78,16 +78,17 @@ void CACHED_CONTAINER_RAM::Unmap()
 {
     if( !m_dirty )
         return;
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
     // Upload vertices coordinates and shader types to GPU memory
     m_buffer.bind();
     checkGlError( "binding vertices buffer", __FILE__, __LINE__ );
     m_buffer.setUsagePattern(QOpenGLBuffer::StreamDraw);
     m_buffer.allocate(m_vertices, m_maxIndex * VERTEX_SIZE);
-    //glBufferData( GL_ARRAY_BUFFER, m_maxIndex * VERTEX_SIZE, m_vertices, GL_STREAM_DRAW );
+    function->glBufferData( GL_ARRAY_BUFFER, m_maxIndex * VERTEX_SIZE, m_vertices, GL_STREAM_DRAW );
     checkGlError( "transferring vertices", __FILE__, __LINE__ );
     m_buffer.release();
-    //glBindBuffer( GL_ARRAY_BUFFER, 0 );
+    function->glBindBuffer( GL_ARRAY_BUFFER, 0 );
     checkGlError( "unbinding vertices buffer", __FILE__, __LINE__ );
 }
 

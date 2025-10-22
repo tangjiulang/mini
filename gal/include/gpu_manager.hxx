@@ -104,6 +104,8 @@ protected:
 
     ///< vbo
     QOpenGLBuffer m_vertexBuffer;
+
+    GLuint vao = 0, vbo = 0;
 };  
 
 
@@ -190,7 +192,6 @@ public:
 
     ///< @copydoc GPU_MANAGER::EndDrawing()
     virtual void EndDrawing() override;
-    GLuint vao = 0, vbo = 0;
 };
 
 } // namespace KIGFX

@@ -1,35 +1,3 @@
-/*
- * This program source code file is part of KiCad, a free EDA CAD application.
- *
- * Copyright (C) 2013-2016 CERN
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- *
- * @author Maciej Suminski <maciej.suminski@cern.ch>
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, you may find one here:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * or you may search the http://www.gnu.org website for the version 2 license,
- * or you may write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
- */
-
-/**
- * @file vertex_manager.cpp
- * @brief Class to control vertex container and GPU with possibility of emulating old-style OpenGL
- * 1.0 state machine using modern OpenGL methods.
- */
-
 #include <spdlog/spdlog.h>
 #include "gal/include/vertex_manager.hxx"
 #include "gal/include/vertex_item.hxx"
@@ -299,14 +267,10 @@ void VERTEX_MANAGER::putVertex( VERTEX& aTarget, GLfloat aX, GLfloat aY, GLfloat
     }
 
     // Apply currently used color
-    //aTarget.r = m_color[0];
-    //aTarget.g = m_color[1];
-    //aTarget.b = m_color[2];
-    //aTarget.a = m_color[3];
-    aTarget.r = 1;
-    aTarget.g = 1;
-    aTarget.b = 1;
-    aTarget.a = 1;
+    aTarget.r = m_color[0];
+    aTarget.g = m_color[1];
+    aTarget.b = m_color[2];
+    aTarget.a = m_color[3];
 
     // Apply currently used shader
     for( unsigned int j = 0; j < SHADER_STRIDE; ++j )
