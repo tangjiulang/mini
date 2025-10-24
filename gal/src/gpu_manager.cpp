@@ -268,7 +268,7 @@ void GPU_NONCACHED_MANAGER::EndDrawing()
 {
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
-    function->glClear(GL_COLOR_BUFFER_BIT);
+    //function->glClear(GL_COLOR_BUFFER_BIT);
 
     if( m_container->GetSize() == 0 )
         return;
@@ -312,7 +312,6 @@ void GPU_NONCACHED_MANAGER::EndDrawing()
         qDebug() << "GL error:" << err;
     }
 
-    function->glDrawArrays( GL_TRIANGLES, 0, 3);
     
     while ((err = glGetError()) != GL_NO_ERROR) {
         qDebug() << "GL error:" << err;

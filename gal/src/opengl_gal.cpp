@@ -484,34 +484,34 @@ void OPENGL_GAL::BeginDrawing()
     if( !m_isInitialized )
         init();
 
-    //if( !m_isFramebufferInitialized )
-    //{
-    //    // Prepare rendering target buffers
-    //    m_compositor->Initialize();
-    //    m_mainBuffer = m_compositor->CreateBuffer();
-    //    try
-    //    {
-    //        m_tempBuffer = m_compositor->CreateBuffer();
-    //    }
-    //    catch( const std::runtime_error& )
-    //    {
-    //        spdlog::trace( "Could not create a framebuffer for diff mode blending.\n" );
-    //        m_tempBuffer = 0;
-    //    }
-    //    try
-    //    {
-    //        m_overlayBuffer = m_compositor->CreateBuffer();
-    //    }
-    //    catch( const std::runtime_error& )
-    //    {
-    //        spdlog::trace( "Could not create a framebuffer for overlays.\n" );
-    //        m_overlayBuffer = 0;
-    //    }
+    if( !m_isFramebufferInitialized )
+    {
+        // Prepare rendering target buffers
+        m_compositor->Initialize();
+        m_mainBuffer = m_compositor->CreateBuffer();
+        try
+        {
+            m_tempBuffer = m_compositor->CreateBuffer();
+        }
+        catch( const std::runtime_error& )
+        {
+            spdlog::trace( "Could not create a framebuffer for diff mode blending.\n" );
+            m_tempBuffer = 0;
+        }
+        try
+        {
+            m_overlayBuffer = m_compositor->CreateBuffer();
+        }
+        catch( const std::runtime_error& )
+        {
+            spdlog::trace( "Could not create a framebuffer for overlays.\n" );
+            m_overlayBuffer = 0;
+        }
 
-    //    m_isFramebufferInitialized = true;
-    //}
+        m_isFramebufferInitialized = true;
+    }
 
-    //m_compositor->Begin();
+    m_compositor->Begin();
 
     //// Disable 2D Textures
     //glDisable( GL_TEXTURE_2D );
@@ -548,15 +548,15 @@ void OPENGL_GAL::BeginDrawing()
     ////glLoadMatrixd( matrixData );
 
     //// Set defaults
-    //SetFillColor( m_fillColor );
-    //SetStrokeColor( m_strokeColor );
+    SetFillColor( m_fillColor );
+    SetStrokeColor( m_strokeColor );
 
     //// Remove all previously stored items
     m_nonCachedManager->Clear();
     //m_overlayManager->Clear();
     //m_tempManager->Clear();
 
-    //m_cachedManager->BeginDrawing();
+    m_cachedManager->BeginDrawing();
     m_nonCachedManager->BeginDrawing();
     //m_overlayManager->BeginDrawing();
     //m_tempManager->BeginDrawing();
@@ -601,7 +601,6 @@ void OPENGL_GAL::BeginDrawing()
 
     m_shader->Use();
     m_shader->SetParameter(ufm_mvp, projection * modelView);
-    //m_shader->SetParameter(ufm_mvp, matrixData);
     m_shader->SetParameter( ufm_worldPixelSize,
                             (float) ( getWorldPixelSize() / devicePixelRatioF() ) );
     const VECTOR2D& screenPixelSize = getScreenPixelSize();
@@ -614,50 +613,6 @@ void OPENGL_GAL::BeginDrawing()
     m_shader->SetParameter( ufm_antialiasingOffset, renderingOffset );
     m_shader->SetParameter(ufm_minLinePixelWidth, 1);
     m_shader->Deactivate();
-
-    //{
-    //    VECTOR2D aStartPoint = GetScreenWorldMatrix() * VECTOR2D(0, 0);
-    //    VECTOR2D aEndPoint = GetScreenWorldMatrix() * VECTOR2D(500, 0);
-    //    {
-    //        auto v1 = m_nonCachedManager->GetTransformation()
-    //            * glm::vec4(aStartPoint.x, aStartPoint.y, 0.0, 0.0);
-    //        auto v2 = m_nonCachedManager->GetTransformation()
-    //            * glm::vec4(aEndPoint.x, aEndPoint.y, 0.0, 0.0);
-    //
-    //        QVector2D vs(v2.x - v1.x, v2.y - v1.y);
-    //        QVector2D vp(-vs.y(), vs.x());
-    //
-    //        m_lineWidth = 100 / GetWorldScale();
-    //        QVector4D position = QVector4D(aStartPoint.x, aStartPoint.y, 0, 1);
-    //        QVector4D position1 = QVector4D(aEndPoint.x, aEndPoint.y, 0, 1);
-    //        bool posture = abs(vs.x()) < abs(vs.y());
-    //
-    //        QVector4D pos = QVector4D(aStartPoint.x, aStartPoint.y, 0, 1);
-    //        pos = projection * modelView * pos;
-    //
-    //        computeLineCoords(posture, -vs, vp, QVector2D(-1, -1), QVector2D(-1, 0), m_lineWidth, false,
-    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
-    //            pixelSizeMultiplier, 1, position);
-    //        computeLineCoords(posture, -vs, -vp, QVector2D(-1, 1), QVector2D(1, 0), m_lineWidth, false,
-    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
-    //            pixelSizeMultiplier, 1, position);
-    //        computeLineCoords(posture, vs, -vp, QVector2D(1, 1), QVector2D(1, 0), m_lineWidth, true,
-    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
-    //            pixelSizeMultiplier, 1, position1);
-    //        computeLineCoords(posture, vs, -vp, QVector2D(-1, -1), QVector2D(1, 0), m_lineWidth, true,
-    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
-    //            pixelSizeMultiplier, 1, position1);
-    //        computeLineCoords(posture, vs, vp, QVector2D(-1, 1), QVector2D(-1, 0), m_lineWidth, true,
-    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
-    //            pixelSizeMultiplier, 1, position1);
-    //        computeLineCoords(posture, -vs, vp, QVector2D(1, 1), QVector2D(-1, 0), m_lineWidth, false,
-    //            projection * modelView, (float)(getWorldPixelSize() / devicePixelRatioF()), QVector2D(screenPixelSize.x, screenPixelSize.y),
-    //            pixelSizeMultiplier, 1, position);
-    //    }
-    //
-    //}
-
-
 
     // Something between BeginDrawing and EndDrawing seems to depend on
     // this texture unit being active, but it does not assure it itself.
@@ -712,11 +667,11 @@ void OPENGL_GAL::EndDrawing()
     //    cntEndOverlay.Stop();
     //}
     //    
-    //cntComposite.Start();
+    cntComposite.Start();
 
 
-    //    //Draw the remaining contents, blit the rendering targets to the screen, swap the buffers
-    //m_compositor->DrawBuffer( m_mainBuffer );
+    //Draw the remaining contents, blit the rendering targets to the screen, swap the buffers
+    m_compositor->DrawBuffer( m_mainBuffer );
 
     //if( m_overlayBuffer )
     //    m_compositor->DrawBuffer( m_overlayBuffer );
@@ -724,7 +679,7 @@ void OPENGL_GAL::EndDrawing()
     //m_compositor->Present();
     //blitCursor();
 
-    //cntComposite.Stop();
+    cntComposite.Stop();
 
     //cntSwap.Start();
 
