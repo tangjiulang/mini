@@ -518,13 +518,13 @@ void OPENGL_GAL::BeginDrawing()
 
     //glShadeModel( GL_FLAT );
 
-    //// Enable the depth buffer
-    //glEnable( GL_DEPTH_TEST );
-    //glDepthFunc( GL_LESS );
+    // Enable the depth buffer
+    this->glEnable( GL_DEPTH_TEST );
+    this->glDepthFunc( GL_LESS );
 
     //// Setup blending, required for transparent objects
-    //glEnable( GL_BLEND );
-    //glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    this->glEnable( GL_BLEND );
+    this->glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 
     //// Set up the world <-> screen transformation
@@ -2950,7 +2950,9 @@ void OPENGL_GAL::initializeGL() {
 
 }
 void OPENGL_GAL::resizeGL(int w, int h) {
-    //glViewport(0, 0, w, h);
+    glViewport(0, 0, w, h);
+    ResizeScreen(w, h);
+    update();
 }
 void OPENGL_GAL::paintGL() {
     //if (m_isInitialized)

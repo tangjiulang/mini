@@ -34,6 +34,7 @@ add_subdirectory(base)
 add_subdirectory(core)
 add_subdirectory(math)
 add_subdirectory(gal)
+add_subdirectory(data)
 add_subdirectory(resources)
 
 add_executable (mini "mini.cpp" "mini.h" )
