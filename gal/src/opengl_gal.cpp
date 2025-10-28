@@ -544,21 +544,19 @@ void OPENGL_GAL::BeginDrawing()
     QMatrix4x4 projection;
     projection.ortho(0, (GLint)m_screenSize.x, (GLsizei)m_screenSize.y, 0, -m_depthRange.x, -m_depthRange.y);
 
-    
-    ////glLoadMatrixd( matrixData );
-
     //// Set defaults
     SetFillColor( m_fillColor );
     SetStrokeColor( m_strokeColor );
 
     //// Remove all previously stored items
+    this->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_nonCachedManager->Clear();
-    //m_overlayManager->Clear();
+    m_overlayManager->Clear();
     //m_tempManager->Clear();
 
     m_cachedManager->BeginDrawing();
     m_nonCachedManager->BeginDrawing();
-    //m_overlayManager->BeginDrawing();
+    m_overlayManager->BeginDrawing();
     //m_tempManager->BeginDrawing();
     if( !m_isBitmapFontInitialized )
     {
@@ -568,24 +566,24 @@ void OPENGL_GAL::BeginDrawing()
         // Either load the font atlas to video memory, or simply bind it to a texture unit
         if( !m_isBitmapFontLoaded )
         {
-            glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
-            glGenTextures( 1, &g_fontTexture );
-            glBindTexture( GL_TEXTURE_2D, g_fontTexture );
-            glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, font_image.width, font_image.height, 0, GL_RGB,
+            this->glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
+            this->glGenTextures( 1, &g_fontTexture );
+            this->glBindTexture( GL_TEXTURE_2D, g_fontTexture );
+            this->glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, font_image.width, font_image.height, 0, GL_RGB,
                GL_UNSIGNED_BYTE, font_image.pixels );
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+            this->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+            this->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
             checkGlError( "loading bitmap font", __FILE__, __LINE__ );
 
-            glActiveTexture( GL_TEXTURE0 );
+            this->glActiveTexture( GL_TEXTURE0 );
 
             m_isBitmapFontLoaded = true;
         }
         else
         {
-            glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
-            glBindTexture( GL_TEXTURE_2D, g_fontTexture );
-            glActiveTexture( GL_TEXTURE0 );
+            this->glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
+            this->glBindTexture( GL_TEXTURE_2D, g_fontTexture );
+            this->glActiveTexture( GL_TEXTURE0 );
         }
 
         m_shader->Use();
@@ -657,34 +655,34 @@ void OPENGL_GAL::EndDrawing()
         cntEndCached.Stop();
     }
 
-    //if (m_overlayManager != nullptr) {
-    //    cntEndOverlay.Start();
-    //    // Overlay container is rendered to a different buffer
-    //    if (m_overlayBuffer)
-    //        m_compositor->SetBuffer(m_overlayBuffer);
+    if (m_overlayManager != nullptr) {
+        cntEndOverlay.Start();
+        // Overlay container is rendered to a different buffer
+        if (m_overlayBuffer)
+            m_compositor->SetBuffer(m_overlayBuffer);
 
-    //    m_overlayManager->EndDrawing();
-    //    cntEndOverlay.Stop();
-    //}
-    //    
+        m_overlayManager->EndDrawing();
+        cntEndOverlay.Stop();
+    }
+        
     cntComposite.Start();
 
 
     //Draw the remaining contents, blit the rendering targets to the screen, swap the buffers
     m_compositor->DrawBuffer( m_mainBuffer );
 
-    //if( m_overlayBuffer )
-    //    m_compositor->DrawBuffer( m_overlayBuffer );
+    if( m_overlayBuffer )
+        m_compositor->DrawBuffer( m_overlayBuffer );
 
-    //m_compositor->Present();
-    //blitCursor();
+    m_compositor->Present();
+    blitCursor();
 
     cntComposite.Stop();
 
     //cntSwap.Start();
 
     //cntSwap.Stop();
-    //cntTotal.Stop();
+    cntTotal.Stop();
 
     spdlog::trace("{} Timing: {} {} {} {} {} {}\n", traceGalProfile.data(), cntTotal.to_string(),
                 cntEndCached.to_string(), cntEndNoncached.to_string(), cntEndOverlay.to_string(),
@@ -2568,21 +2566,23 @@ void OPENGL_GAL::blitCursor()
     VECTOR2D cursorCenter = ( cursorBegin + cursorEnd ) / 2;
 
     const COLOR4D color = getCursorColor();
-    glActiveTexture( GL_TEXTURE0 );
-    glDisable( GL_TEXTURE_2D );
-    glEnable( GL_BLEND );
-    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    this->glActiveTexture( GL_TEXTURE0 );
+    this->glDisable( GL_TEXTURE_2D );
+    this->glEnable( GL_BLEND );
+    this->glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
-    glLineWidth( 1.0 );
-    glColor4d( color.r, color.g, color.b, color.a );
+    this->glLineWidth( 1.0 );
+    DrawLine({ cursorCenter.x, cursorBegin.y }, { cursorCenter.x, cursorEnd.y });
+    DrawLine({ cursorBegin.x, cursorCenter.y }, { cursorEnd.x, cursorCenter.y });
+    //glColor4d( color.r, color.g, color.b, color.a );
 
-    glBegin( GL_LINES );
-    glVertex2d( cursorCenter.x, cursorBegin.y );
-    glVertex2d( cursorCenter.x, cursorEnd.y );
+    //glBegin( GL_LINES );
+    //glVertex2d( cursorCenter.x, cursorBegin.y );
+    //glVertex2d( cursorCenter.x, cursorEnd.y );
 
-    glVertex2d( cursorBegin.x, cursorCenter.y );
-    glVertex2d( cursorEnd.x, cursorCenter.y );
-    glEnd();
+    //glVertex2d( cursorBegin.x, cursorCenter.y );
+    //glVertex2d( cursorEnd.x, cursorCenter.y );
+    //glEnd();
 }
 
 
