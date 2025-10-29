@@ -8,7 +8,8 @@ namespace KIGFX
 {
     namespace bg = boost::geometry;
     namespace bgi = boost::geometry::index;
-    using Box = bg::model::box<bg::model::point<float, 2, bg::cs::cartesian>>;
+    using Box = bg::model::box<bg::model::point<double, 2, bg::cs::cartesian>>;
+    using Point2D = bg::model::point<double, 2, bg::cs::cartesian>;
     using Value = std::pair<Box, VIEW_ITEM*>;
 
     /**
@@ -29,7 +30,7 @@ namespace KIGFX
             const int       mmax[2] = { std::max(bbox.GetX(), bbox.GetRight()),
                                         std::max(bbox.GetY(), bbox.GetBottom()) };
 
-            rtree.insert({ Box({mmin[0], mmin[1]}, {mmax[0], mmax[1]}), aItem });
+            rtree.insert(Value({ Box(Point2D(mmin[0], mmin[1]), Point2D(mmax[0], mmax[1])), aItem }));
         }
 
         /**
@@ -47,7 +48,7 @@ namespace KIGFX
                                       std::min(aBbox->GetY(), aBbox->GetBottom()) };
                 const int mmax[2] = { std::max(aBbox->GetX(), aBbox->GetRight()),
                                       std::max(aBbox->GetY(), aBbox->GetBottom()) };
-                rtree.remove({ Box({mmin[0], mmin[1]}, {mmax[0], mmax[1]}), aItem });
+                rtree.remove(Value({ Box(Point2D(mmin[0], mmin[1]), Point2D(mmax[0], mmax[1])), aItem }));
                 return;
             }
 
@@ -55,7 +56,7 @@ namespace KIGFX
             const int       mmin[2] = { INT_MIN, INT_MIN };
             const int       mmax[2] = { INT_MAX, INT_MAX };
 
-            rtree.remove({ Box({mmin[0], mmin[1]}, {mmax[0], mmax[1]}), aItem });
+            rtree.remove(Value({ Box(Point2D(mmin[0], mmin[1]), Point2D(mmax[0], mmax[1])), aItem }));
         }
 
         /**
@@ -83,7 +84,7 @@ namespace KIGFX
                 mmax[0] = mmax[1] = INT_MAX;
             }
             std::vector<Value> val;
-            rtree.query(bgi::intersects(Box({ mmin[0], mmin[1] }, { mmax[0], mmax[1] })), std::back_inserter(val));
+            rtree.query(bgi::intersects(Box(Point2D(mmin[0], mmin[1]), Point2D(mmax[0], mmax[1]))), std::back_inserter(val));
             for (auto [box, item] : val) {
                 aVisitor(item);
             }

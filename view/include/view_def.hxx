@@ -1,3 +1,5 @@
+#pragma once
+
 namespace KIGFX {
 /**
     * Define the how severely the appearance of the item has been changed.

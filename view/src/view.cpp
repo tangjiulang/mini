@@ -899,11 +899,11 @@ namespace KIGFX {
     }
 
 
-    void VIEW::draw(VIEW_GROUP* aGroup, bool aImmediate)
-    {
+    //void VIEW::draw(VIEW_GROUP* aGroup, bool aImmediate)
+    //{
         //for (unsigned int i = 0; i < aGroup->GetSize(); i++)
         //    draw(aGroup->GetItem(i), aImmediate);
-    }
+    //}
 
 
     struct VIEW::RECACHE_ITEM_VISITOR
@@ -1495,19 +1495,19 @@ namespace KIGFX {
     }
 
 
-    std::shared_ptr<VIEW_OVERLAY> VIEW::MakeOverlay()
-    {
-        std::shared_ptr<VIEW_OVERLAY> overlay = std::make_shared<VIEW_OVERLAY>();
+    //std::shared_ptr<VIEW_OVERLAY> VIEW::MakeOverlay()
+    //{
+    //    std::shared_ptr<VIEW_OVERLAY> overlay = std::make_shared<VIEW_OVERLAY>();
 
-        //Add(overlay.get());
-        return overlay;
-    }
+    //    //Add(overlay.get());
+    //    return overlay;
+    //}
 
 
     void VIEW::ClearPreview()
     {
-        if (!m_preview)
-            return;
+        //if (!m_preview)
+        //    return;
 
         //m_preview->Clear();
 

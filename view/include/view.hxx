@@ -17,9 +17,9 @@ namespace KIGFX
     class PAINTER;
     class GAL;
     class VIEW_ITEM;
-    class VIEW_GROUP;
+    //class VIEW_GROUP;
     class VIEW_RTREE;
-    class VIEW_OVERLAY;
+    //class VIEW_OVERLAY;
 
     /**
      * Hold a (potentially large) number of VIEW_ITEMs and renders them on a graphics device
@@ -703,7 +703,7 @@ namespace KIGFX
             m_reverseDrawOrder = aFlag;
         }
 
-        std::shared_ptr<VIEW_OVERLAY> MakeOverlay();
+        //std::shared_ptr<VIEW_OVERLAY> MakeOverlay();
 
         void InitPreview();
 
@@ -789,7 +789,7 @@ namespace KIGFX
          * @param aImmediate dictates the way of drawing - it allows one to force immediate
          *                   drawing mode for cached items.
          */
-        void draw(VIEW_GROUP* aGroup, bool aImmediate = false);
+        //void draw(VIEW_GROUP* aGroup, bool aImmediate = false);
 
         /// Sort m_orderedLayers when layer rendering order has changed.
         void sortOrderedLayers();
@@ -834,7 +834,7 @@ namespace KIGFX
         struct UPDATE_COLOR_VISITOR;
         struct UPDATE_DEPTH_VISITOR;
 
-        std::unique_ptr<KIGFX::VIEW_GROUP> m_preview;
+        //std::unique_ptr<KIGFX::VIEW_GROUP> m_preview;
         std::vector<VIEW_ITEM*>            m_ownedItems;
 
         /// Whether to use rendering order modifier or not.
