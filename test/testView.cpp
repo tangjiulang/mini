@@ -4,6 +4,7 @@
 #include "data_circle.hxx"
 #include "data_rectangle.hxx"
 #include "data_triangle.hxx"
+#include "data_painter.hxx"
 #include "view.hxx"
 #include "gal/include/opengl_gal.hxx"
 
@@ -17,9 +18,17 @@ int main(int argc, char* argv[]) {
 	std::vector<DATA_Rectangle> rectangles;
 
 	VIEW* view = new VIEW();
+
+	for (int i = 0; i < KIGFX::VIEW::VIEW_MAX_LAYERS; i++)
+		view->SetLayerTarget(i, KIGFX::TARGET_NONCACHED);
+
+
 	GAL_DISPLAY_OPTIONS option;
 	OPENGL_GAL gal(option, nullptr);
 	view->SetGAL(&gal);
+
+	DATA_PAINTER painter(&gal);
+	view->SetPainter(&painter);
 
 	qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
 	gal.show();

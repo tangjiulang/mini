@@ -5,6 +5,8 @@
 #include "data_triangle.hxx"
 #include "data_rectangle.hxx"
 
+KIGFX::DATA_PAINTER::DATA_PAINTER(GAL* aGal)
+	: PAINTER(aGal) { }
 
 bool KIGFX::DATA_PAINTER::Draw(const VIEW_ITEM* aItem, int aLayer) {
 	if (!aItem->IsBOARD_ITEM())

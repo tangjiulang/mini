@@ -484,34 +484,34 @@ void OPENGL_GAL::BeginDrawing()
     if( !m_isInitialized )
         init();
 
-    if( !m_isFramebufferInitialized )
-    {
-        // Prepare rendering target buffers
-        m_compositor->Initialize();
-        m_mainBuffer = m_compositor->CreateBuffer();
-        try
-        {
-            m_tempBuffer = m_compositor->CreateBuffer();
-        }
-        catch( const std::runtime_error& )
-        {
-            spdlog::trace( "Could not create a framebuffer for diff mode blending.\n" );
-            m_tempBuffer = 0;
-        }
-        try
-        {
-            m_overlayBuffer = m_compositor->CreateBuffer();
-        }
-        catch( const std::runtime_error& )
-        {
-            spdlog::trace( "Could not create a framebuffer for overlays.\n" );
-            m_overlayBuffer = 0;
-        }
+    //if( !m_isFramebufferInitialized )
+    //{
+    //    // Prepare rendering target buffers
+    //    m_compositor->Initialize();
+    //    m_mainBuffer = m_compositor->CreateBuffer();
+    //    try
+    //    {
+    //        m_tempBuffer = m_compositor->CreateBuffer();
+    //    }
+    //    catch( const std::runtime_error& )
+    //    {
+    //        spdlog::trace( "Could not create a framebuffer for diff mode blending.\n" );
+    //        m_tempBuffer = 0;
+    //    }
+    //    try
+    //    {
+    //        m_overlayBuffer = m_compositor->CreateBuffer();
+    //    }
+    //    catch( const std::runtime_error& )
+    //    {
+    //        spdlog::trace( "Could not create a framebuffer for overlays.\n" );
+    //        m_overlayBuffer = 0;
+    //    }
 
-        m_isFramebufferInitialized = true;
-    }
+    //    m_isFramebufferInitialized = true;
+    //}
 
-    m_compositor->Begin();
+    //m_compositor->Begin();
 
     //// Disable 2D Textures
     //glDisable( GL_TEXTURE_2D );
@@ -549,7 +549,7 @@ void OPENGL_GAL::BeginDrawing()
     SetStrokeColor( m_strokeColor );
 
     //// Remove all previously stored items
-    this->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    this->glClear(GL_DEPTH_BUFFER_BIT);
     m_nonCachedManager->Clear();
     m_overlayManager->Clear();
     //m_tempManager->Clear();
@@ -558,44 +558,44 @@ void OPENGL_GAL::BeginDrawing()
     m_nonCachedManager->BeginDrawing();
     m_overlayManager->BeginDrawing();
     //m_tempManager->BeginDrawing();
-    if( !m_isBitmapFontInitialized )
-    {
-        // Keep bitmap font texture always bound to the second texturing unit
-        const GLint FONT_TEXTURE_UNIT = 2;
+    //if( !m_isBitmapFontInitialized )
+    //{
+    //    // Keep bitmap font texture always bound to the second texturing unit
+    //    const GLint FONT_TEXTURE_UNIT = 2;
 
-        // Either load the font atlas to video memory, or simply bind it to a texture unit
-        if( !m_isBitmapFontLoaded )
-        {
-            this->glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
-            this->glGenTextures( 1, &g_fontTexture );
-            this->glBindTexture( GL_TEXTURE_2D, g_fontTexture );
-            this->glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, font_image.width, font_image.height, 0, GL_RGB,
-               GL_UNSIGNED_BYTE, font_image.pixels );
-            this->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-            this->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-            checkGlError( "loading bitmap font", __FILE__, __LINE__ );
+    //    // Either load the font atlas to video memory, or simply bind it to a texture unit
+    //    if( !m_isBitmapFontLoaded )
+    //    {
+    //        this->glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
+    //        this->glGenTextures( 1, &g_fontTexture );
+    //        this->glBindTexture( GL_TEXTURE_2D, g_fontTexture );
+    //        this->glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, font_image.width, font_image.height, 0, GL_RGB,
+    //           GL_UNSIGNED_BYTE, font_image.pixels );
+    //        this->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    //        this->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    //        checkGlError( "loading bitmap font", __FILE__, __LINE__ );
 
-            this->glActiveTexture( GL_TEXTURE0 );
+    //        this->glActiveTexture( GL_TEXTURE0 );
 
-            m_isBitmapFontLoaded = true;
-        }
-        else
-        {
-            this->glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
-            this->glBindTexture( GL_TEXTURE_2D, g_fontTexture );
-            this->glActiveTexture( GL_TEXTURE0 );
-        }
+    //        m_isBitmapFontLoaded = true;
+    //    }
+    //    else
+    //    {
+    //        this->glActiveTexture( GL_TEXTURE0 + FONT_TEXTURE_UNIT );
+    //        this->glBindTexture( GL_TEXTURE_2D, g_fontTexture );
+    //        this->glActiveTexture( GL_TEXTURE0 );
+    //    }
 
-        m_shader->Use();
-        int res = glGetError();
-        m_shader->SetParameter( ufm_fontTexture, (int) FONT_TEXTURE_UNIT );
+    //    m_shader->Use();
+    //    int res = glGetError();
+    //    m_shader->SetParameter( ufm_fontTexture, (int) FONT_TEXTURE_UNIT );
 
-        m_shader->SetParameter( ufm_fontTextureWidth, (int) font_image.width );
-        m_shader->Deactivate();
-        checkGlError( "setting bitmap font sampler as shader parameter", __FILE__, __LINE__ );
+    //    m_shader->SetParameter( ufm_fontTextureWidth, (int) font_image.width );
+    //    m_shader->Deactivate();
+    //    checkGlError( "setting bitmap font sampler as shader parameter", __FILE__, __LINE__ );
 
-        m_isBitmapFontInitialized = true;
-    }
+    //    m_isBitmapFontInitialized = true;
+    //}
 
     m_shader->Use();
     m_shader->SetParameter(ufm_mvp, projection * modelView);
@@ -642,7 +642,7 @@ void OPENGL_GAL::EndDrawing()
 
 
     // Cached & non-cached containers are rendered to the same buffer
-    m_compositor->SetBuffer( m_mainBuffer );
+    //m_compositor->SetBuffer( m_mainBuffer );
 
     if (m_nonCachedManager != nullptr) {
         cntEndNoncached.Start();
@@ -669,12 +669,12 @@ void OPENGL_GAL::EndDrawing()
 
 
     //Draw the remaining contents, blit the rendering targets to the screen, swap the buffers
-    m_compositor->DrawBuffer( m_mainBuffer );
+    //m_compositor->DrawBuffer( m_mainBuffer );
 
-    if( m_overlayBuffer )
-        m_compositor->DrawBuffer( m_overlayBuffer );
+    //if( m_overlayBuffer )
+    //    m_compositor->DrawBuffer( m_overlayBuffer );
 
-    m_compositor->Present();
+    //m_compositor->Present();
     blitCursor();
 
     cntComposite.Stop();

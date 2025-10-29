@@ -2,9 +2,9 @@
 
 #include "render_settings.hxx"
 
-class DATA_PAINTER;
 
 namespace KIGFX {
+    class DATA_PAINTER;
     /**
     * PCB specific render settings.
     */
@@ -34,10 +34,10 @@ namespace KIGFX {
         //COLOR4D GetColor(const BOARD_ITEM* aItem, int aLayer) const;
 
         ///< nullptr version
-        //COLOR4D GetColor(std::nullptr_t, int aLayer) const
-        //{
-        //    return GetColor(static_cast<const BOARD_ITEM*>(nullptr), aLayer);
-        //}
+        COLOR4D GetColor(std::nullptr_t, int aLayer) const
+        {
+            //return GetColor(static_cast<const BOARD_ITEM*>(nullptr), aLayer);
+        }
 
         bool GetShowPageLimits() const override;
 
