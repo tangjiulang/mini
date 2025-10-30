@@ -38,6 +38,8 @@ add_subdirectory(view)
 add_subdirectory(data)
 add_subdirectory(resources)
 
+add_subdirectory(TimeTest)
+
 add_executable (mini "mini.cpp" "mini.h" )
 
 target_link_libraries(mini PUBLIC 

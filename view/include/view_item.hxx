@@ -39,8 +39,8 @@ namespace KIGFX
 
         virtual ~VIEW_ITEM();
 
-        VIEW_ITEM(const VIEW_ITEM& aOther) = delete;
-        VIEW_ITEM& operator=(const VIEW_ITEM& aOther) = delete;
+        //VIEW_ITEM(const VIEW_ITEM& aOther) = delete;
+        //VIEW_ITEM& operator=(const VIEW_ITEM& aOther) = delete;
 
         bool IsSCH_ITEM() const { return m_isSCH_ITEM; }
         bool IsBOARD_ITEM() const { return m_isBOARD_ITEM; }

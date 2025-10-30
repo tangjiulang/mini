@@ -6,6 +6,7 @@ namespace KIGFX {
 class DATA_Rectangle : public BOARD_ITEM
 {
 public:
+	DATA_Rectangle() = default;
 	DATA_Rectangle(VECTOR2I, VECTOR2I);
 
 	virtual const BOX2I GetBoundingBox() const override;
@@ -13,8 +14,8 @@ public:
 		return "Rectangle";
 	}
 
-	VECTOR2I m_startPoint;
-	VECTOR2I m_endPoint;
+	VECTOR2D m_startPoint;
+	VECTOR2D m_endPoint;
 };
 }
 

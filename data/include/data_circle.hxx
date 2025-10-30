@@ -6,6 +6,7 @@ namespace KIGFX {
 class DATA_Circle : public BOARD_ITEM
 {
 public:
+	DATA_Circle() = default;
 	DATA_Circle(VECTOR2I, double);
 
 	virtual const BOX2I GetBoundingBox() const override;
@@ -13,7 +14,7 @@ public:
 		return "Circle";
 	}
 	
-	VECTOR2I m_centerPoint;
+	VECTOR2D m_centerPoint;
 	double m_radius;
 };
 }

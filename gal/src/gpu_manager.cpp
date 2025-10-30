@@ -226,10 +226,10 @@ void GPU_CACHED_MANAGER::EndDrawing()
     //glDisableClientState( GL_COLOR_ARRAY );
     //glDisableClientState( GL_VERTEX_ARRAY );
 
-    if( m_shader != nullptr )
-    {
-        m_shader->Deactivate();
-    }
+    //if( m_shader != nullptr )
+    //{
+    //    m_shader->Deactivate();
+    //}
 
     m_isDrawing = false;
 }
