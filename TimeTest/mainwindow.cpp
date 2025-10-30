@@ -77,7 +77,6 @@ void MainWindow::CreateData()
         if (x1 > x2) std::swap(x1, x2);
         if (y1 > y2) std::swap(y1, y2);
 
-        rectangles.push_back({ m_gal->GetScreenWorldMatrix() * VECTOR2D(x1, y1), m_gal->GetScreenWorldMatrix() * VECTOR2D(x2, y2) });
         rectangles1.push_back({ VECTOR2D(x1, y1), VECTOR2D(x2, y2) });
     }
 
@@ -86,7 +85,6 @@ void MainWindow::CreateData()
         double cx = distX(gen);
         double cy = distY(gen);
         double r = distR(gen);
-        circles.push_back({ m_gal->GetScreenWorldMatrix() * VECTOR2D(cx, cy), r / m_gal->GetWorldScale() });
         circles1.push_back({ VECTOR2D(cx, cy), r });
     }
 }
@@ -100,29 +98,27 @@ void MainWindow::paintEvent(QPaintEvent*) {
     painter.translate(m_rWidget->pos());
     painter.fillRect(m_rWidget->rect(), Qt::black);
 
-    painter.setPen(Qt::blue);
+    painter.setPen(Qt::white);
     for (const auto& r : rectangles1)
-        painter.drawRect(QRect(r.m_startPoint.x, r.m_startPoint.y, r.m_endPoint.x, r.m_endPoint.y));
+        painter.drawRect(QRect(r.m_startPoint.x, r.m_startPoint.y, r.m_endPoint.x - r.m_startPoint.x, r.m_endPoint.y - r.m_startPoint.y));
 
-    painter.setPen(Qt::red);
+    painter.setPen(Qt::white);
     for (const auto& c : circles1)
         painter.drawEllipse(QPointF(c.m_centerPoint.x, c.m_centerPoint.y), c.m_radius, c.m_radius);
     painter.restore();
 
     m_gal->BeginDrawing();
     m_gal->SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);
+    m_gal->SetLineWidth(1 / m_gal->GetWorldScale());
 
-    for (int i = 0; i < rectangles.size(); i++) {
-        rectangles[i].m_startPoint = m_gal->GetScreenWorldMatrix() * rectangles[i].m_startPoint;
-        rectangles[i].m_endPoint = m_gal->GetScreenWorldMatrix() * rectangles[i].m_endPoint;
-
+    for (int i = 0; i < rectangles1.size(); i++) {
+        rectangles.push_back({ m_gal->GetScreenWorldMatrix() * rectangles1[i].m_startPoint , m_gal->GetScreenWorldMatrix() * rectangles1[i].m_endPoint });
     }
 
-    for (int i = 0; i < circles.size(); i++) {
-        
-        circles[i].m_centerPoint = m_gal->GetScreenWorldMatrix() * circles[i].m_centerPoint;
-        circles[i].m_radius = circles[i].m_radius / m_gal->GetWorldScale();
+    for (int i = 0; i < circles1.size(); i++) {
+        circles.push_back({ m_gal->GetScreenWorldMatrix() * circles1[i].m_centerPoint, circles1[i].m_radius / m_gal->GetWorldScale() });
     }
+
 
     for (DATA_Rectangle& rec : rectangles)
         m_view->Add(&rec);
