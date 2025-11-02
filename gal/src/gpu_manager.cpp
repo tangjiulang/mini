@@ -82,7 +82,7 @@ GPU_CACHED_MANAGER::~GPU_CACHED_MANAGER()
 
 void GPU_CACHED_MANAGER::BeginDrawing()
 {
-    Q_ASSERT( !m_isDrawing );
+    //Q_ASSERT( !m_isDrawing );
 
     m_curVrangeSize = 0;
     m_indexBufMaxSize = 0;
@@ -140,10 +140,10 @@ void GPU_CACHED_MANAGER::EndDrawing()
 
     resizeIndices( m_indexBufMaxSize );
 
-    if( m_enableDepthTest )
-        function->glEnable( GL_DEPTH_TEST );
-    else
-        function->glDisable( GL_DEPTH_TEST );
+    //if( m_enableDepthTest )
+    //    function->glEnable( GL_DEPTH_TEST );
+    //else
+    //    function->glDisable( GL_DEPTH_TEST );
 
 
     // a_position

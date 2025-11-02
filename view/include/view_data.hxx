@@ -90,7 +90,7 @@ private:
         */
     void deleteGroups()
     {
-        delete[] m_groups;
+        //delete[] m_groups;
         m_groups = nullptr;
         m_groupsSize = 0;
     }

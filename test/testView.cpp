@@ -38,12 +38,14 @@ int main(int argc, char* argv[]) {
 	gal.SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);
 	gal.SetLineWidth(1 / gal.GetWorldScale());
 	
-	DATA_Rectangle rec = { gal.GetScreenWorldMatrix() * VECTOR2D(300, 300), gal.GetScreenWorldMatrix() * VECTOR2D(600, 600) };
-	rectangles.push_back(rec);
+	//DATA_Rectangle rec = { gal.GetScreenWorldMatrix() * VECTOR2D(300, 300), gal.GetScreenWorldMatrix() * VECTOR2D(600, 600) };
+	//rectangles.push_back(rec);
+	DATA_Line line = { gal.GetScreenWorldMatrix() * VECTOR2D(300, 300), gal.GetScreenWorldMatrix() * VECTOR2D(600, 600) };
+
 	DATA_Circle cir = { gal.GetScreenWorldMatrix() * VECTOR2D(500, 500), 100 / gal.GetWorldScale() };
 	circles.push_back(cir);
 
-	view->Add(&rec);
+	view->Add(&line);
 	view->Add(&cir);
 
 	view->Redraw();

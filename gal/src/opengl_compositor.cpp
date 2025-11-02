@@ -91,6 +91,7 @@ void OPENGL_COMPOSITOR::Initialize()
     function->glGenFramebuffers( 1, &m_mainFbo );
     checkGlError( "generating framebuffer", __FILE__, __LINE__ );
     bindFb( m_mainFbo );
+    function->glViewport(0, 0, dims.x, dims.y);
 
     // Allocate memory for the depth buffer
     // Attach the depth buffer to the framebuffer
@@ -105,8 +106,18 @@ void OPENGL_COMPOSITOR::Initialize()
                                   GL_RENDERBUFFER_EXT, m_depthBuffer );
     checkGlError( "attaching renderbuffer", __FILE__, __LINE__ );
 
+    function->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    GLenum status = function->glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE)
+        qDebug() << "Framebuffer incomplete: " << QString::number(status, 16);
+
     // Unbind the framebuffer, so by default all the rendering goes directly to the display
     bindFb( DIRECT_RENDERING );
+
+    GLint drawBuf;
+    glGetIntegerv(GL_DRAW_BUFFER, &drawBuf);
+    qDebug() << "Current draw buffer:" << drawBuf;
 
     m_initialized = true;
 
@@ -236,6 +247,7 @@ GLenum OPENGL_COMPOSITOR::GetBufferTexture( unsigned int aBufferHandle )
 void OPENGL_COMPOSITOR::SetBuffer( unsigned int aBufferHandle )
 {
     if ( m_initialized && aBufferHandle <= usedBuffers()) return;
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
     // Either unbind the FBO for direct rendering, or bind the one with target textures
     bindFb( aBufferHandle == DIRECT_RENDERING ? DIRECT_RENDERING : m_mainFbo );
@@ -244,14 +256,14 @@ void OPENGL_COMPOSITOR::SetBuffer( unsigned int aBufferHandle )
     if( m_curFbo != DIRECT_RENDERING )
     {
         m_curBuffer = aBufferHandle - 1;
-        glDrawBuffer( m_buffers[m_curBuffer].attachmentPoint );
+        function->glDrawBuffer( m_buffers[m_curBuffer].attachmentPoint );
         checkGlError( "setting draw buffer", __FILE__, __LINE__ );
 
-        glViewport( 0, 0, m_buffers[m_curBuffer].dimensions.x, m_buffers[m_curBuffer].dimensions.y );
+        function->glViewport( 0, 0, m_buffers[m_curBuffer].dimensions.x, m_buffers[m_curBuffer].dimensions.y );
     }
     else
     {
-        glViewport( 0, 0, GetScreenSize().x, GetScreenSize().y );
+        function->glViewport( 0, 0, GetScreenSize().x, GetScreenSize().y );
     }
 }
 
@@ -259,9 +271,10 @@ void OPENGL_COMPOSITOR::SetBuffer( unsigned int aBufferHandle )
 void OPENGL_COMPOSITOR::ClearBuffer( const COLOR4D& aColor )
 {
     if( m_initialized) return;
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
-    glClearColor( aColor.r, aColor.g, aColor.b, m_curFbo == DIRECT_RENDERING ? 1.0f : 0.0f );
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
+    function->glClearColor( aColor.r, aColor.g, aColor.b, m_curFbo == DIRECT_RENDERING ? 1.0f : 0.0f );
+    function->glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 }
 
 
@@ -291,45 +304,45 @@ void OPENGL_COMPOSITOR::DrawBuffer( unsigned int aSourceHandle, unsigned int aDe
 {
     if ( m_initialized && aSourceHandle != 0 && aSourceHandle <= usedBuffers()) return;
     if( aDestHandle <= usedBuffers()) return;
-
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     // Switch to the destination buffer and blit the scene
     SetBuffer( aDestHandle );
 
     // Depth test has to be disabled to make transparency working
-    glDisable( GL_DEPTH_TEST );
-    glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
+    function->glDisable( GL_DEPTH_TEST );
+    function->glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
 
     // Enable texturing and bind the main texture
-    glEnable( GL_TEXTURE_2D );
-    glBindTexture( GL_TEXTURE_2D, m_buffers[aSourceHandle - 1].textureTarget );
+    function->glEnable( GL_TEXTURE_2D );
+    function->glBindTexture( GL_TEXTURE_2D, m_buffers[aSourceHandle - 1].textureTarget );
 
     // Draw a full screen quad with the texture
-    glMatrixMode( GL_MODELVIEW );
-    glPushMatrix();
-    glLoadIdentity();
-    glMatrixMode( GL_PROJECTION );
-    glPushMatrix();
-    glLoadIdentity();
+    //glMatrixMode( GL_MODELVIEW );
+    //glPushMatrix();
+    //glLoadIdentity();
+    //glMatrixMode( GL_PROJECTION );
+    //glPushMatrix();
+    //glLoadIdentity();
 
-    glBegin( GL_TRIANGLES );
-    glTexCoord2f( 0.0f, 1.0f );
-    glVertex2f( -1.0f, 1.0f );
-    glTexCoord2f( 0.0f, 0.0f );
-    glVertex2f( -1.0f, -1.0f );
-    glTexCoord2f( 1.0f, 1.0f );
-    glVertex2f( 1.0f, 1.0f );
+    //glBegin( GL_TRIANGLES );
+    //glTexCoord2f( 0.0f, 1.0f );
+    //glVertex2f( -1.0f, 1.0f );
+    //glTexCoord2f( 0.0f, 0.0f );
+    //glVertex2f( -1.0f, -1.0f );
+    //glTexCoord2f( 1.0f, 1.0f );
+    //glVertex2f( 1.0f, 1.0f );
 
-    glTexCoord2f( 1.0f, 1.0f );
-    glVertex2f( 1.0f, 1.0f );
-    glTexCoord2f( 0.0f, 0.0f );
-    glVertex2f( -1.0f, -1.0f );
-    glTexCoord2f( 1.0f, 0.0f );
-    glVertex2f( 1.0f, -1.0f );
-    glEnd();
+    //glTexCoord2f( 1.0f, 1.0f );
+    //glVertex2f( 1.0f, 1.0f );
+    //glTexCoord2f( 0.0f, 0.0f );
+    //glVertex2f( -1.0f, -1.0f );
+    //glTexCoord2f( 1.0f, 0.0f );
+    //glVertex2f( 1.0f, -1.0f );
+    //glEnd();
 
-    glPopMatrix();
-    glMatrixMode( GL_MODELVIEW );
-    glPopMatrix();
+    //glPopMatrix();
+    //glMatrixMode( GL_MODELVIEW );
+    //glPopMatrix();
 }
 
 

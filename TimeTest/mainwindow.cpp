@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 void MainWindow::CreateData()
 {
-    constexpr int N = 1000; // 数量
+    constexpr int N = 100000; // 数量
     constexpr double WIDTH = 1000.0;
     constexpr double HEIGHT = 1000.0;
 
@@ -91,6 +91,10 @@ void MainWindow::CreateData()
 
 
 void MainWindow::paintEvent(QPaintEvent*) {
+    rectangles.clear();
+    circles.clear();
+    m_view->Clear();
+
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.save();
@@ -98,14 +102,18 @@ void MainWindow::paintEvent(QPaintEvent*) {
     painter.translate(m_rWidget->pos());
     painter.fillRect(m_rWidget->rect(), Qt::black);
 
+    QElapsedTimer timer;
+    timer.start();
     painter.setPen(Qt::white);
     for (const auto& r : rectangles1)
         painter.drawRect(QRect(r.m_startPoint.x, r.m_startPoint.y, r.m_endPoint.x - r.m_startPoint.x, r.m_endPoint.y - r.m_startPoint.y));
 
-    painter.setPen(Qt::white);
     for (const auto& c : circles1)
         painter.drawEllipse(QPointF(c.m_centerPoint.x, c.m_centerPoint.y), c.m_radius, c.m_radius);
     painter.restore();
+    qint64 ms = timer.elapsed();
+    qDebug() << "QPainter 耗时:" << ms << "ms";
+
 
     m_gal->BeginDrawing();
     m_gal->SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);
@@ -119,12 +127,18 @@ void MainWindow::paintEvent(QPaintEvent*) {
         circles.push_back({ m_gal->GetScreenWorldMatrix() * circles1[i].m_centerPoint, circles1[i].m_radius / m_gal->GetWorldScale() });
     }
 
+    timer.start();
+    //for (DATA_Rectangle& rec : rectangles)
+    //    m_view->Add(&rec);
+    //for (DATA_Circle& cir : circles)
+    //    m_view->Add(&cir, 1);
 
+    //m_view->Redraw();
     for (DATA_Rectangle& rec : rectangles)
-        m_view->Add(&rec);
+        m_gal->DrawRectangle(rec.m_startPoint, rec.m_endPoint);
     for (DATA_Circle& cir : circles)
-        m_view->Add(&cir);
+        m_gal->DrawCircle(cir.m_centerPoint, cir.m_radius);
 
-    m_view->Redraw();
-        
+    ms = timer.elapsed();
+    qDebug() << "QOpenGL 耗时:" << ms << "ms";
 }
