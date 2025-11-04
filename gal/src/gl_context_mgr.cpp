@@ -85,7 +85,7 @@ void GL_CONTEXT_MANAGER::LockCtx(QOpenGLContext* aContext, QOpenGLWidget* aCanva
 
 void GL_CONTEXT_MANAGER::UnlockCtx(QOpenGLContext* aContext )
 {
-    if( aContext && m_glContexts.count( aContext ) > 0) return;
+    if (!(aContext && m_glContexts.count(aContext) > 0)) return;
 
     if( m_glCtx == aContext )
     {
