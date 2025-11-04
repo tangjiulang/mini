@@ -17,6 +17,7 @@ public:
     };
 
     DrawPanelGal(QWidget* parent = nullptr);
+    virtual ~DrawPanelGal();
 
     static constexpr GAL_TYPE GAL_FALLBACK = GAL_TYPE_OPENGL;
 protected:
