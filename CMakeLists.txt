@@ -13,6 +13,8 @@ if (MSVC)
 	add_compile_options(/Zc:__cplusplus)
 endif()
 
+set(CMAKE_AUTOMOC ON)
+
 
 find_package(Boost REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui OpenGL Widgets OpenGLWidgets)
@@ -36,6 +38,7 @@ add_subdirectory(math)
 add_subdirectory(gal)
 add_subdirectory(view)
 add_subdirectory(data)
+add_subdirectory(widget)
 add_subdirectory(resources)
 
 add_subdirectory(TimeTest)
@@ -51,6 +54,9 @@ target_link_libraries(mini PUBLIC
 						spdlog::spdlog 
 						math
                         gal
+                        data
+                        view
+                        widget
                         GLEW::GLEW
 )
 

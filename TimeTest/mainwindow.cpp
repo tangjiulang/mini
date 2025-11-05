@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 void MainWindow::CreateData()
 {
-    constexpr int N = 1000; // 数量
+    constexpr int N = 1000000; // 数量
     constexpr double WIDTH = 1000.0;
     constexpr double HEIGHT = 1000.0;
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <QAbstractScrollArea>
 #include <memory>
 
@@ -16,22 +18,24 @@ public:
         GAL_TYPE_LAST           ///< Sentinel, do not use as a parameter
     };
 
-    DrawPanelGal(QWidget* parent = nullptr);
+    DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType = GAL_TYPE::GAL_TYPE_OPENGL);
     virtual ~DrawPanelGal();
+    virtual bool SwitchBackend(GAL_TYPE aGalType);
 
     static constexpr GAL_TYPE GAL_FALLBACK = GAL_TYPE_OPENGL;
 protected:
     void paintEvent(QPaintEvent*) override;
     void resizeEvent(QResizeEvent*) override;
-    void enterEvent(QEnterEvent*) override;
-    void focusOutEvent(QFocusEvent*) override;
-    void timerEvent(QTimerEvent*) override;
-    void showEvent(QShowEvent*) override;
+    //void enterEvent(QEnterEvent*) override;
+    //void focusOutEvent(QFocusEvent*) override;
+    //void timerEvent(QTimerEvent*) override;
+    //void showEvent(QShowEvent*) override;
 
 
     QWindow*                        m_parent;
-    KIGFX::GAL*                     m_gal;
+    KIGFX::OPENGL_GAL*              m_gal;
     KIGFX::VIEW*                    m_view;
     std::unique_ptr<KIGFX::PAINTER> m_painter;
     GAL_TYPE                        m_backend;
+    KIGFX::GAL_DISPLAY_OPTIONS      m_options;
 };

@@ -30,6 +30,16 @@ public:
         */
     virtual bool Draw(const VIEW_ITEM* aItem, int aLayer) = 0;
 
+    /**
+     * Changes Graphics Abstraction Layer used for drawing items for a new one.
+     *
+     * @param aGal is the new GAL instance.
+     */
+    void SetGAL(GAL* aGal)
+    {
+        m_gal = aGal;
+    }
+
 protected:
     KIGFX::GAL* m_gal;
 };

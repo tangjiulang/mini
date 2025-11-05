@@ -1,12 +1,14 @@
-﻿// mini.cpp: 定义应用程序的入口点。
-//
+﻿#include <QApplication>
+#include "mini_frame.hxx"
 
-#include "mini.h"
-
-using namespace std;
-
-int main()
+int main(int argc, char* argv[])
 {
-	cout << "Hello CMake." << endl;
-	return 0;
+    QApplication app(argc, argv);
+
+    MiniFrame w;
+    w.resize(2000, 1000);
+
+    w.show();
+
+    return app.exec();
 }
