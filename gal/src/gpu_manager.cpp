@@ -269,8 +269,7 @@ void GPU_NONCACHED_MANAGER::EndDrawing()
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
     //function->glClear(GL_COLOR_BUFFER_BIT);
-
-    if( m_container->GetSize() == 0 )
+    if( m_container->GetSize() == 0)
         return;
 
     VERTEX *vertices = m_container->GetAllVertices();
@@ -299,7 +298,7 @@ void GPU_NONCACHED_MANAGER::EndDrawing()
     function->glEnableVertexAttribArray(2);
 
     function->glBindVertexArray(0);
-    function->glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    //function->glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     
     m_shader->Use();
     function->glBindVertexArray(vao);

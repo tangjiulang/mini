@@ -990,7 +990,7 @@ namespace KIGFX {
         redrawRect(recti);
 
         // All targets were redrawn, so nothing is dirty
-        MarkClean();
+        //MarkClean();
 
 #ifdef KICAD_GAL_PROFILE
         totalRealTime.Stop();

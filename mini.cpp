@@ -6,9 +6,13 @@ int main(int argc, char* argv[])
     QApplication app(argc, argv);
 
     MiniFrame w;
-    w.resize(2000, 1000);
-
     w.show();
+
+
+    w.GeneratorData();
+
+    w.InitialViewData();
+
 
     return app.exec();
 }

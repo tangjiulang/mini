@@ -640,7 +640,6 @@ void OPENGL_GAL::EndDrawing()
 
     cntTotal.Start();
 
-    this->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // Cached & non-cached containers are rendered to the same buffer
     m_compositor->SetBuffer( m_mainBuffer );
 
@@ -2603,7 +2602,7 @@ void OPENGL_GAL::init()
 #ifndef KICAD_USE_EGL
     //assert( IsShownOnScreen() );
 #endif // KICAD_USE_EGL
-    assert(!m_isContextLocked);
+    assert(m_isContextLocked);
     //wxASSERT_MSG( m_isContextLocked, "This should only be called from within a locked context." );
 
     // Check correct initialization from the constructor
@@ -2959,6 +2958,7 @@ void OPENGL_GAL::paintGL() {
     //    EndDrawing();
     this->makeCurrent();
     if (m_isInitialized) {
+        DrawLine(ToWorld(VECTOR2D(0, 0)), ToWorld(VECTOR2D(1000, 1000)));
         EndDrawing();
     }
 

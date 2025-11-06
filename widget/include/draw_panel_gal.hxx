@@ -5,8 +5,10 @@
 
 #include "gal/include/opengl_gal.hxx"
 #include "gal/include/painter.hxx"
+#include "view_control.hxx"
 #include "view.hxx"
 
+class DataManager;
 
 class DrawPanelGal : public QAbstractScrollArea {
 public:
@@ -23,19 +25,29 @@ public:
     virtual bool SwitchBackend(GAL_TYPE aGalType);
 
     static constexpr GAL_TYPE GAL_FALLBACK = GAL_TYPE_OPENGL;
+
+    void InitialViewData(DataManager* data);
+
+    void onWheel(QWheelEvent* event)
+    {
+        m_control->onWheel(event);
+    }
+
+    void Paint(QPaintEvent*);
 protected:
-    void paintEvent(QPaintEvent*) override;
+    
     void resizeEvent(QResizeEvent*) override;
     //void enterEvent(QEnterEvent*) override;
     //void focusOutEvent(QFocusEvent*) override;
     //void timerEvent(QTimerEvent*) override;
     //void showEvent(QShowEvent*) override;
 
-
+public:
     QWindow*                        m_parent;
     KIGFX::OPENGL_GAL*              m_gal;
     KIGFX::VIEW*                    m_view;
     std::unique_ptr<KIGFX::PAINTER> m_painter;
+    ViewControler*                  m_control;
     GAL_TYPE                        m_backend;
     KIGFX::GAL_DISPLAY_OPTIONS      m_options;
 };

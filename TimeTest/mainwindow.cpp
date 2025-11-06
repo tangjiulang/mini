@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget* parent)
 
 void MainWindow::CreateData()
 {
-    constexpr int N = 1000000; // 数量
+    constexpr int N = 1000; // 数量
     constexpr double WIDTH = 1000.0;
     constexpr double HEIGHT = 1000.0;
 
@@ -114,6 +114,7 @@ void MainWindow::paintEvent(QPaintEvent*) {
     qint64 ms = timer.elapsed();
     qDebug() << "QPainter 耗时:" << ms << "ms";
 
+    KIGFX::GAL_DRAWING_CONTEXT ctx(m_gal);
 
     m_gal->BeginDrawing();
     m_gal->SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);

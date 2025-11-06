@@ -106,7 +106,6 @@ void OPENGL_COMPOSITOR::Initialize()
                                   GL_RENDERBUFFER_EXT, m_depthBuffer );
     checkGlError( "attaching renderbuffer", __FILE__, __LINE__ );
 
-    function->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     GLenum status = function->glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)

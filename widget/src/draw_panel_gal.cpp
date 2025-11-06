@@ -1,6 +1,7 @@
 #include "draw_panel_gal.hxx"
 #include "geometry_utils.hxx"
 #include "data_painter.hxx"
+#include "data_manager.hxx"
 
 // Scale limits for zoom (especially mouse wheel) for Data
 #define ZOOM_MAX_LIMIT_DATA 50000
@@ -13,6 +14,7 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
 	  m_painter(nullptr),
 	  m_backend(GAL_TYPE_NONE)
 {
+	SwitchBackend(aGalType);
 	m_view = new KIGFX::VIEW;
 	m_view->SetGAL(m_gal);
 
@@ -28,7 +30,8 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
 	qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
 	m_gal->show();
 	m_gal->SetScreenDPI(dpi);
-	SwitchBackend(aGalType);
+
+	m_control = new ViewControler(m_gal, m_view, m_painter.get());
 }
 
 DrawPanelGal::~DrawPanelGal()
@@ -39,17 +42,18 @@ DrawPanelGal::~DrawPanelGal()
 	m_gal = nullptr;    // Ensure OnShow is not called
 }
 
-void DrawPanelGal::paintEvent(QPaintEvent* event)
+void DrawPanelGal::Paint(QPaintEvent* event)
 {
 	if (!m_gal->IsInitialized() || !m_gal->IsVisible() || m_gal->IsContextLocked())
 		return;
 
 	KIGFX::GAL_DRAWING_CONTEXT ctx(m_gal);
 
-	if (m_backend == GAL_TYPE_OPENGL)
-		m_gal->ClearScreen();
-	if (m_view->IsDirty())
+	if (m_view->IsDirty()) {
+		if (m_backend == GAL_TYPE_OPENGL)
+			m_gal->ClearScreen();
 		m_view->Redraw();
+	}
 	
 	
 	QPoint qcursor = QCursor::pos();
@@ -68,6 +72,7 @@ void DrawPanelGal::resizeEvent(QResizeEvent* event)
 	if (m_view)
 		bottom = m_view->ToWorld(m_gal->GetScreenPixelSize(), true);
 	m_gal->ResizeScreen(viewSize.width(), viewSize.height());
+	m_gal->ComputeWorldScreenMatrix();
 
 	if (m_view) {
 		m_view->MarkTargetDirty(KIGFX::TARGET_CACHED);
@@ -89,6 +94,7 @@ bool DrawPanelGal::SwitchBackend(GAL_TYPE aGalType)
 
 	KIGFX::OPENGL_GAL* new_gal = nullptr;
 	if (aGalType == GAL_TYPE::GAL_TYPE_OPENGL) {
+		KIGFX::OPENGL_GAL::CheckFeatures(m_options);
 		new_gal = new KIGFX::OPENGL_GAL(m_options, this);
 	}
 
@@ -110,4 +116,23 @@ bool DrawPanelGal::SwitchBackend(GAL_TYPE aGalType)
 
 	m_backend = aGalType;
 
+}
+
+void DrawPanelGal::InitialViewData(DataManager* data)
+{
+	KIGFX::GAL_UPDATE_CONTEXT ctx(m_gal);
+
+	for (auto &circle : data->m_circles) {
+		circle.m_centerPoint = m_view->ToWorld(circle.m_centerPoint);
+		circle.m_radius = m_view->ToWorld(circle.m_radius);
+		m_view->Add(&circle);
+	}
+
+	for (auto& rectangle : data->m_rectangles) {
+		rectangle.m_startPoint = m_view->ToWorld(rectangle.m_startPoint);
+		rectangle.m_endPoint = m_view->ToWorld(rectangle.m_endPoint);
+		m_view->Add(&rectangle);
+	}
+
+	m_view->MarkDirty();
 }

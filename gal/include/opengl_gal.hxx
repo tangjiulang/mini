@@ -78,13 +78,13 @@ public:
     bool IsInitialized() const override
     {
         // is*Initialized flags, but it is enough for OpenGL to show up
-        return isVisible() && rect().isEmpty();
+        return m_isInitialized && rect().isValid();
     }
 
     ///< @copydoc GAL::IsVisible()
     bool IsVisible() const override
     {
-        return isVisible() && rect().isEmpty();
+        return isVisible() && rect().isValid();
     }
 
     // ---------------

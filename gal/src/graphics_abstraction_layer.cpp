@@ -20,7 +20,8 @@ GAL::GAL( GAL_DISPLAY_OPTIONS& aDisplayOptions ) :
         // Some classes inheriting from GAL has different SetNativeCursorStyle method
         // implementation and therefore it's called also on constructor
         // to change the value from DEFAULT to KICURSOR::ARROW
-        m_currentNativeCursor( KICURSOR::DEFAULT )
+        m_currentNativeCursor( KICURSOR::DEFAULT ),
+        m_lookAtPoint(0, 0)
 {
     // Set the default values for the internal variables
     SetIsFill( false );

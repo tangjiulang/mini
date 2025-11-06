@@ -60,7 +60,7 @@ void GL_CONTEXT_MANAGER::DeleteAll()
 
 void GL_CONTEXT_MANAGER::LockCtx(QOpenGLContext* aContext, QOpenGLWidget* aCanvas )
 {
-    Q_ASSERT( aContext && m_glContexts.count( aContext ) > 0);
+    if (!(aContext && m_glContexts.count(aContext) > 0)) return;
 
     m_glCtxMutex.lock();
     QOpenGLWidget* canvas = aCanvas ? aCanvas : m_glContexts.at( aContext );
