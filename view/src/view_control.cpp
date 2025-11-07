@@ -31,9 +31,11 @@ void ViewControler::onWheel(QWheelEvent* aEvent)
 	const bool alt = aEvent->modifiers() & Qt::AltModifier;
 
 	const QPoint numDegrees = aEvent->angleDelta();
-	const double rotation = numDegrees.y() * -1;
+	double rotation = numDegrees.y();
+	if (alt)
+		rotation = numDegrees.x() * -1;
 
-	if (alt) {
+	if (ctrl) {
 		const double zoomScale = GetScaleFroRotation(rotation);
 		m_view->SetScale(m_view->GetScale() * zoomScale);
 	} else {
@@ -43,7 +45,7 @@ void ViewControler::onWheel(QWheelEvent* aEvent)
 		double scrollX = 0.0;
 		double scrollY = 0.0;
 		bool   hReverse = false;
-		if (ctrl)
+		if (alt)
 			scrollX = scrollVec.x;
 		else
 			scrollY = -scrollVec.y;

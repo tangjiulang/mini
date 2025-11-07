@@ -550,7 +550,7 @@ void OPENGL_GAL::BeginDrawing()
 
     //// Remove all previously stored items
     //this->glClear(GL_DEPTH_BUFFER_BIT);
-    m_nonCachedManager->Clear();
+    //m_nonCachedManager->Clear();
     m_overlayManager->Clear();
     //m_tempManager->Clear();
 
@@ -2957,8 +2957,8 @@ void OPENGL_GAL::paintGL() {
     //if (m_isInitialized)
     //    EndDrawing();
     this->makeCurrent();
+    //ClearScreen();
     if (m_isInitialized) {
-        DrawLine(ToWorld(VECTOR2D(0, 0)), ToWorld(VECTOR2D(1000, 1000)));
         EndDrawing();
     }
 

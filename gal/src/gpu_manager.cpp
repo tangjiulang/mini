@@ -273,7 +273,7 @@ void GPU_NONCACHED_MANAGER::EndDrawing()
         return;
 
     VERTEX *vertices = m_container->GetAllVertices();
-
+    function->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     if( m_enableDepthTest )
         function->glEnable( GL_DEPTH_TEST );

@@ -14,7 +14,6 @@ public:
 
     void InitialViewData();
 
-    void update();
 protected:
     //void paintEvent(QPaintEvent*) override;
     void resizeEvent(QResizeEvent*) override;
@@ -26,6 +25,7 @@ protected:
 
     void paintEvent(QPaintEvent* event) {
         m_drawPanelGal->Paint(event);
+        update();
     }
 
     DrawPanelGal*   m_drawPanelGal;

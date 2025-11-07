@@ -50,8 +50,6 @@ void DrawPanelGal::Paint(QPaintEvent* event)
 	KIGFX::GAL_DRAWING_CONTEXT ctx(m_gal);
 
 	if (m_view->IsDirty()) {
-		if (m_backend == GAL_TYPE_OPENGL)
-			m_gal->ClearScreen();
 		m_view->Redraw();
 	}
 	
@@ -60,6 +58,8 @@ void DrawPanelGal::Paint(QPaintEvent* event)
 	VECTOR2D cursor = { (double)qcursor.x(), (double)qcursor.y() };
 	cursor = GetClampedCoords(m_gal->GetGridPoint(m_view->ToWorld(cursor)));
 	m_gal->DrawCursor(cursor);
+
+	m_gal->update();
 
 }
 
@@ -121,6 +121,8 @@ bool DrawPanelGal::SwitchBackend(GAL_TYPE aGalType)
 void DrawPanelGal::InitialViewData(DataManager* data)
 {
 	KIGFX::GAL_UPDATE_CONTEXT ctx(m_gal);
+
+	m_gal->SetLineWidth(m_view->ToWorld(1));
 
 	for (auto &circle : data->m_circles) {
 		circle.m_centerPoint = m_view->ToWorld(circle.m_centerPoint);

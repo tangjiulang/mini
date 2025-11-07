@@ -5,14 +5,14 @@
 void DataManager::GenerateData()
 {
     constexpr int N = 1000; // 数量
-    constexpr double WIDTH = 1000.0;
-    constexpr double HEIGHT = 1000.0;
+    constexpr double WIDTH = 2000.0;
+    constexpr double HEIGHT = 2000.0;
 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> distX(0.0, WIDTH);
     std::uniform_real_distribution<double> distY(0.0, HEIGHT);
-    std::uniform_real_distribution<double> distR(5.0, 50.0);
+    std::uniform_real_distribution<double> distR(5.0, 500.0);
 
     m_rectangles.reserve(N);
     m_circles.reserve(N);
