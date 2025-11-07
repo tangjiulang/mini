@@ -50,6 +50,7 @@ void filledCircle(vec2 aCoord)
 
 void strokedCircle(vec2 aCoord, float aRadius, float aWidth)
 {
+    aWidth = max(aWidth, 1.0);
     float outerRadius = max(aRadius, 0.0);
     float innerRadius = max(aRadius - aWidth, 0.0);
 
