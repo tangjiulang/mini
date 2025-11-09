@@ -245,7 +245,7 @@ GLenum OPENGL_COMPOSITOR::GetBufferTexture( unsigned int aBufferHandle )
 
 void OPENGL_COMPOSITOR::SetBuffer( unsigned int aBufferHandle )
 {
-    if ( m_initialized && aBufferHandle <= usedBuffers()) return;
+    if ( m_initialized && aBufferHandle > usedBuffers()) return;
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
     // Either unbind the FBO for direct rendering, or bind the one with target textures
@@ -359,6 +359,9 @@ void OPENGL_COMPOSITOR::bindFb( unsigned int aFb )
 
     if( m_curFbo != aFb )
     {
+        GLint bound;
+        function->glGetIntegerv(GL_FRAMEBUFFER_BINDING, &bound);
+        qDebug() << "Before binding, bound framebuffer =" << bound;
         function->glBindFramebuffer( GL_FRAMEBUFFER, aFb );
         checkGlError( "switching framebuffer", __FILE__, __LINE__ );
         m_curFbo = aFb;

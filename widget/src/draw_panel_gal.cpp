@@ -2,6 +2,7 @@
 #include "geometry_utils.hxx"
 #include "data_painter.hxx"
 #include "data_manager.hxx"
+#include "gal/include/utils.hxx"
 
 // Scale limits for zoom (especially mouse wheel) for Data
 #define ZOOM_MAX_LIMIT_DATA 50000
@@ -68,7 +69,7 @@ void DrawPanelGal::resizeEvent(QResizeEvent* event)
 	QSize viewSize = event->size();
 
 	VECTOR2D bottom(0, 0);
-
+	
 	if (m_view)
 		bottom = m_view->ToWorld(m_gal->GetScreenPixelSize(), true);
 	m_gal->ResizeScreen(viewSize.width(), viewSize.height());

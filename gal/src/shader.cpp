@@ -7,6 +7,7 @@
 #include <QFile>
 #include <QDir>
 #include "gal/include/shader.hxx"
+#include "gal/include/utils.hxx"
 #include <vector>
 
 using namespace KIGFX;
@@ -29,27 +30,26 @@ SHADER::~SHADER()
 {
     if( active )
         Deactivate();
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
+    if( isProgramCreated )
+    {
+        // Delete the shaders and the program
+        while (!shaderNumbers.empty()) {
+            GLuint shader = shaderNumbers.front();
+            shaderNumbers.pop_front();
+            if (function->glIsShader(shader))
+            {
+                function->glDetachShader(programNumber, shader);
+                function->glDeleteShader(shader);
+            }
+        }
+        function->glDeleteProgram( programNumber );
+    }
 
-    //if( isProgramCreated )
-    //{
-    //    if( glIsShader )
-    //    {
-    //        // Delete the shaders and the program
-    //        for( std::deque<GLuint>::iterator it = shaderNumbers.begin(); it != shaderNumbers.end();
-    //             ++it )
-    //        {
-    //            GLuint shader = *it;
-    //
-    //            if( glIsShader( shader ) )
-    //            {
-    //                glDetachShader( programNumber, shader );
-    //                glDeleteShader( shader );
-    //            }
-    //        }
-    //
-    //        glDeleteProgram( programNumber );
-    //    }
-    //}
+    program->release();          
+    program->removeAllShaders(); 
+    delete program;
+    program = nullptr;
 }
 
 
@@ -263,3 +263,8 @@ std::string SHADER::ReadSource( const std::string& aShaderSourceName )
 }
 
 
+void KIGFX::SHADER::InitProgram(QObject* parent)
+{
+    program = new QOpenGLShaderProgram(parent);
+    programNumber = program->programId();
+}

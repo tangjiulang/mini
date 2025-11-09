@@ -13,6 +13,7 @@
 #include "gal/include/cursors.hxx"
 #include "gal/include/definitions.hxx"
 #include <gal/include/gal_display_options.hxx>
+#include "gal/include/utils.hxx"
 //#include <font/stroke_font.h>
 #include "eda_angle.hxx"
 

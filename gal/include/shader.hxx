@@ -175,6 +175,8 @@ public:
      */
     static std::string ReadSource( const std::string& aShaderSourceName );
 
+    void InitProgram(QObject* parent);
+
     QOpenGLShaderProgram *program = nullptr;
 
 private:

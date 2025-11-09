@@ -2665,10 +2665,10 @@ void OPENGL_GAL::init()
 
     if( !m_shader->IsLinked() && !m_shader->Link() )
         throw std::runtime_error( "Cannot link the shaders!" );
-
+    
     // Set up shader parameters after linking
     setupShaderParameters();
-
+    
     // Check if video card supports textures big enough to fit the font atlas
     int maxTextureSize;
     glGetIntegerv( GL_MAX_TEXTURE_SIZE, &maxTextureSize );
@@ -2928,7 +2928,8 @@ void OPENGL_GAL::ComputeWorldScreenMatrix()
 
 void OPENGL_GAL::initializeGL() {
     initializeOpenGLFunctions();
-    m_shader->program = new QOpenGLShaderProgram(this);
+
+    m_shader->InitProgram(this);
 
     if (m_glMainContext == nullptr)
     {
@@ -2951,6 +2952,7 @@ void OPENGL_GAL::initializeGL() {
 void OPENGL_GAL::resizeGL(int w, int h) {
     glViewport(0, 0, w, h);
     ResizeScreen(w, h);
+    GAL_UPDATE_CONTEXT ctx(this);
     update();
 }
 void OPENGL_GAL::paintGL() {

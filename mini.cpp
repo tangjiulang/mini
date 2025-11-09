@@ -1,5 +1,6 @@
 ﻿#include <QApplication>
 #include "mini_frame.hxx"
+#include "gal/include/utils.hxx"
 
 int main(int argc, char* argv[])
 {
