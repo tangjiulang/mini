@@ -1,0 +1,10 @@
+{
+  "name": "mini",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "spdlog",
+    "glm",
+    "glew",
+    "libtess2"
+  ]
+}
