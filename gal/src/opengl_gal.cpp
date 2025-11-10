@@ -311,9 +311,6 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
     m_isGrouping = false;
     m_groupCounter = 0;
 
-    //if (aParent != nullptr)
-    //    resize(aParent->size());
-    //else resize(QSize(800, 1000));
     qreal dpr = devicePixelRatioF(); 
     QSize nativeSize = size() * dpr;
     m_screenSize = ToVECTOR2I(nativeSize);
@@ -323,10 +320,10 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
     SetAxesColor( COLOR4D( BLUE ) );
 
     // Tesselator initialization
-    //m_tesselator = gluNewTess();
+    m_tesselator = tessNewTess(NULL);
     //InitTesselatorCallbacks( m_tesselator );
 
-    //gluTessProperty( m_tesselator, GLU_TESS_WINDING_RULE, GLU_TESS_WINDING_POSITIVE );
+    //tessTesselate(m_tesselator, TESS_WINDING_ODD, TESS_POLYGONS, 3, 2, nullptr);
 
     SetTarget( TARGET_NONCACHED );
 
@@ -347,7 +344,7 @@ OPENGL_GAL::~OPENGL_GAL()
 
     --m_instanceCounter;
     glFlush();
-    //gluDeleteTess( m_tesselator );
+    tessDeleteTess( m_tesselator );
     ClearCache();
 
     delete m_compositor;
@@ -548,8 +545,7 @@ void OPENGL_GAL::BeginDrawing()
     SetFillColor( m_fillColor );
     SetStrokeColor( m_strokeColor );
 
-    //// Remove all previously stored items
-    //this->glClear(GL_DEPTH_BUFFER_BIT);
+    // Remove all previously stored items
     //m_nonCachedManager->Clear();
     m_overlayManager->Clear();
     //m_tempManager->Clear();
@@ -1271,7 +1267,7 @@ void OPENGL_GAL::DrawPolygon( const std::deque<VECTOR2D>& aPointList )
 
 void OPENGL_GAL::DrawPolygon( const VECTOR2D aPointList[], int aListSize )
 {
-    if ( aListSize >= 2) return;
+    if ( aListSize < 2) return;
     auto            points = std::unique_ptr<GLdouble[]>( new GLdouble[3 * aListSize] );
     GLdouble*       target = points.get();
     const VECTOR2D* src = aPointList;
@@ -2241,31 +2237,62 @@ void OPENGL_GAL::drawStrokedSemiCircle( const VECTOR2D& aCenterPoint, double aRa
 
 void OPENGL_GAL::drawPolygon( GLdouble* aPoints, int aPointCount )
 {
-    //if( m_isFillEnabled )
-    //{
-    //    m_currentManager->Shader( SHADER_NONE );
-    //    m_currentManager->Color( m_fillColor.r, m_fillColor.g, m_fillColor.b, m_fillColor.a );
+    if( m_isFillEnabled )
+    {
+        m_currentManager->Shader( SHADER_NONE );
+        m_currentManager->Color( m_fillColor.r, m_fillColor.g, m_fillColor.b, m_fillColor.a );
 
-    //    // Any non convex polygon needs to be tesselated
-    //    // for this purpose the GLU standard functions are used
-    //    TessParams params = { m_currentManager, m_tessIntersects };
-    //    gluTessBeginPolygon( m_tesselator, &params );
-    //    gluTessBeginContour( m_tesselator );
+        std::vector<float> vertices;
+        vertices.reserve(aPointCount * 3);
 
-    //    GLdouble* point = aPoints;
+        GLdouble* point = aPoints;
+        for (int i = 0; i < aPointCount; ++i)
+        {
+            vertices.push_back(static_cast<float>(point[0]));
+            vertices.push_back(static_cast<float>(point[1]));
+            vertices.push_back(static_cast<float>(point[2]));
+            point += 3;
+        }
 
-    //    for( int i = 0; i < aPointCount; ++i )
-    //    {
-    //        gluTessVertex( m_tesselator, point, point );
-    //        point += 3; // 3 coordinates
-    //    }
+        tessAddContour(
+            m_tesselator,
+            3,                 // 每个顶点3分量
+            vertices.data(),   // float 数组
+            sizeof(float) * 3, // 步长改成 float 的大小
+            aPointCount
+        );
 
-    //    gluTessEndContour( m_tesselator );
-    //    gluTessEndPolygon( m_tesselator );
+        // Any non convex polygon needs to be tesselated
+        // for this purpose the GLU standard functions are used
 
-    //    // Free allocated intersecting points
-    //    m_tessIntersects.clear();
-    //}
+
+        if (!tessTesselate(m_tesselator, TESS_WINDING_ODD, TESS_POLYGONS, 
+            3,                  //  每个顶点 3 分量
+            3,                  //  步长
+            nullptr))
+        {
+            qWarning() << "Tessellation failed!";
+            tessDeleteTess(m_tesselator);
+            return;
+        }
+
+
+        const float* verts = tessGetVertices(m_tesselator);
+        const int* elems = tessGetElements(m_tesselator);
+        const int nverts = tessGetVertexCount(m_tesselator);
+        const int nelems = tessGetElementCount(m_tesselator);
+
+        for (int i = 0; i < nelems; i++) {
+            const int* poly = &elems[i * 3];
+            for (int j = 0; j < 3; ++j)
+            {
+                int index = poly[j];
+                if (index != TESS_UNDEF)
+                    m_currentManager->Vertex(verts[index * 3 + 0], verts[index * 3 + 1], verts[index * 3 + 2]);
+            }
+        }
+
+    }
 
     //if( m_isStrokeEnabled )
     //{
@@ -2606,8 +2633,8 @@ void OPENGL_GAL::init()
     //wxASSERT_MSG( m_isContextLocked, "This should only be called from within a locked context." );
 
     // Check correct initialization from the constructor
-    //if( m_tesselator == nullptr )
-    //    throw std::runtime_error( "Could not create the tesselator" );
+    if( m_tesselator == nullptr )
+        throw std::runtime_error( "Could not create the tesselator" );
     //GLenum err = glewInit();
 
 #ifdef KICAD_USE_EGL

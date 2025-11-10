@@ -4,6 +4,7 @@
 #include <QOpenGLWidget>
 #include <QGesture>
 #include <QOpenGLFunctions_3_3_Core>
+#include <tesselator.h>
  // GAL imports
 #include "utf8.hxx"
 #include "gal/include/gal.hxx"
@@ -368,7 +369,7 @@ private:
     std::unique_ptr<GL_BITMAP_CACHE>            m_bitmapCache;
 
     // Polygon tesselation
-    //GLUtesselator*                        m_tesselator;
+    TESStesselator*                        m_tesselator;
     std::deque<std::shared_ptr<GLdouble>> m_tessIntersects;
 
     /// @copydoc GAL::BeginUpdate()

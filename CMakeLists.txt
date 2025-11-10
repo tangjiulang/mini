@@ -21,6 +21,7 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui OpenGL Widgets OpenGLWidgets)
 find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(unofficial-libtess2 REQUIRED)
 
 message(STATUS "Qt6 Core include dirs: ${Qt6Core_INCLUDE_DIRS}")
 message(STATUS "Qt6 Widgets include dirs: ${Qt6Widgets_INCLUDE_DIRS}")

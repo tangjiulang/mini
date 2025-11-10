@@ -12,9 +12,11 @@ target_link_libraries(gal PUBLIC
                         glm::glm
 						spdlog::spdlog 
                         GLEW::GLEW
+                        unofficial::libtess2::libtess2
                         core
 						math
                         base
+
 )
 
 include_directories(${Boost_INCLUDE_DIRS})
