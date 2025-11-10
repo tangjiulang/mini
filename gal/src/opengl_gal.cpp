@@ -2947,21 +2947,18 @@ void OPENGL_GAL::initializeGL() {
         if (!m_glPrivContext)
             throw std::runtime_error("Could not create a private OpenGL context");
     }
-
+     
 }
 void OPENGL_GAL::resizeGL(int w, int h) {
     glViewport(0, 0, w, h);
     ResizeScreen(w, h);
-    GAL_UPDATE_CONTEXT ctx(this);
+    GAL_DRAWING_CONTEXT ctx(this);
     update();
 }
 void OPENGL_GAL::paintGL() {
-    //if (m_isInitialized)
-    //    EndDrawing();
-    this->makeCurrent();
     //ClearScreen();
     if (m_isInitialized) {
         EndDrawing();
     }
-
+    update();
 }

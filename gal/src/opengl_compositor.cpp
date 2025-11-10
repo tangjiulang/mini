@@ -371,7 +371,7 @@ void OPENGL_COMPOSITOR::bindFb( unsigned int aFb )
 
 void OPENGL_COMPOSITOR::clean()
 {
-    if ( m_initialized) return;
+    if (!m_initialized) return;
 
     bindFb( DIRECT_RENDERING );
 
