@@ -50,13 +50,15 @@ void DrawPanelGal::Paint(QPaintEvent* event)
 
 	KIGFX::GAL_DRAWING_CONTEXT ctx(m_gal);
 
+
+	m_gal->SetCursorEnabled(true);
 	if (m_view->IsDirty()) {
 		m_view->Redraw();
 	}
 	
 	
-	QPoint qcursor = QCursor::pos();
-	VECTOR2D cursor = { (double)qcursor.x(), (double)qcursor.y() };
+	QPoint widgetPos = m_gal->mapFromGlobal(QCursor::pos());
+	VECTOR2D cursor = { (double)widgetPos.x(), (double)widgetPos.y() };
 	cursor = GetClampedCoords(m_gal->GetGridPoint(m_view->ToWorld(cursor)));
 	m_gal->DrawCursor(cursor);
 

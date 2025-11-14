@@ -99,12 +99,6 @@ protected:
     ///< true: enable Z test when drawing
     bool m_enableDepthTest;
 
-    ///< vao
-    QOpenGLVertexArrayObject m_vertexArrayObject;
-
-    ///< vbo
-    QOpenGLBuffer m_vertexBuffer;
-
     GLuint vao = 0, vbo = 0;
 };  
 

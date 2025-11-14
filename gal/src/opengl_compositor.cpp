@@ -121,6 +121,9 @@ void OPENGL_COMPOSITOR::Initialize()
     m_initialized = true;
 
     m_antialiasing->Init();
+
+    m_shader = new SHADER();
+
 }
 
 
@@ -238,14 +241,14 @@ unsigned int OPENGL_COMPOSITOR::CreateBuffer( VECTOR2I aDimensions )
 
 GLenum OPENGL_COMPOSITOR::GetBufferTexture( unsigned int aBufferHandle )
 {
-    if ( aBufferHandle > 0 && aBufferHandle <= usedBuffers()) return 0;
+    if (!(aBufferHandle > 0 && aBufferHandle <= usedBuffers())) return 0;
     return m_buffers[aBufferHandle - 1].textureTarget;
 }
 
 
 void OPENGL_COMPOSITOR::SetBuffer( unsigned int aBufferHandle )
 {
-    if ( m_initialized && aBufferHandle > usedBuffers()) return;
+    if ( !m_initialized || aBufferHandle > usedBuffers()) return;
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
     // Either unbind the FBO for direct rendering, or bind the one with target textures
@@ -254,7 +257,7 @@ void OPENGL_COMPOSITOR::SetBuffer( unsigned int aBufferHandle )
     // Switch the target texture
     if( m_curFbo != DIRECT_RENDERING )
     {
-        m_curBuffer = aBufferHandle - 1;
+        m_curBuffer = aBufferHandle - 2;
         function->glDrawBuffer( m_buffers[m_curBuffer].attachmentPoint );
         checkGlError( "setting draw buffer", __FILE__, __LINE__ );
 
@@ -269,7 +272,7 @@ void OPENGL_COMPOSITOR::SetBuffer( unsigned int aBufferHandle )
 
 void OPENGL_COMPOSITOR::ClearBuffer( const COLOR4D& aColor )
 {
-    if( m_initialized) return;
+    if(!m_initialized) return;
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
     function->glClearColor( aColor.r, aColor.g, aColor.b, m_curFbo == DIRECT_RENDERING ? 1.0f : 0.0f );
@@ -301,47 +304,60 @@ void OPENGL_COMPOSITOR::DrawBuffer( unsigned int aBufferHandle )
 
 void OPENGL_COMPOSITOR::DrawBuffer( unsigned int aSourceHandle, unsigned int aDestHandle )
 {
-    if ( m_initialized && aSourceHandle != 0 && aSourceHandle <= usedBuffers()) return;
-    if( aDestHandle <= usedBuffers()) return;
+    if (!(m_initialized && aSourceHandle != 0 && aSourceHandle <= usedBuffers())) return;
+    if( aDestHandle > usedBuffers()) return;
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     // Switch to the destination buffer and blit the scene
-    SetBuffer( aDestHandle );
+    SetBuffer( 1 );
 
     // Depth test has to be disabled to make transparency working
     function->glDisable( GL_DEPTH_TEST );
     function->glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
 
     // Enable texturing and bind the main texture
-    function->glEnable( GL_TEXTURE_2D );
-    function->glBindTexture( GL_TEXTURE_2D, m_buffers[aSourceHandle - 1].textureTarget );
 
     // Draw a full screen quad with the texture
-    //glMatrixMode( GL_MODELVIEW );
-    //glPushMatrix();
-    //glLoadIdentity();
-    //glMatrixMode( GL_PROJECTION );
-    //glPushMatrix();
-    //glLoadIdentity();
+    GLuint vao, vbo;
 
-    //glBegin( GL_TRIANGLES );
-    //glTexCoord2f( 0.0f, 1.0f );
-    //glVertex2f( -1.0f, 1.0f );
-    //glTexCoord2f( 0.0f, 0.0f );
-    //glVertex2f( -1.0f, -1.0f );
-    //glTexCoord2f( 1.0f, 1.0f );
-    //glVertex2f( 1.0f, 1.0f );
+    float vertices[] = {
+        // pos        // tex
+        -1.0f,  1.0f,  0.0f, 1.0f,  // 左上
+        -1.0f, -1.0f,  0.0f, 0.0f,  // 左下
+         1.0f, -1.0f,  1.0f, 0.0f,  // 右下
 
-    //glTexCoord2f( 1.0f, 1.0f );
-    //glVertex2f( 1.0f, 1.0f );
-    //glTexCoord2f( 0.0f, 0.0f );
-    //glVertex2f( -1.0f, -1.0f );
-    //glTexCoord2f( 1.0f, 0.0f );
-    //glVertex2f( 1.0f, -1.0f );
-    //glEnd();
+        -1.0f,  1.0f,  0.0f, 1.0f,  // 左上
+         1.0f, -1.0f,  1.0f, 0.0f,  // 右下
+         1.0f,  1.0f,  1.0f, 1.0f   // 右上
+    };
 
-    //glPopMatrix();
-    //glMatrixMode( GL_MODELVIEW );
-    //glPopMatrix();
+    
+    function->glGenVertexArrays(1, &vao);
+    function->glGenBuffers(1, &vbo);
+
+    function->glBindVertexArray(vao);
+    function->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    function->glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // 顶点坐标
+    function->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    function->glEnableVertexAttribArray(0);
+
+    // 纹理坐标
+    function->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    function->glEnableVertexAttribArray(1);
+
+    function->glBindVertexArray(0);
+
+    m_shader->Use();
+    function->glActiveTexture(GL_TEXTURE0);
+    function->glBindTexture(GL_TEXTURE_2D, m_buffers[aSourceHandle - 1].textureTarget);
+    m_shader->SetParameter(m_shader->AddParameter("uTexture"), 0);
+
+    function->glBindVertexArray(vao);
+    function->glDrawArrays(GL_TRIANGLES, 0, 6);
+    function->glBindVertexArray(0);
+    m_shader->Deactivate();
+
 }
 
 
@@ -363,6 +379,8 @@ void OPENGL_COMPOSITOR::bindFb( unsigned int aFb )
         function->glGetIntegerv(GL_FRAMEBUFFER_BINDING, &bound);
         qDebug() << "Before binding, bound framebuffer =" << bound;
         function->glBindFramebuffer( GL_FRAMEBUFFER, aFb );
+        function->glGetIntegerv(GL_FRAMEBUFFER_BINDING, &bound);
+        qDebug() << "After binding, bound framebuffer =" << bound;
         checkGlError( "switching framebuffer", __FILE__, __LINE__ );
         m_curFbo = aFb;
     }
@@ -405,4 +423,27 @@ VECTOR2D OPENGL_COMPOSITOR::GetAntialiasRenderingOffset() const
     case GAL_ANTIALIASING_MODE::AA_HIGHQUALITY: return VECTOR2D( 0.5, -0.5 );
     default:                                      return VECTOR2D( 0, 0 );
     }
+}
+
+void KIGFX::OPENGL_COMPOSITOR::InitShader(QObject* parent)
+{
+    m_shader->InitProgram(parent);
+
+    if (!m_shader->IsLinked()
+        && !m_shader->LoadShaderFromFile(QOpenGLShader::Vertex,
+            "../shaders/mini_vert_texture.glsl"))
+    {
+        throw std::runtime_error("Cannot compile vertex shader!");
+    }
+
+    if (!m_shader->IsLinked()
+        && !m_shader->LoadShaderFromFile(QOpenGLShader::Fragment,
+            "../shaders/mini_frag_texture.glsl"))
+    {
+        throw std::runtime_error("Cannot compile fragment shader!");
+    }
+
+    if (!m_shader->IsLinked() && !m_shader->Link())
+        throw std::runtime_error("Cannot link the shaders!");
+
 }

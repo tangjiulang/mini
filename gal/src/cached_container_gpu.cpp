@@ -42,7 +42,7 @@ CACHED_CONTAINER_GPU::CACHED_CONTAINER_GPU( unsigned int aSize ) :
         m_useCopyBuffer = false;
     }
 
-    spdlog::trace("{} VBO initial size: %d\n", traceGalProfile.data(), m_currentSize);
+    spdlog::trace("{} VBO initial size: {}\n", traceGalProfile.data(), m_currentSize);
 
     m_buffer.bind();
     m_buffer.allocate(m_currentSize * VERTEX_SIZE);

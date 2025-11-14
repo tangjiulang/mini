@@ -6,7 +6,7 @@
 
 #ifndef OPENGL_COMPOSITOR_H_
 #define OPENGL_COMPOSITOR_H_
-
+#include <QWindow>
 #include <gal/include/compositor.hxx>
 #include <gal/include/gal_display_options.hxx>
 #include <gal/include/antialiasing.hxx>
@@ -55,7 +55,7 @@ public:
     virtual void Present() override;
 
     // Constant used by glBindFramebuffer to turn off rendering to framebuffers
-    static const unsigned int DIRECT_RENDERING = 0;
+    static const unsigned int DIRECT_RENDERING = 1;
 
     VECTOR2I GetScreenSize() const;
     GLenum   GetBufferTexture( unsigned int aBufferHandle );
@@ -67,6 +67,8 @@ public:
 
     int GetAntialiasSupersamplingFactor() const;
     VECTOR2D GetAntialiasRenderingOffset() const;
+
+    void InitShader(QObject*);
 
 protected:
     /// Binds a specific Framebuffer Object.
@@ -95,6 +97,7 @@ protected:
     unsigned int    m_curBuffer;              ///< Currently used buffer handle
     GLuint          m_mainFbo;                ///< Main FBO handle (storing all target textures)
     GLuint          m_depthBuffer;            ///< Depth buffer handle
+    SHADER*         m_shader;
     typedef std::deque<OPENGL_BUFFER> OPENGL_BUFFERS;
 
     /// Stores information about initialized buffers

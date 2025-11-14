@@ -36,11 +36,8 @@ GPU_MANAGER::GPU_MANAGER( VERTEX_CONTAINER* aContainer ) :
         m_container( aContainer ),
         m_shader( nullptr ),
         m_shaderAttrib( 0 ),
-        m_enableDepthTest( true ),
-        m_vertexBuffer(QOpenGLBuffer::VertexBuffer)
+        m_enableDepthTest( true )
 {
-    m_vertexArrayObject.create();
-    m_vertexBuffer.create();
 }
 
 
@@ -140,10 +137,10 @@ void GPU_CACHED_MANAGER::EndDrawing()
 
     resizeIndices( m_indexBufMaxSize );
 
-    //if( m_enableDepthTest )
-    //    function->glEnable( GL_DEPTH_TEST );
-    //else
-    //    function->glDisable( GL_DEPTH_TEST );
+    if( m_enableDepthTest )
+        function->glEnable( GL_DEPTH_TEST );
+    else
+        function->glDisable( GL_DEPTH_TEST );
 
 
     // a_position
@@ -325,8 +322,6 @@ void GPU_NONCACHED_MANAGER::EndDrawing()
         m_shader->Deactivate();
     }
 
-    m_vertexArrayObject.release();
-    m_vertexBuffer.release();
     m_container->Clear();
 
 }

@@ -485,6 +485,7 @@ void OPENGL_GAL::BeginDrawing()
     {
         // Prepare rendering target buffers
         m_compositor->Initialize();
+        m_compositor->InitShader(this);
         m_mainBuffer = m_compositor->CreateBuffer();
         try
         {
@@ -610,10 +611,10 @@ void OPENGL_GAL::BeginDrawing()
 
     // Something between BeginDrawing and EndDrawing seems to depend on
     // this texture unit being active, but it does not assure it itself.
-    //glActiveTexture( GL_TEXTURE0 );
+    this->glActiveTexture( GL_TEXTURE0 );
 
     // Unbind buffers - set compositor for direct drawing
-    //m_compositor->SetBuffer( OPENGL_COMPOSITOR::DIRECT_RENDERING );
+    m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING);
 
 #ifdef KICAD_GAL_PROFILE
     totalRealTime.Stop();
@@ -637,7 +638,7 @@ void OPENGL_GAL::EndDrawing()
     cntTotal.Start();
 
     // Cached & non-cached containers are rendered to the same buffer
-    m_compositor->SetBuffer( m_mainBuffer );
+    m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_mainBuffer);
 
     if (m_nonCachedManager != nullptr) {
         cntEndNoncached.Start();
@@ -654,13 +655,15 @@ void OPENGL_GAL::EndDrawing()
         cntEndOverlay.Start();
         // Overlay container is rendered to a different buffer
         if (m_overlayBuffer)
-            m_compositor->SetBuffer(m_overlayBuffer);
-
+            m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_overlayBuffer);
         m_overlayManager->EndDrawing();
         cntEndOverlay.Stop();
     }
         
     cntComposite.Start();
+    
+    m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_tempBuffer);
+    blitCursor();
 
 
     //Draw the remaining contents, blit the rendering targets to the screen, swap the buffers
@@ -669,16 +672,15 @@ void OPENGL_GAL::EndDrawing()
     if( m_overlayBuffer )
         m_compositor->DrawBuffer( m_overlayBuffer );
 
+    if (m_tempBuffer)
+        m_compositor->DrawBuffer(m_tempBuffer);
+
     m_compositor->Present();
-    blitCursor();
+
 
     cntComposite.Stop();
 
-    //cntSwap.Start();
-
-    //cntSwap.Stop();
     cntTotal.Stop();
-
     spdlog::trace("{} Timing: {} {} {} {} {} {}\n", traceGalProfile.data(), cntTotal.to_string(),
                 cntEndCached.to_string(), cntEndNoncached.to_string(), cntEndOverlay.to_string(),
                 cntComposite.to_string(), cntSwap.to_string() );
@@ -1998,17 +2000,17 @@ void OPENGL_GAL::ClearTarget( RENDER_TARGET aTarget )
     default:
     case TARGET_CACHED:
     case TARGET_NONCACHED:
-        m_compositor->SetBuffer( m_mainBuffer );
+        m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_mainBuffer);
         break;
 
     case TARGET_TEMP:
         if( m_tempBuffer )
-            m_compositor->SetBuffer( m_tempBuffer );
+            m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_tempBuffer);
         break;
 
     case TARGET_OVERLAY:
         if( m_overlayBuffer )
-            m_compositor->SetBuffer( m_overlayBuffer );
+            m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING+ m_overlayBuffer);
         break;
     }
 
@@ -2018,7 +2020,7 @@ void OPENGL_GAL::ClearTarget( RENDER_TARGET aTarget )
         m_compositor->ClearBuffer( COLOR4D::BLACK );
 
     // Restore the previous state
-    m_compositor->SetBuffer( oldTarget );
+    m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + oldTarget);
 }
 
 
@@ -2294,15 +2296,15 @@ void OPENGL_GAL::drawPolygon( GLdouble* aPoints, int aPointCount )
 
     }
 
-    //if( m_isStrokeEnabled )
-    //{
-    //    drawPolyline(
-    //            [&]( int idx )
-    //            {
-    //                return VECTOR2D( aPoints[idx * 3], aPoints[idx * 3 + 1] );
-    //            },
-    //            aPointCount );
-    //}
+    if( m_isStrokeEnabled )
+    {
+        drawPolyline(
+                [&]( int idx )
+                {
+                    return VECTOR2D( aPoints[idx * 3], aPoints[idx * 3 + 1] );
+                },
+                aPointCount );
+    }
 }
 
 
@@ -2583,7 +2585,7 @@ void OPENGL_GAL::blitCursor()
     if( !IsCursorEnabled() )
         return;
 
-    m_compositor->SetBuffer( OPENGL_COMPOSITOR::DIRECT_RENDERING );
+    m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING);
 
     const int cursorSize = m_fullscreenCursor ? 8000 : 80;
 
@@ -2592,23 +2594,87 @@ void OPENGL_GAL::blitCursor()
     VECTOR2D cursorCenter = ( cursorBegin + cursorEnd ) / 2;
 
     const COLOR4D color = getCursorColor();
+
+    GLboolean depthTestEnabled = this->glIsEnabled(GL_DEPTH_TEST);
+    EnableDepthTest(false);
+
     this->glActiveTexture( GL_TEXTURE0 );
     this->glDisable( GL_TEXTURE_2D );
     this->glEnable( GL_BLEND );
+    this->glClearColor(0, 0, 0, 0);
     this->glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
     this->glLineWidth( 1.0 );
     DrawLine({ cursorCenter.x, cursorBegin.y }, { cursorCenter.x, cursorEnd.y });
     DrawLine({ cursorBegin.x, cursorCenter.y }, { cursorEnd.x, cursorCenter.y });
-    //glColor4d( color.r, color.g, color.b, color.a );
+    m_currentManager->EndDrawing();
+    
+    EnableDepthTest(depthTestEnabled);
 
-    //glBegin( GL_LINES );
-    //glVertex2d( cursorCenter.x, cursorBegin.y );
-    //glVertex2d( cursorCenter.x, cursorEnd.y );
+    //glDisable(GL_DEPTH_TEST);
+    //glEnable(GL_BLEND);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    //glVertex2d( cursorBegin.x, cursorCenter.y );
-    //glVertex2d( cursorEnd.x, cursorCenter.y );
-    //glEnd();
+    //// 简单的十字线坐标
+    //float len = 0.05f;  // 十字长度（NDC）
+    //float cx = 0.0f, cy = 0.0f;
+
+    //float vertices[] = {
+    //    cx - len, cy,   // 横线左端
+    //    cx + len, cy,   // 横线右端
+    //    cx, cy - len,   // 竖线下端
+    //    cx, cy + len    // 竖线上端
+    //};
+
+    //// 顶点着色器
+    //static const char* vsSrc = R"(
+    //    #version 330 core
+    //    layout(location = 0) in vec2 aPos;
+    //    void main() {
+    //        gl_Position = vec4(aPos, 0.0, 1.0);
+    //    }
+    //)";
+
+    //// 片段着色器
+    //static const char* fsSrc = R"(
+    //    #version 330 core
+    //    out vec4 FragColor;
+    //    uniform vec4 color;
+    //    void main() {
+    //        FragColor = color;
+    //    }
+    //)";
+
+    //static QOpenGLShaderProgram program;
+    //static bool initialized = false;
+    //if (!initialized) {
+    //    program.addShaderFromSourceCode(QOpenGLShader::Vertex, vsSrc);
+    //    program.addShaderFromSourceCode(QOpenGLShader::Fragment, fsSrc);
+    //    program.link();
+    //    initialized = true;
+    //}
+
+    //program.bind();
+    //program.setUniformValue("color", QVector4D(1.0, 0.0, 0.0, 1.0)); // 黄色十字
+
+    //GLuint vao, vbo;
+    //glGenVertexArrays(1, &vao);
+    //glGenBuffers(1, &vbo);
+
+    //glBindVertexArray(vao);
+    //glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    //glEnableVertexAttribArray(0);
+    //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+
+    //// 绘制两条线
+    //glDrawArrays(GL_LINES, 0, 4);
+
+    //glDeleteBuffers(1, &vbo);
+    //glDeleteVertexArrays(1, &vao);
+
+    //program.release();
 }
 
 
@@ -2984,6 +3050,8 @@ void OPENGL_GAL::resizeGL(int w, int h) {
 }
 void OPENGL_GAL::paintGL() {
     //ClearScreen();
+    this->glClearColor(0, 0, 0, 0);
+    this->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     if (m_isInitialized) {
         EndDrawing();
     }
