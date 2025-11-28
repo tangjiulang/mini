@@ -1,5 +1,3 @@
-//#include <advanced_config.h>
-//#include <build_version.h>
 #include "gal/include/opengl_gal.hxx"
 #include "gal/include/utils.hxx"
 #include "gal/include/definitions.hxx"
@@ -11,14 +9,11 @@
 #include <QOpenGLVersionFunctionsFactory>
 #include <QFileInfo>
 #include <QDir>
-#include "util.hxx" // for KiROUND
-//#include <pgm_base.h>
+#include "util.hxx"
 
 
-//#include <macros.h>
 #include "shape_poly_set.hxx"
 #include "geometry_utils.hxx"
-//#include <thread_pool.h>
 
 #include "profile.hxx"
 #include "trace_helpers.hxx"
@@ -34,11 +29,7 @@ using namespace KIGFX;
 
 //#define DISABLE_BITMAP_CACHE
 
-// The current font is "Ubuntu Mono" available under Ubuntu Font Licence 1.0
-// (see ubuntu-font-licence-1.0.txt for details)
 #include "gal/include/gl_resources.hxx"
-//#include <glsl_mini_frag.h>
-//#include <glsl_mini_vert.h>
 using namespace KIGFX::BUILTIN_FONT;
 
 //static void InitTesselatorCallbacks( GLUtesselator* aTesselator );
@@ -333,6 +324,9 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
     ufm_pixelSizeMultiplier = 1;
     ufm_antialiasingOffset = 1;
     m_swapInterval  = 0;
+
+    setMouseTracking(true);
+    
 }
 
 
@@ -1251,7 +1245,7 @@ void OPENGL_GAL::DrawPolylines( const std::vector<std::vector<VECTOR2D>>& aPoint
 
 void OPENGL_GAL::DrawPolygon( const std::deque<VECTOR2D>& aPointList )
 {
-    if (aPointList.size() >= 2)
+    if (aPointList.size() <= 2)
         return;
     auto      points = std::unique_ptr<GLdouble[]>( new GLdouble[3 * aPointList.size()] );
     GLdouble* ptr = points.get();

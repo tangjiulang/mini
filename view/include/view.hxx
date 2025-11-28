@@ -725,6 +725,9 @@ namespace KIGFX
         /// Rendering order modifier for layers that are marked as top layers.
         static constexpr int TOP_LAYER_MODIFIER = -MAX_LAYERS_FOR_VIEW;
 
+        /// Redraw contents within rectangle \a aRect.
+        void redrawRect(const BOX2I& aRect);
+
     protected:
         struct VIEW_LAYER
         {
@@ -750,8 +753,6 @@ namespace KIGFX
             }
         };
 
-        /// Redraw contents within rectangle \a aRect.
-        void redrawRect(const BOX2I& aRect);
 
         inline void markTargetClean(int aTarget)
         {

@@ -4,6 +4,7 @@
 #include "data_circle.hxx"
 #include "data_triangle.hxx"
 #include "data_rectangle.hxx"
+#include "data_polygon.hxx"
 
 KIGFX::DATA_PAINTER::DATA_PAINTER(GAL* aGal)
 	: PAINTER(aGal) { }
@@ -32,6 +33,9 @@ bool KIGFX::DATA_PAINTER::Draw(const VIEW_ITEM* aItem, int aLayer) {
 		// draw rectangle
 		draw(static_cast<const DATA_Rectangle*>(item), aLayer);
 		break;
+	case ITEM_TYPE::POLYGON :
+		draw(static_cast<const DATA_Polygon*>(item), aLayer);
+		break;
 	default:
 		break;
 	}
@@ -53,4 +57,11 @@ void KIGFX::DATA_PAINTER::draw(const DATA_Line* aLine, int aLayer) {
 }
 void KIGFX::DATA_PAINTER::draw(const DATA_Circle* aCircle, int aLayer) {
 	m_gal->DrawCircle(aCircle->m_centerPoint, aCircle->m_radius);
+}
+
+void KIGFX::DATA_PAINTER::draw(const DATA_Polygon* aPolygon, int aLayer)
+{
+	std::deque<VECTOR2D> points;
+	for (auto point : aPolygon->m_points) points.push_back(point);
+	m_gal->DrawPolygon(points);
 }

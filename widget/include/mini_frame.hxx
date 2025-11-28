@@ -28,6 +28,11 @@ protected:
         update();
     }
 
-    DrawPanelGal*   m_drawPanelGal;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event);
+
+    QWidget*            m_centralWidget;
+    DrawPanelGal*       m_drawPanelGal;
     DataManager*        m_dataManager;
 };

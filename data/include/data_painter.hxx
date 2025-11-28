@@ -9,6 +9,7 @@ class DATA_Triangle;
 class DATA_Rectangle;
 class DATA_Line;
 class DATA_Circle;
+class DATA_Polygon;
 
 class DATA_PAINTER : public PAINTER
 {
@@ -25,6 +26,7 @@ protected:
 	void draw(const DATA_Rectangle* a_Rectangle, int aLayer);
 	void draw(const DATA_Line* aLine, int aLayer);
 	void draw(const DATA_Circle* aCircle, int aLayer);
+	void draw(const DATA_Polygon* aPolygon, int aLayer);
 protected:
 	DATA_RENDER_SETTINGS m_dataSettings;
 };

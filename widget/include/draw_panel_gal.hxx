@@ -34,6 +34,12 @@ public:
     }
 
     void Paint(QPaintEvent*);
+
+    void SetCursor();
+
+    void CreateSelectRect();
+    void UpdateSelectRect();
+    void DrawSelectRect();
 protected:
     
     void resizeEvent(QResizeEvent*) override;
@@ -50,4 +56,7 @@ public:
     ViewControler*                  m_control;
     GAL_TYPE                        m_backend;
     KIGFX::GAL_DISPLAY_OPTIONS      m_options;
+    VECTOR2D                        m_cursor;
+    QRect                           m_selectRect;
+    bool                            m_isSelect;
 };

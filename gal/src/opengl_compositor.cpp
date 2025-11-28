@@ -377,10 +377,10 @@ void OPENGL_COMPOSITOR::bindFb( unsigned int aFb )
     {
         GLint bound;
         function->glGetIntegerv(GL_FRAMEBUFFER_BINDING, &bound);
-        qDebug() << "Before binding, bound framebuffer =" << bound;
+        //qDebug() << "Before binding, bound framebuffer =" << bound;
         function->glBindFramebuffer( GL_FRAMEBUFFER, aFb );
         function->glGetIntegerv(GL_FRAMEBUFFER_BINDING, &bound);
-        qDebug() << "After binding, bound framebuffer =" << bound;
+        //qDebug() << "After binding, bound framebuffer =" << bound;
         checkGlError( "switching framebuffer", __FILE__, __LINE__ );
         m_curFbo = aFb;
     }

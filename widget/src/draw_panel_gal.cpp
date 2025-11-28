@@ -33,6 +33,7 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
 	m_gal->SetScreenDPI(dpi);
 
 	m_control = new ViewControler(m_gal, m_view, m_painter.get());
+	setMouseTracking(true);
 }
 
 DrawPanelGal::~DrawPanelGal()
@@ -56,14 +57,32 @@ void DrawPanelGal::Paint(QPaintEvent* event)
 		m_view->Redraw();
 	}
 	
-	
+	m_gal->DrawCursor(m_cursor);
+}
+
+void DrawPanelGal::SetCursor()
+{
 	QPoint widgetPos = m_gal->mapFromGlobal(QCursor::pos());
-	VECTOR2D cursor = { (double)widgetPos.x(), (double)widgetPos.y() };
-	cursor = GetClampedCoords(m_gal->GetGridPoint(m_view->ToWorld(cursor)));
-	m_gal->DrawCursor(cursor);
+	m_cursor = { (double)widgetPos.x(), (double)widgetPos.y() };
+	m_cursor = GetClampedCoords(m_gal->GetGridPoint(m_view->ToWorld(m_cursor)));
+}
 
-	m_gal->update();
+void DrawPanelGal::CreateSelectRect()
+{
+	QPoint widgetPos = m_gal->mapFromGlobal(QCursor::pos());
+	m_selectRect.setTopLeft(widgetPos);
+}
 
+void DrawPanelGal::UpdateSelectRect()
+{
+	QPoint widgetPos = m_gal->mapFromGlobal(QCursor::pos());
+	m_selectRect.setBottomRight(widgetPos);
+}
+
+void DrawPanelGal::DrawSelectRect()
+{
+	BOX2I box(VECTOR2I(m_selectRect.x(), m_selectRect.y()), VECTOR2I(m_selectRect.width(), m_selectRect.height()));
+	m_view->redrawRect(box);
 }
 
 void DrawPanelGal::resizeEvent(QResizeEvent* event)
@@ -128,16 +147,26 @@ void DrawPanelGal::InitialViewData(DataManager* data)
 	m_gal->SetLineWidth(m_view->ToWorld(1));
 	//m_gal->SetIsFill(true);
 	//m_gal->SetFillColor(KIGFX::COLOR4D(1, 1, 1, 1));
-	for (auto &circle : data->m_circles) {
-		circle.m_centerPoint = m_view->ToWorld(circle.m_centerPoint);
-		circle.m_radius = m_view->ToWorld(circle.m_radius);
-		m_view->Add(&circle);
-	}
+	//for (auto &circle : data->m_circles) {
+	//	circle.m_centerPoint = m_view->ToWorld(circle.m_centerPoint);
+	//	circle.m_radius = m_view->ToWorld(circle.m_radius);
+	//	m_view->Add(&circle);
+	//}
 
-	for (auto& rectangle : data->m_rectangles) {
-		rectangle.m_startPoint = m_view->ToWorld(rectangle.m_startPoint);
-		rectangle.m_endPoint = m_view->ToWorld(rectangle.m_endPoint);
-		m_view->Add(&rectangle);
+	//for (auto& rectangle : data->m_rectangles) {
+	//	rectangle.m_startPoint = m_view->ToWorld(rectangle.m_startPoint);
+	//	rectangle.m_endPoint = m_view->ToWorld(rectangle.m_endPoint);
+	//	m_view->Add(&rectangle);
+	//}
+	
+	for (int i = 0; i < data->m_polygons.size(); i++) {
+		auto& polygon = data->m_polygons[i];
+		if (i & 1)
+			polygon.CorrectPolygon();
+		for (auto& point : polygon.m_points) {
+			point = m_view->ToWorld(point);
+		}
+		m_view->Add(&polygon);
 	}
 
 	m_view->MarkDirty();
