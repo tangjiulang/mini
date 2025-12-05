@@ -147,17 +147,17 @@ void DrawPanelGal::InitialViewData(DataManager* data)
 	m_gal->SetLineWidth(m_view->ToWorld(1));
 	//m_gal->SetIsFill(true);
 	//m_gal->SetFillColor(KIGFX::COLOR4D(1, 1, 1, 1));
-	//for (auto &circle : data->m_circles) {
-	//	circle.m_centerPoint = m_view->ToWorld(circle.m_centerPoint);
-	//	circle.m_radius = m_view->ToWorld(circle.m_radius);
-	//	m_view->Add(&circle);
-	//}
+	for (auto &circle : data->m_circles) {
+		circle.m_centerPoint = m_view->ToWorld(circle.m_centerPoint);
+		circle.m_radius = m_view->ToWorld(circle.m_radius);
+		m_view->Add(&circle);
+	}
 
-	//for (auto& rectangle : data->m_rectangles) {
-	//	rectangle.m_startPoint = m_view->ToWorld(rectangle.m_startPoint);
-	//	rectangle.m_endPoint = m_view->ToWorld(rectangle.m_endPoint);
-	//	m_view->Add(&rectangle);
-	//}
+	for (auto& rectangle : data->m_rectangles) {
+		rectangle.m_startPoint = m_view->ToWorld(rectangle.m_startPoint);
+		rectangle.m_endPoint = m_view->ToWorld(rectangle.m_endPoint);
+		m_view->Add(&rectangle);
+	}
 	
 	for (int i = 0; i < data->m_polygons.size(); i++) {
 		auto& polygon = data->m_polygons[i];
