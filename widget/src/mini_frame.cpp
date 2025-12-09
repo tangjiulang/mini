@@ -49,7 +49,7 @@ void MiniFrame::resizeEvent(QResizeEvent*)
 
 void MiniFrame::mousePressEvent(QMouseEvent* event)
 {
-
+	m_drawPanelGal->CreateSelectRect();
 }
 
 void MiniFrame::mouseMoveEvent(QMouseEvent* event)
@@ -59,4 +59,6 @@ void MiniFrame::mouseMoveEvent(QMouseEvent* event)
 
 void MiniFrame::mouseReleaseEvent(QMouseEvent* event)
 {
+	m_drawPanelGal->UpdateSelectRect();
+	m_drawPanelGal->DrawSelectRect();
 }

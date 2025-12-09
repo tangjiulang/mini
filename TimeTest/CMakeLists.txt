@@ -19,6 +19,7 @@ target_link_libraries(TimeTest PUBLIC
                         gal
                         view
                         data
+                        widget
                         GLEW::GLEW
 )
 

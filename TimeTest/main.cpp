@@ -8,9 +8,9 @@ int main(int argc, char* argv[])
     MainWindow w;
     w.resize(2000, 1000);
 
-    w.CreateData();
-
     w.show();
+
+    w.CreateData();
 
     return app.exec();
 }

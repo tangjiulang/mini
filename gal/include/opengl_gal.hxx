@@ -264,16 +264,6 @@ public:
      */
     void PostPaint();
 
-    //void SetMouseListener( wxEvtHandler* aMouseListener )
-    //{
-    //    m_mouseListener = aMouseListener;
-    //}
-
-    //void SetPaintListener( wxEvtHandler* aPaintListener )
-    //{
-    //    m_paintListener = aPaintListener;
-    //}
-
     void EnableDepthTest( bool aEnabled = false ) override;
 
     bool IsContextLocked() override
@@ -314,8 +304,6 @@ private:
     QOpenGLContext*            m_glPrivContext;    ///< Canvas-specific OpenGL context
     int                     m_swapInterval;     ///< Used to store swap interval information
     static int              m_instanceCounter;  ///< GL GAL instance counter
-    //wxEvtHandler*           m_mouseListener;
-    //wxEvtHandler*           m_paintListener;
 
     static GLuint           g_fontTexture;      ///< Bitmap font texture handle (shared)
 
@@ -361,8 +349,6 @@ private:
     GLint                   ufm_fontTexture;
     GLint                   ufm_fontTextureWidth;
     GLint                   ufm_mvp;
-    QOpenGLShaderProgram *program;
-    GLuint vao = 0, vbo = 0;
     /// wx cursor showing the current native cursor.
     QCURSOR_TYPE          m_currentwxCursor;
 

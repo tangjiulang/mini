@@ -81,8 +81,15 @@ void DrawPanelGal::UpdateSelectRect()
 
 void DrawPanelGal::DrawSelectRect()
 {
-	BOX2I box(VECTOR2I(m_selectRect.x(), m_selectRect.y()), VECTOR2I(m_selectRect.width(), m_selectRect.height()));
+	BOX2I box = BOX2I::ByCorners(m_view->ToWorld(VECTOR2I(m_selectRect.left(), m_selectRect.top())), 
+								 m_view->ToWorld(VECTOR2I(m_selectRect.right(), m_selectRect.bottom())));
+	m_gal->SetTarget(KIGFX::RENDER_TARGET::TARGET_OVERLAY);
+	m_gal->SetStrokeColor(KIGFX::COLOR4D(1, 0, 0, 1));
+	m_view->MarkTargetDirty(KIGFX::RENDER_TARGET::TARGET_OVERLAY);
 	m_view->redrawRect(box);
+	m_view->MarkClean();
+	m_gal->SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);
+	m_gal->SetStrokeColor(KIGFX::COLOR4D(1, 1, 1, 1));
 }
 
 void DrawPanelGal::resizeEvent(QResizeEvent* event)

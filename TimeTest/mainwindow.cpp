@@ -22,31 +22,21 @@ MainWindow::MainWindow(QWidget* parent)
     auto* layout = new QHBoxLayout(central);
     layout->setContentsMargins(0, 0, 0, 0);
 
-    // 左侧：OpenGL 区域
-    m_view = new VIEW();
-
-    for (int i = 0; i < KIGFX::VIEW::VIEW_MAX_LAYERS; i++)
-        m_view->SetLayerTarget(i, KIGFX::TARGET_NONCACHED);
-
 
     GAL_DISPLAY_OPTIONS option;
-    m_gal = new OPENGL_GAL(option, nullptr);
-    m_view->SetGAL(m_gal);
-
-    m_painter = new DATA_PAINTER(m_gal);
-    m_view->SetPainter(m_painter);
-
-    qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
-    m_gal->show();
-    m_gal->SetScreenDPI(dpi);
+    m_drawPanelGal = new DrawPanelGal(this, this->size(),
+                                      DrawPanelGal::GAL_TYPE::GAL_TYPE_OPENGL);
+    m_view = m_drawPanelGal->m_view;
 
     // 右侧：普通 QWidget
     m_rWidget = new QWidget();
     QVBoxLayout* rightLayout = new QVBoxLayout(m_rWidget);
 
     // 加入主布局
-    layout->addWidget(m_gal, 1);
+    layout->addWidget(m_drawPanelGal, 1);
     layout->addWidget(m_rWidget, 1);
+
+    m_dataManager = new DataManager();
 }
 
 void MainWindow::CreateData()
@@ -78,6 +68,7 @@ void MainWindow::CreateData()
         if (y1 > y2) std::swap(y1, y2);
 
         rectangles1.push_back({ VECTOR2D(x1, y1), VECTOR2D(x2, y2) });
+        m_dataManager->m_rectangles.push_back(rectangles1.back());
     }
 
     // 生成随机圆
@@ -86,15 +77,14 @@ void MainWindow::CreateData()
         double cy = distY(gen);
         double r = distR(gen);
         circles1.push_back({ VECTOR2D(cx, cy), r });
+        m_dataManager->m_circles.push_back(circles1.back());
     }
+
+    m_drawPanelGal->InitialViewData(m_dataManager);
 }
 
 
 void MainWindow::paintEvent(QPaintEvent*) {
-    rectangles.clear();
-    circles.clear();
-    m_view->Clear();
-
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.save();
@@ -114,31 +104,10 @@ void MainWindow::paintEvent(QPaintEvent*) {
     qint64 ms = timer.elapsed();
     qDebug() << "QPainter 耗时:" << ms << "ms";
 
-    KIGFX::GAL_DRAWING_CONTEXT ctx(m_gal);
-
-    m_gal->BeginDrawing();
-    m_gal->SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);
-    m_gal->SetLineWidth(1 / m_gal->GetWorldScale());
-
-    for (int i = 0; i < rectangles1.size(); i++) {
-        rectangles.push_back({ m_gal->GetScreenWorldMatrix() * rectangles1[i].m_startPoint , m_gal->GetScreenWorldMatrix() * rectangles1[i].m_endPoint });
-    }
-
-    for (int i = 0; i < circles1.size(); i++) {
-        circles.push_back({ m_gal->GetScreenWorldMatrix() * circles1[i].m_centerPoint, circles1[i].m_radius / m_gal->GetWorldScale() });
-    }
-
     timer.start();
-    //for (DATA_Rectangle& rec : rectangles)
-    //    m_view->Add(&rec);
-    //for (DATA_Circle& cir : circles)
-    //    m_view->Add(&cir, 1);
 
-    //m_view->Redraw();
-    for (DATA_Rectangle& rec : rectangles)
-        m_gal->DrawRectangle(rec.m_startPoint, rec.m_endPoint);
-    for (DATA_Circle& cir : circles)
-        m_gal->DrawCircle(cir.m_centerPoint, cir.m_radius);
+    m_view->MarkDirty();
+    m_view->Redraw();
 
     ms = timer.elapsed();
     qDebug() << "QOpenGL 耗时:" << ms << "ms";

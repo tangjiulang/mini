@@ -115,7 +115,7 @@ void OPENGL_COMPOSITOR::Initialize()
     bindFb( DIRECT_RENDERING );
 
     GLint drawBuf;
-    glGetIntegerv(GL_DRAW_BUFFER, &drawBuf);
+    function->glGetIntegerv(GL_DRAW_BUFFER, &drawBuf);
     qDebug() << "Current draw buffer:" << drawBuf;
 
     m_initialized = true;
@@ -248,7 +248,7 @@ GLenum OPENGL_COMPOSITOR::GetBufferTexture( unsigned int aBufferHandle )
 
 void OPENGL_COMPOSITOR::SetBuffer( unsigned int aBufferHandle )
 {
-    if ( !m_initialized || aBufferHandle > usedBuffers()) return;
+    if ( !m_initialized || aBufferHandle - 1 > usedBuffers()) return;
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
     // Either unbind the FBO for direct rendering, or bind the one with target textures
@@ -308,7 +308,7 @@ void OPENGL_COMPOSITOR::DrawBuffer( unsigned int aSourceHandle, unsigned int aDe
     if( aDestHandle > usedBuffers()) return;
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     // Switch to the destination buffer and blit the scene
-    SetBuffer( 1 );
+    SetBuffer(aDestHandle);
 
     // Depth test has to be disabled to make transparency working
     function->glDisable( GL_DEPTH_TEST );

@@ -1,11 +1,9 @@
 #pragma once
-#include "data_line.hxx"
-#include "data_circle.hxx"
-#include "data_triangle.hxx"
-#include "data_rectangle.hxx"
 #include "gal/include/opengl_gal.hxx"
 #include "view.hxx"
 #include "data_painter.hxx"
+#include "draw_panel_gal.hxx"
+#include "data_manager.hxx"
 #include <QMainWindow>
 #include <QOpenGLWidget>
 #include <QWidget>
@@ -33,7 +31,8 @@ public:
     std::vector<DATA_Circle> circles1;
     std::vector<DATA_Triangle> triangles1;
     std::vector<DATA_Rectangle> rectangles1;
-    OPENGL_GAL* m_gal;
+    DataManager* m_dataManager;
+    DrawPanelGal* m_drawPanelGal;
     QWidget* m_rWidget;
     VIEW* m_view;
     DATA_PAINTER* m_painter;

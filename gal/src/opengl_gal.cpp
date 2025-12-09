@@ -483,21 +483,21 @@ void OPENGL_GAL::BeginDrawing()
         m_mainBuffer = m_compositor->CreateBuffer();
         try
         {
+            m_overlayBuffer = m_compositor->CreateBuffer();
+        }
+        catch (const std::runtime_error&)
+        {
+            spdlog::trace("Could not create a framebuffer for overlays.\n");
+            m_overlayBuffer = 0;
+        }
+        try
+        {
             m_tempBuffer = m_compositor->CreateBuffer();
         }
         catch( const std::runtime_error& )
         {
             spdlog::trace( "Could not create a framebuffer for diff mode blending.\n" );
             m_tempBuffer = 0;
-        }
-        try
-        {
-            m_overlayBuffer = m_compositor->CreateBuffer();
-        }
-        catch( const std::runtime_error& )
-        {
-            spdlog::trace( "Could not create a framebuffer for overlays.\n" );
-            m_overlayBuffer = 0;
         }
 
         m_isFramebufferInitialized = true;
@@ -648,14 +648,13 @@ void OPENGL_GAL::EndDrawing()
     if (m_overlayManager != nullptr) {
         cntEndOverlay.Start();
         // Overlay container is rendered to a different buffer
-        if (m_overlayBuffer)
+        if (m_overlayBuffer) 
             m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_overlayBuffer);
         m_overlayManager->EndDrawing();
         cntEndOverlay.Stop();
     }
         
     cntComposite.Start();
-    
     m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_tempBuffer);
     blitCursor();
 
@@ -2579,7 +2578,6 @@ void OPENGL_GAL::blitCursor()
     if( !IsCursorEnabled() )
         return;
 
-    m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING);
 
     const int cursorSize = m_fullscreenCursor ? 8000 : 80;
 
@@ -2592,83 +2590,15 @@ void OPENGL_GAL::blitCursor()
     GLboolean depthTestEnabled = this->glIsEnabled(GL_DEPTH_TEST);
     EnableDepthTest(false);
 
-    this->glActiveTexture( GL_TEXTURE0 );
-    this->glDisable( GL_TEXTURE_2D );
-    this->glEnable( GL_BLEND );
-    this->glClearColor(0, 0, 0, 0);
-    this->glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-
     this->glLineWidth( 1.0 );
+    SetTarget(TARGET_TEMP);
     DrawLine({ cursorCenter.x, cursorBegin.y }, { cursorCenter.x, cursorEnd.y });
     DrawLine({ cursorBegin.x, cursorCenter.y }, { cursorEnd.x, cursorCenter.y });
-    m_currentManager->EndDrawing();
+    m_tempManager->EndDrawing();
     
+    SetTarget(TARGET_NONCACHED);
+
     EnableDepthTest(depthTestEnabled);
-
-    //glDisable(GL_DEPTH_TEST);
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    //// 简单的十字线坐标
-    //float len = 0.05f;  // 十字长度（NDC）
-    //float cx = 0.0f, cy = 0.0f;
-
-    //float vertices[] = {
-    //    cx - len, cy,   // 横线左端
-    //    cx + len, cy,   // 横线右端
-    //    cx, cy - len,   // 竖线下端
-    //    cx, cy + len    // 竖线上端
-    //};
-
-    //// 顶点着色器
-    //static const char* vsSrc = R"(
-    //    #version 330 core
-    //    layout(location = 0) in vec2 aPos;
-    //    void main() {
-    //        gl_Position = vec4(aPos, 0.0, 1.0);
-    //    }
-    //)";
-
-    //// 片段着色器
-    //static const char* fsSrc = R"(
-    //    #version 330 core
-    //    out vec4 FragColor;
-    //    uniform vec4 color;
-    //    void main() {
-    //        FragColor = color;
-    //    }
-    //)";
-
-    //static QOpenGLShaderProgram program;
-    //static bool initialized = false;
-    //if (!initialized) {
-    //    program.addShaderFromSourceCode(QOpenGLShader::Vertex, vsSrc);
-    //    program.addShaderFromSourceCode(QOpenGLShader::Fragment, fsSrc);
-    //    program.link();
-    //    initialized = true;
-    //}
-
-    //program.bind();
-    //program.setUniformValue("color", QVector4D(1.0, 0.0, 0.0, 1.0)); // 黄色十字
-
-    //GLuint vao, vbo;
-    //glGenVertexArrays(1, &vao);
-    //glGenBuffers(1, &vbo);
-
-    //glBindVertexArray(vao);
-    //glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    //glEnableVertexAttribArray(0);
-    //glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-
-    //// 绘制两条线
-    //glDrawArrays(GL_LINES, 0, 4);
-
-    //glDeleteBuffers(1, &vbo);
-    //glDeleteVertexArrays(1, &vao);
-
-    //program.release();
 }
 
 
