@@ -1,40 +1,36 @@
 #pragma once
-#include "gal/include/opengl_gal.hxx"
-#include "view.hxx"
-#include "data_painter.hxx"
-#include "draw_panel_gal.hxx"
-#include "data_manager.hxx"
 #include <QMainWindow>
-#include <QOpenGLWidget>
-#include <QWidget>
+#include <QVector>
+#include <QPointF>
 
-using namespace KIGFX;
+struct Rect {
+    QPointF a, b;
+};
 
-class MainWindow : public QMainWindow
-{
+struct Circle {
+    QPointF c;
+    double r;
+};
+
+class MainWindow : public QMainWindow {
     Q_OBJECT
 public:
-    explicit MainWindow(QWidget* parent = nullptr);
-
+    MainWindow(QWidget* parent = nullptr);
     void CreateData();
 
-    void update();
 protected:
     void paintEvent(QPaintEvent*) override;
+    void wheelEvent(QWheelEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
 
-public:
-    std::vector<DATA_Line> lines;
-    std::vector<DATA_Circle> circles;
-    std::vector<DATA_Triangle> triangles;
-    std::vector<DATA_Rectangle> rectangles;
-    std::vector<DATA_Line> lines1;
-    std::vector<DATA_Circle> circles1;
-    std::vector<DATA_Triangle> triangles1;
-    std::vector<DATA_Rectangle> rectangles1;
-    DataManager* m_dataManager;
-    DrawPanelGal* m_drawPanelGal;
-    QWidget* m_rWidget;
-    VIEW* m_view;
-    DATA_PAINTER* m_painter;
+private:
+    // 数据
+    std::vector<Rect> rectangles;
+    std::vector<Circle> circles;
 
+    // 视图变换
+    double m_scale = 1.0;
+    QPointF m_offset = { 0, 0 };        // 平移（视图在画布的位置）
+    QPointF m_lastMousePos;           // 上次鼠标位置
 };

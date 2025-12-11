@@ -15,6 +15,8 @@ MiniFrame::MiniFrame(QWidget* parent)
 
 	m_drawPanelGal = new DrawPanelGal(this, this->size(), DrawPanelGal::GAL_TYPE::GAL_TYPE_OPENGL);
 
+	m_drawPanelGal->SetDefaultLayerDeps();
+
 	layout->addWidget(m_drawPanelGal->m_gal);
 
 	m_centralWidget = new QWidget(this);

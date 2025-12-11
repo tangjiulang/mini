@@ -1,49 +1,23 @@
 #include "mainwindow.hxx"
-#include "gal/include/opengl_gal.hxx"
-#include "view.hxx"
-#include "data_painter.hxx"
-#include <QHBoxLayout>
-#include <QPushButton>
-#include <QLabel>
-#include <QColor>
-#include <QDebug>
 #include <QPainter>
+#include <QMouseEvent>
+#include <QElapsedTimer>
 #include <random>
+#include <QDebug>
 
-using namespace KIGFX;
-
-// ---------------------- MainWindow ----------------------
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
-    QWidget* central = new QWidget(this);
-    setCentralWidget(central);
-
-    auto* layout = new QHBoxLayout(central);
-    layout->setContentsMargins(0, 0, 0, 0);
-
-
-    GAL_DISPLAY_OPTIONS option;
-    m_drawPanelGal = new DrawPanelGal(this, this->size(),
-                                      DrawPanelGal::GAL_TYPE::GAL_TYPE_OPENGL);
-    m_view = m_drawPanelGal->m_view;
-
-    // 右侧：普通 QWidget
-    m_rWidget = new QWidget();
-    QVBoxLayout* rightLayout = new QVBoxLayout(m_rWidget);
-
-    // 加入主布局
-    layout->addWidget(m_drawPanelGal, 1);
-    layout->addWidget(m_rWidget, 1);
-
-    m_dataManager = new DataManager();
+    resize(1200, 800);
+    CreateData();
+    setStyleSheet("background-color: black;");
 }
 
 void MainWindow::CreateData()
 {
-    constexpr int N = 1000; // 数量
-    constexpr double WIDTH = 1000.0;
-    constexpr double HEIGHT = 1000.0;
+    constexpr int N = 100000;
+    constexpr double WIDTH = 20000.0;
+    constexpr double HEIGHT = 20000.0;
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -53,62 +27,92 @@ void MainWindow::CreateData()
 
     rectangles.reserve(N);
     circles.reserve(N);
-    rectangles1.reserve(N);
-    circles1.reserve(N);
 
-    // 生成随机矩形
     for (int i = 0; i < N; ++i) {
         double x1 = distX(gen);
         double y1 = distY(gen);
         double x2 = distX(gen);
         double y2 = distY(gen);
 
-        // 确保 x1 < x2, y1 < y2
         if (x1 > x2) std::swap(x1, x2);
         if (y1 > y2) std::swap(y1, y2);
 
-        rectangles1.push_back({ VECTOR2D(x1, y1), VECTOR2D(x2, y2) });
-        m_dataManager->m_rectangles.push_back(rectangles1.back());
+        rectangles.push_back({ QPointF(x1, y1), QPointF(x2, y2) });
     }
 
-    // 生成随机圆
     for (int i = 0; i < N; ++i) {
         double cx = distX(gen);
         double cy = distY(gen);
         double r = distR(gen);
-        circles1.push_back({ VECTOR2D(cx, cy), r });
-        m_dataManager->m_circles.push_back(circles1.back());
+        circles.push_back({ QPointF(cx, cy), r });
     }
-
-    m_drawPanelGal->InitialViewData(m_dataManager);
 }
 
-
-void MainWindow::paintEvent(QPaintEvent*) {
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.save();
-    painter.setClipRect(m_rWidget->geometry());
-    painter.translate(m_rWidget->pos());
-    painter.fillRect(m_rWidget->rect(), Qt::black);
+void MainWindow::paintEvent(QPaintEvent*)
+{
+    QPainter p(this);
+    p.setRenderHint(QPainter::Antialiasing, false);
 
     QElapsedTimer timer;
     timer.start();
-    painter.setPen(Qt::white);
-    for (const auto& r : rectangles1)
-        painter.drawRect(QRect(r.m_startPoint.x, r.m_startPoint.y, r.m_endPoint.x - r.m_startPoint.x, r.m_endPoint.y - r.m_startPoint.y));
 
-    for (const auto& c : circles1)
-        painter.drawEllipse(QPointF(c.m_centerPoint.x, c.m_centerPoint.y), c.m_radius, c.m_radius);
-    painter.restore();
-    qint64 ms = timer.elapsed();
-    qDebug() << "QPainter 耗时:" << ms << "ms";
+    p.translate(m_offset);
+    p.scale(m_scale, m_scale);
 
-    timer.start();
+    p.setPen(Qt::white);
 
-    m_view->MarkDirty();
-    m_view->Redraw();
+    for (const auto& r : rectangles)
+        p.drawRect(QRectF(r.a, r.b));
 
-    ms = timer.elapsed();
-    qDebug() << "QOpenGL 耗时:" << ms << "ms";
+    for (const auto& c : circles)
+        p.drawEllipse(c.c, c.r, c.r);
+
+    qDebug() << "Paint cost:" << timer.elapsed() << "ms";
+}
+
+void MainWindow::wheelEvent(QWheelEvent* e)
+{
+    double delta = e->angleDelta().y();
+
+    // ---- Shift = 平移（保持你的旧逻辑） ----
+    if (e->modifiers() & Qt::ShiftModifier) {
+        double moveStep = delta * 0.5;
+        m_offset.rx() += moveStep;   // 左右
+        update();
+        return;
+    }
+
+    // ---- 普通滚轮 = 缩放 ----
+    double zoomFactor = 1.0 + delta / 1200.0;  // 适中缩放速度
+
+    // 限制缩放范围
+    double newScale = m_scale * zoomFactor;
+    if (newScale < 0.02 || newScale > 50.0)
+        return;
+
+    // 以鼠标为中心缩放
+    QPointF mousePos = e->position();
+    QPointF before = (mousePos - m_offset) / m_scale;  // 缩放前场景坐标
+
+    m_scale = newScale;
+
+    QPointF after = before * m_scale + m_offset;       // 缩放后新位置
+    m_offset += (mousePos - after);                   // 调整偏移，使鼠标保持不动
+
+    update();
+}
+
+void MainWindow::mousePressEvent(QMouseEvent* e)
+{
+    m_lastMousePos = e->pos();
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent* e)
+{
+    if (e->buttons() & Qt::LeftButton) {
+        QPointF delta = e->pos() - m_lastMousePos;
+        m_offset += delta;
+        m_lastMousePos = e->pos();
+        update();
+    }
 }

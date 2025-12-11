@@ -7,6 +7,7 @@
 #include "gal/include/painter.hxx"
 #include "view_control.hxx"
 #include "view.hxx"
+#include "selection.hxx"
 
 class DataManager;
 
@@ -40,6 +41,8 @@ public:
     void CreateSelectRect();
     void UpdateSelectRect();
     void DrawSelectRect();
+
+    void SetDefaultLayerDeps();
 protected:
     
     void resizeEvent(QResizeEvent*) override;
@@ -52,6 +55,7 @@ public:
     QWindow*                        m_parent;
     KIGFX::OPENGL_GAL*              m_gal;
     KIGFX::VIEW*                    m_view;
+    SELECTION                       m_selection;
     std::unique_ptr<KIGFX::PAINTER> m_painter;
     ViewControler*                  m_control;
     GAL_TYPE                        m_backend;

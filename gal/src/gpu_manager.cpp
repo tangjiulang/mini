@@ -273,8 +273,6 @@ void GPU_NONCACHED_MANAGER::EndDrawing()
 
     GLint drawBuf;
     function->glGetIntegerv(GL_DRAW_BUFFER, &drawBuf);
-    if (drawBuf != 36066)
-        qDebug() << "Current draw buffer:" << drawBuf;
 
     if( m_enableDepthTest )
         function->glEnable( GL_DEPTH_TEST );
@@ -306,16 +304,6 @@ void GPU_NONCACHED_MANAGER::EndDrawing()
     function->glDrawArrays(GL_TRIANGLES, 0, m_container->GetSize());
     function->glBindVertexArray(0);
     m_shader->Deactivate();
-
-    GLenum err; 
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        qDebug() << "GL error:" << err;
-    }
-
-    
-    while ((err = glGetError()) != GL_NO_ERROR) {
-        qDebug() << "GL error:" << err;
-    }
 
 
     // Deactivate vertex array
