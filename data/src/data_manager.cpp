@@ -5,8 +5,8 @@
 void DataManager::GenerateData()
 {
     constexpr int N = 100000; // 数量
-    constexpr double WIDTH = 20000.0;
-    constexpr double HEIGHT = 20000.0;
+    constexpr double WIDTH = 1000.0;
+    constexpr double HEIGHT = 1000.0;
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -29,7 +29,7 @@ void DataManager::GenerateData()
 
         m_rectangles.push_back({ VECTOR2D(x1, y1), VECTOR2D(x2, y2) });
     }
-
+    
     for (int i = 0; i < N; ++i) {
         double cx = distX(gen);
         double cy = distY(gen);

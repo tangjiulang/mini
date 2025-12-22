@@ -8,7 +8,7 @@
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
-    resize(1200, 800);
+    resize(1000, 1000);
     CreateData();
     setStyleSheet("background-color: black;");
 }
@@ -16,8 +16,8 @@ MainWindow::MainWindow(QWidget* parent)
 void MainWindow::CreateData()
 {
     constexpr int N = 100000;
-    constexpr double WIDTH = 20000.0;
-    constexpr double HEIGHT = 20000.0;
+    constexpr double WIDTH = 1000.0;
+    constexpr double HEIGHT = 1000.0;
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -50,6 +50,9 @@ void MainWindow::CreateData()
 
 void MainWindow::paintEvent(QPaintEvent*)
 {
+    m_fpsCounter.frame();
+
+	qDebug() << "FPS:" << m_fpsCounter.value();
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing, false);
 

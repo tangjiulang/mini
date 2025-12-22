@@ -24,4 +24,4 @@ target_link_libraries(TimeTest PUBLIC
 )
 
 
-target_include_directories(TimeTest PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS})
+target_include_directories(TimeTest PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${Boost_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/../performanceTestHelper)

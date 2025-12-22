@@ -22,6 +22,9 @@ int main(int argc, char* argv[])
 
     w.InitialViewData();
 
+    qDebug() << (const char*)glGetString(GL_VENDOR);
+    qDebug() << (const char*)glGetString(GL_RENDERER);
+    qDebug() << (const char*)glGetString(GL_VERSION);
 
     return app.exec();
 }

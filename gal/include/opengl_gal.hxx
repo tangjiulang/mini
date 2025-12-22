@@ -4,6 +4,7 @@
 #include <QOpenGLWidget>
 #include <QGesture>
 #include <QOpenGLFunctions_3_3_Core>
+#include "FpsCounter.hxx"
 #include <tesselator.h>
  // GAL imports
 #include "utf8.hxx"
@@ -351,6 +352,7 @@ private:
     GLint                   ufm_mvp;
     /// wx cursor showing the current native cursor.
     QCURSOR_TYPE          m_currentwxCursor;
+	FpsCounter			  m_fpsCounter;
 
     std::unique_ptr<GL_BITMAP_CACHE>            m_bitmapCache;
 

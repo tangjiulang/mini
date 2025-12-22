@@ -6,9 +6,6 @@
 #include "vector2wx.hxx"
 #include "bitmap_base.hxx"
 #include <bezier_curves.hxx>
-#include <QOpenGLVersionFunctionsFactory>
-#include <QFileInfo>
-#include <QDir>
 #include "util.hxx"
 
 
@@ -2726,57 +2723,6 @@ void OPENGL_GAL::setupShaderParameters()
     ufm_mvp = m_shader->AddParameter("u_mvp");
 }
 
-// Callback functions for the tesselator.  Compare Redbook Chapter 11.
-void CALLBACK VertexCallback( GLvoid* aVertexPtr, void* aData )
-{
-    GLdouble*               vertex = static_cast<GLdouble*>( aVertexPtr );
-    OPENGL_GAL::TessParams* param = static_cast<OPENGL_GAL::TessParams*>( aData );
-    VERTEX_MANAGER*         vboManager = param->vboManager;
-
-    assert( vboManager );
-    vboManager->Vertex( vertex[0], vertex[1], vertex[2] );
-}
-
-
-void CALLBACK CombineCallback( GLdouble coords[3], GLdouble* vertex_data[4], GLfloat weight[4],
-                               GLdouble** dataOut, void* aData )
-{
-    GLdouble*               vertex = new GLdouble[3];
-    OPENGL_GAL::TessParams* param = static_cast<OPENGL_GAL::TessParams*>( aData );
-
-    // Save the pointer so we can delete it later
-    // Note, we use the default_delete for an array because macOS
-    // decides to bundle an ancient libc++ that mismatches the C++17 support of clang
-    param->intersectPoints.emplace_back( vertex, std::default_delete<GLdouble[]>() );
-
-    memcpy( vertex, coords, 3 * sizeof( GLdouble ) );
-
-    *dataOut = vertex;
-}
-
-
-void CALLBACK EdgeCallback( GLboolean aEdgeFlag )
-{
-    // This callback is needed to force GLU tesselator to use triangles only
-}
-
-
-void CALLBACK ErrorCallback( GLenum aErrorCode )
-{
-    //throw std::runtime_error( std::string( "Tessellation error: " ) +
-    //std::string( (const char*) gluErrorString( aErrorCode ) );
-}
-
-
-//static void InitTesselatorCallbacks( GLUtesselator* aTesselator )
-//{
-//    gluTessCallback( aTesselator, GLU_TESS_VERTEX_DATA, (void( CALLBACK* )()) VertexCallback );
-//    gluTessCallback( aTesselator, GLU_TESS_COMBINE_DATA, (void( CALLBACK* )()) CombineCallback );
-//    gluTessCallback( aTesselator, GLU_TESS_EDGE_FLAG, (void( CALLBACK* )()) EdgeCallback );
-//    gluTessCallback( aTesselator, GLU_TESS_ERROR, (void( CALLBACK* )()) ErrorCallback );
-//}
-
-
 void OPENGL_GAL::EnableDepthTest( bool aEnabled )
 {
     m_cachedManager->EnableDepthTest( aEnabled );
@@ -2974,6 +2920,9 @@ void OPENGL_GAL::resizeGL(int w, int h) {
 }
 void OPENGL_GAL::paintGL() {
     //ClearScreen();
+    m_fpsCounter.frame();   // ← 就加这一句
+
+    qDebug() << m_fpsCounter.value();
     this->glClearColor(0, 0, 0, 0);
     this->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     if (m_isInitialized) {

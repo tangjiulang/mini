@@ -3,6 +3,8 @@
 #include <QVector>
 #include <QPointF>
 
+#include "FpsCounter.hxx"
+
 struct Rect {
     QPointF a, b;
 };
@@ -33,4 +35,6 @@ private:
     double m_scale = 1.0;
     QPointF m_offset = { 0, 0 };        // 平移（视图在画布的位置）
     QPointF m_lastMousePos;           // 上次鼠标位置
+
+    FpsCounter m_fpsCounter;
 };
