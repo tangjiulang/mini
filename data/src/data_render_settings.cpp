@@ -30,3 +30,10 @@ DATA_RENDER_SETTINGS::DATA_RENDER_SETTINGS() {
 void DATA_RENDER_SETTINGS::LoadColors(const COLOR_SETTINGS* aSettings) {}
 
 bool DATA_RENDER_SETTINGS::GetShowPageLimits() const { return false; }
+
+KIGFX::COLOR4D KIGFX::DATA_RENDER_SETTINGS::GetColor(const BOARD_ITEM* aItem, int aLayer) const
+{
+    if (aItem->IsSelected())
+        return COLOR4D(1, 0, 0, 1);
+    return COLOR4D::WHITE;
+}

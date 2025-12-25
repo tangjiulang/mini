@@ -12,6 +12,5 @@ const BOX2I DATA_Triangle::GetBoundingBox() const
 {
 	VECTOR2I startPoint = { std::min({m_point1.x, m_point2.x, m_point3.x}), std::min({m_point1.x, m_point2.x, m_point3.x}) };
 	VECTOR2I endPoint = { std::max({m_point1.x, m_point2.x, m_point3.x}), std::max({m_point1.x, m_point2.x, m_point3.x}) };
-	VECTOR2I dis = { endPoint.x - startPoint.x, endPoint.y - startPoint.y };
-	return BOX2I(startPoint, dis);
+	return BOX2I(startPoint, startPoint - endPoint);
 }

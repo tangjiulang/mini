@@ -7,7 +7,7 @@
 #include "gal/include/painter.hxx"
 #include "view_control.hxx"
 #include "view.hxx"
-#include "selection.hxx"
+#include "selection_tool.hxx"
 
 class DataManager;
 
@@ -55,12 +55,11 @@ public:
     QWindow*                        m_parent;
     KIGFX::OPENGL_GAL*              m_gal;
     KIGFX::VIEW*                    m_view;
-    SELECTION                       m_selection;
+    SELECTION_TOOL                  m_selectionTool;
     std::unique_ptr<KIGFX::PAINTER> m_painter;
     ViewControler*                  m_control;
     GAL_TYPE                        m_backend;
     KIGFX::GAL_DISPLAY_OPTIONS      m_options;
     VECTOR2D                        m_cursor;
-    QRect                           m_selectRect;
     bool                            m_isSelect;
 };

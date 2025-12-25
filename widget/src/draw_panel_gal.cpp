@@ -370,6 +370,8 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
 
 	m_control = new ViewControler(m_gal, m_view, m_painter.get());
 	setMouseTracking(true);
+
+    m_selectionTool.SetView(m_view);
 }
 
 DrawPanelGal::~DrawPanelGal()
@@ -392,7 +394,7 @@ void DrawPanelGal::Paint(QPaintEvent* event)
 	if (m_view->IsDirty()) {
 		m_view->Redraw();
 	}
-	
+    m_gal->SetCursorColor(KIGFX::COLOR4D::WHITE);
 	m_gal->DrawCursor(m_cursor);
 }
 
@@ -406,26 +408,20 @@ void DrawPanelGal::SetCursor()
 void DrawPanelGal::CreateSelectRect()
 {
 	QPoint widgetPos = m_gal->mapFromGlobal(QCursor::pos());
-	m_selectRect.setTopLeft(widgetPos);
+    VECTOR2I pos = { widgetPos.x(), widgetPos.y() };
+    m_selectionTool.SetOrigin(m_view->ToWorld(pos));
 }
 
 void DrawPanelGal::UpdateSelectRect()
 {
 	QPoint widgetPos = m_gal->mapFromGlobal(QCursor::pos());
-	m_selectRect.setBottomRight(widgetPos);
+    VECTOR2I pos = { widgetPos.x(), widgetPos.y() };
+	m_selectionTool.SetEnd(m_view->ToWorld(pos));
 }
 
 void DrawPanelGal::DrawSelectRect()
 {
-	BOX2I box = BOX2I::ByCorners(m_view->ToWorld(VECTOR2I(m_selectRect.left(), m_selectRect.top())), 
-								 m_view->ToWorld(VECTOR2I(m_selectRect.right(), m_selectRect.bottom())));
-	m_gal->SetTarget(KIGFX::RENDER_TARGET::TARGET_OVERLAY);
-	m_gal->SetStrokeColor(KIGFX::COLOR4D(1, 0, 0, 1));
-	m_view->MarkTargetDirty(KIGFX::RENDER_TARGET::TARGET_OVERLAY);
-	m_view->redrawRect(box);
-	m_view->MarkClean();
-	m_gal->SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);
-	m_gal->SetStrokeColor(KIGFX::COLOR4D(1, 1, 1, 1));
+    m_selectionTool.SelectRectArea();
 }
 
 void DrawPanelGal::SetDefaultLayerDeps()
@@ -598,6 +594,13 @@ void DrawPanelGal::InitialViewData(DataManager* data)
 		m_view->Add(&rectangle);
 	}
 	
+    for (auto& triangle : data->m_triangles) {
+		triangle.m_point1 = m_view->ToWorld(triangle.m_point1);
+        triangle.m_point2 = m_view->ToWorld(triangle.m_point2);
+        triangle.m_point3 = m_view->ToWorld(triangle.m_point3);
+        m_view->Add(&triangle);
+    }
+
 	for (int i = 0; i < data->m_polygons.size(); i++) {
 		auto& polygon = data->m_polygons[i];
 		if (i & 1)

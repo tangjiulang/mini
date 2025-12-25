@@ -2085,6 +2085,7 @@ void OPENGL_GAL::DrawCursor( const VECTOR2D& aCursorPosition )
     // The real drawing routines are in blitCursor()
     //VECTOR2D screenCursor = m_worldScreenMatrix * aCursorPosition;
     //m_cursorPosition = m_screenWorldMatrix * VECTOR2D( screenCursor.x, screenCursor.y );
+    SetStrokeColor(m_cursorColor);
     m_cursorPosition = aCursorPosition;
 }
 
