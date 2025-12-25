@@ -1,6 +1,7 @@
 #pragma once
 
 #include "render_settings.hxx"
+#include "data_board_item.hxx"
 
 
 namespace KIGFX {
@@ -27,11 +28,11 @@ namespace KIGFX {
 
         /// @copydoc RENDER_SETTINGS::GetColor()
         COLOR4D GetColor(const VIEW_ITEM* aItem, int aLayer) const override {
-            return COLOR4D(1, 1, 1, 1);
+            return GetColor(dynamic_cast<const BOARD_ITEM*>(aItem), aLayer);
         }
 
         ///< Board-specific version
-        //COLOR4D GetColor(const BOARD_ITEM* aItem, int aLayer) const;
+        COLOR4D GetColor(const BOARD_ITEM* aItem, int aLayer) const;
 
         ///< nullptr version
         COLOR4D GetColor(std::nullptr_t, int aLayer) const
