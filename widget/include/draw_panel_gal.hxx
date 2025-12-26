@@ -32,6 +32,8 @@ public:
     void onWheel(QWheelEvent* event)
     {
         m_control->onWheel(event);
+        m_selectionTool.ClearSelection();
+        m_selectionTool.SelectRectArea();
     }
 
     void Paint(QPaintEvent*);

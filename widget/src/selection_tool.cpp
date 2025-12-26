@@ -4,10 +4,15 @@
 
 using namespace KIGFX;
 
+constexpr int MIN_INT = std::numeric_limits<int>::min();
+
+
 SELECTION_TOOL::SELECTION_TOOL()
 {
     m_area = new SELECTION_AREA();
 	m_view = nullptr;
+	m_area->SetOrigin(VECTOR2I(MIN_INT, MIN_INT));
+    m_area->SetEnd(VECTOR2I(MIN_INT, MIN_INT));
 }
 
 SELECTION_TOOL::~SELECTION_TOOL()
@@ -19,8 +24,20 @@ SELECTION& SELECTION_TOOL::GetSelection() {
     return m_selection;
 }
 
+void SELECTION_TOOL::ClearSelection(bool aQuietMode)
+{
+    if (m_selection.Empty())
+        return;
+
+    while (m_selection.GetSize())
+        unhighlight(m_selection.Front(), SELECTED, &m_selection);
+
+    m_view->Update(&m_selection);
+}
+
 void SELECTION_TOOL::SetOrigin(const VECTOR2I& aOrigin) {
     m_view->SetVisible(m_area, true);
+    ClearSelection();
     m_area->SetOrigin(aOrigin);
 }
 
@@ -58,6 +75,20 @@ void SELECTION_TOOL::SetView(KIGFX::VIEW *aView)
     m_view = aView;
 }
 
+
+bool SELECTION_TOOL::selectPoint(const VECTOR2I& aWhere, bool aOnDrag, bool* aSelectionCancelledFlag)
+{
+    ClearSelection();
+
+    BOX2I selectionBox = m_area->GetBoundingBox();
+    std::vector<VIEW::LAYER_ITEM_PAIR> candidates;
+    m_view->Query(selectionBox, candidates);
+
+    for (auto item : candidates)
+        select(static_cast<BOARD_ITEM*>(item.first));
+
+    return false;
+}
 
 void SELECTION_TOOL::select(KIGFX::BOARD_ITEM* aItem)
 {
