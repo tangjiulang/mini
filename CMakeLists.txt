@@ -22,6 +22,7 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(unofficial-libtess2 REQUIRED)
+find_package(tinyxml2 CONFIG REQUIRED)
 
 message(STATUS "Qt6 Core include dirs: ${Qt6Core_INCLUDE_DIRS}")
 message(STATUS "Qt6 Widgets include dirs: ${Qt6Widgets_INCLUDE_DIRS}")
@@ -41,6 +42,7 @@ add_subdirectory(view)
 add_subdirectory(data)
 add_subdirectory(widget)
 add_subdirectory(resources)
+add_subdirectory(ipc-2581)
 
 add_subdirectory(TimeTest)
 
@@ -59,6 +61,7 @@ target_link_libraries(mini PUBLIC
                         view
                         widget
                         GLEW::GLEW
+                        ipc-2581
 )
 
 project("TestGAL")

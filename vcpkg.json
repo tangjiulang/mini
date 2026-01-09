@@ -5,6 +5,7 @@
     "spdlog",
     "glm",
     "glew",
-    "libtess2"
+    "libtess2",
+    "tinyxml2"
   ]
 }
