@@ -2,8 +2,332 @@
 #include "BaseTypeDef.hxx"
 #include "Content.hxx"
 
-struct Spec;
-struct ChangeRec;
+struct SpecificationType;
+
+struct Spec {
+	std::string name;
+	SpecificationType* specType;
+	Xform *xform;
+	Location *location;
+	Outline *outline;
+};
+
+struct Approval {
+	std::string dateTime;
+	std::string personRef;
+};
+
+struct ChangeRec {
+	std::string dateTime;
+	std::string personRef;
+	std::string lifecyclePhase;
+	std::string application;
+	std::string change;
+	std::vector<Approval> approvals;
+};
+
+struct Span {
+	std::string fromLayer;
+	std::string toLayer;
+};
+
+struct Layer {
+	std::string name;
+	LayerFunction layerFunction;
+	Side side;
+	Polarity polarity;
+	std::vector<Spec*> specs;
+	Span span;
+	std::vector<Contour*> profiles;
+};
+
+struct StackupLayer {
+	std::string name;
+	double thickness;
+	double tolPlus;
+	double tolMinus;
+	double sequence;
+	bool tolPercent;
+	std::string matDes;
+	std::string comment;
+};
+
+struct StackupGroup {
+	bool ReadStackupLayer(tinyxml2::XMLElement* aStackupLayer);
+
+	std::string name;
+	double thickness;
+	double tolPlus;
+	double tolMinus;
+	bool tolPercent;
+	std::string matDes;
+	std::string comment;
+
+	std::vector<StackupLayer> stackupLayers;
+	std::vector<Spec*> specs;
+};
+
+struct Stackup {
+	bool ReadStackupGroup(tinyxml2::XMLElement* aStackupGroup);
+
+	std::string name;
+	double overallThickness;
+	double tolPlus;
+	double tolMinus;
+	bool tolPercent;
+	WhereMeasured whereMeasured;
+	std::string matDes;
+	std::string comment;
+	StackupStatus stackupStatus;
+	std::vector<Spec*> specs;
+	std::vector<StackupGroup> stackupGroup;
+
+};
+
+struct NonstandardAttribute {
+	std::string name;
+	CadPropertyType type;
+	std::string value;
+};
+
+struct PadstackHoleDef {
+	std::string name;
+	double diameter;
+	PlatingStatus platingStatus;
+	double plusTol;
+	double minusTol;
+	double x;
+	double y;
+};
+
+struct PadstackPadDef {
+	std::string layerRef;
+	PadUse padUse;
+	std::string comment;
+	Xform xform;
+	Location location;
+	Shape* feature;
+};
+
+struct PadStackDef {
+	std::string name;
+	std::vector<PadstackHoleDef> holes;
+	std::vector<PadstackPadDef> pads;
+};
+
+struct Datum {
+	double x, y;
+};
+ 
+struct StepRepeat {
+	std::string stepRef;
+	double x;
+	double y;
+	double nx;
+	double ny;
+	double dx;
+	double dy;
+	double angle;
+	bool mirror;
+};
+
+struct Pad {
+	std::string padstackDefRef;
+	Xform xform;
+	Location location;
+	Shape* feature;
+	PinRef pinRef;
+};
+
+struct LandPattern {
+	std::vector<Pad> pads;
+	Xform xform;
+	Location location;
+	Shape* feature;
+	PinRef pinRef;
+	// Todo Target
+};
+
+struct Marking {
+	MarkingUsage markingUsage;
+	Xform xform;
+	Location location;
+	// Todo Shapes
+	 std::vector<Shape*> feature;
+
+};
+
+struct SilkScreen {
+	std::vector<Outline> outlines;
+	std::vector<Marking> markings;
+};
+
+struct AssemblyDrawing {
+	Outline outline;
+	std::vector<Marking> markings;
+};
+
+struct Pin {
+	int number;
+	std::string name;
+	CadPinType cadPin;
+	PinElectricalType electrical;
+	PinMountType mountType;
+	PinPolarityType pinPolarity;
+	Xform xform;
+	Location location;
+	Shape* shape;
+};
+
+struct Topside {
+	Outline outline;
+	LandPattern landPattern;
+	SilkScreen silkScreen;
+	AssemblyDrawing assemblyDrawing;
+	std::vector<Pin> pins;
+};
+
+struct OtherSideView {
+	Outline outline;
+	SilkScreen silkScreen;
+	AssemblyDrawing assemblyDrawing;
+};
+
+struct Package {
+	std::string name;
+	PackageType packageType;
+	std::string pinOne;
+	PinOneOrientation pinOneOrientation;
+	double height;
+	double negativeBodyExtension;
+	std::string conment;
+	Outline outline;
+	Location pickupPoint;
+	LandPattern landPattern;
+	SilkScreen silkStreen;
+	AssemblyDrawing assemblyDrawing;
+	Pin pins;
+	Topside topside;
+	OtherSideView otherSideView;
+
+};
+
+struct SlotCavityRef {
+	std::string id;
+};
+
+struct Component {
+	std::string refDes;
+	std::string matDes;
+	std::string packageRef;
+	std::string layerRef;
+	MountType mountType;
+	std::string modelRef;
+	double weight;
+	double height;
+	double standoff;
+	std::vector<NonstandardAttribute> nonstandardAttributes;
+	Xform xform;
+	Location location;
+	SlotCavityRef slotCavityRef;
+	std::vector<Spec> specs;
+};
+
+struct Hole {
+	std::string name;
+	HoleShape type;
+	double diameter;
+	PlatingStatus platingStatus;
+	double plusTol;
+	double minusTol;
+	double x;
+	double y;
+	std::vector<Spec> specs;
+	Xform xform;
+};
+
+struct MaterialCut {
+	double depth;
+	std::string startCutLayer;
+	std::string direction;
+	double plusTol;
+	double minusTol;
+};
+
+struct MaterialLeft {
+	double thickness;
+	std::string startCutLayer;
+	std::string direction;
+	double plusTol;
+	double minusTol;
+
+};
+
+struct Z_AxisDim {
+	MaterialCut materialCut;
+	MaterialLeft materialLeft;
+};
+
+struct Fill {
+	double depthRemaining;
+	std::string matDes;
+	std::string SpecRef;
+};
+
+struct SlotCavity {
+	std::string name;
+	PlatingStatus platingStatus;
+	double plusTol;
+	double miniusTol;
+	Location location;
+	Xform xform;
+	Shape* shape;
+	Z_AxisDim zAxis;
+	Fill fill;
+};
+
+struct NetShort {};
+
+struct Set {
+	std::string net;
+	std::string netPair;
+	Polarity polarity;
+	PadUse padUse;
+	bool testPoint;
+	std::string geometry;
+	bool plate;
+	std::string componentRef;
+	GeometryUsage geometryUsage;
+	std::vector<NonstandardAttribute> nonstandardAttributes;
+	std::vector<Pad> pads;
+	std::vector<Hole> holes;
+	std::vector<SlotCavity> slotCavities;
+	std::vector<Shape*> feature;
+	std::vector<LineDesc*> lineDescs;
+	std::vector<NetShort> netShort;
+
+};
+
+struct LayerFeature {
+	std::string layerRef;
+	std::vector<Set> sets;
+};
+
+struct Step {
+	std::string name;
+	StepType stepType;
+	std::string stackupRef;
+	std::vector<NonstandardAttribute> nonStandardAttributs;
+	std::vector<PadStackDef> padStackDefs;
+	Datum datum;
+	Contour profile;
+	std::vector<StepRepeat> stepRepeats;
+	std::vector<Package> packages;
+	std::vector<Component> components;
+	// Todo LogicalNet, PhyNetGroup
+	std::vector<LayerFeature> layerFeatures;
+	// Todo BendArea, StackupZone, Port, Model, DfxMeasurementList
+};
 
 class EcadSection {
 public:
@@ -12,10 +336,25 @@ public:
 	WrongType Read();
 	bool IsValid();
 private:
+	bool ReadSpec(tinyxml2::XMLElement* aEcad);
+	bool ReadChangeRec(tinyxml2::XMLElement* aEcad);
+	bool ReadLayer(tinyxml2::XMLElement* aLayer);
+	bool ReadStackup(tinyxml2::XMLElement* aStackup);
+	bool ReadStep(tinyxml2::XMLElement* aStep);
+	bool ReadNonstandardAttribute(tinyxml2::XMLElement* aNonstandardAttribute, NonstandardAttribute& nonstandardAttribute);
+	bool ReadPadStackDef(tinyxml2::XMLElement* aPadStackDef, PadStackDef &padStackDef);
+	bool ReadDatum(tinyxml2::XMLElement* aDaum, Datum& datum);
+	bool ReadPadStackHoleDef(tinyxml2::XMLElement* aPadStackHoleDef, PadstackHoleDef& padStackHoleDef);
+	bool ReadPadStackPadDef(tinyxml2::XMLElement* aPadStackPadDef, PadstackPadDef& padStackPadDef);
+private:
 	tinyxml2::XMLElement* m_ecad;
 	ContentSection* m_content;
+	StandardShape*  m_standardShape;
 public:
 	UnitsType				m_unit;
 	std::vector<Spec>		m_specs;
 	std::vector<ChangeRec>	m_changeRecs;
+	std::vector<Layer>		m_layers;
+	std::vector<Stackup>	m_stackups;
+	std::vector<Step>		m_steps;
 };

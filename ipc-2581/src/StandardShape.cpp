@@ -1,33 +1,42 @@
 #include "StandardShape.hxx"
+#include "Content.hxx"
 
-bool ReadButterfly(tinyxml2::XMLElement* aElement, Butterfly& butterfly) {
+StandardShape::StandardShape(ContentSection* content)
+	: m_content(content) {}
+
+bool StandardShape::ReadButterfly(tinyxml2::XMLElement* aElement, Butterfly& butterfly) {
 	butterfly.shape = aElement->FindAttribute("shape")->Value();
 	std::string exp = butterfly.shape == "ROUND" ? "diameter" : "side";
 	butterfly.expand = aElement->FindAttribute(exp.data())->DoubleValue();
 
-	ReadLineDescHelper(aElement, &butterfly.lineDesc);
-	ReadFillDescHelper(aElement, &butterfly.fillDesc);
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &butterfly.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &butterfly.fillDesc);
 
 	return true;
 }
 
 
-bool ReadCircle(tinyxml2::XMLElement* aElement, Circle& circle) {
+bool StandardShape::ReadCircle(tinyxml2::XMLElement* aElement, Circle& circle) {
 	circle.diameter = aElement->FindAttribute("diameter")->DoubleValue();
 
-	ReadLineDescHelper(aElement, &circle.lineDesc);
-	ReadFillDescHelper(aElement, &circle.fillDesc);
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &circle.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &circle.fillDesc);
 
 	return true;
 }
 
+bool StandardShape::ReadContour(tinyxml2::XMLElement* aElement, Contour& contour)
+{
+	return false;
+}
 
-bool ReadRectCenter(tinyxml2::XMLElement* aElement, RectCenter& rectCenter) {
+
+bool StandardShape::ReadRectCenter(tinyxml2::XMLElement* aElement, RectCenter& rectCenter) {
 	rectCenter.height = aElement->FindAttribute("height")->DoubleValue();
 	rectCenter.width = aElement->FindAttribute("width")->DoubleValue();
 
-	ReadLineDescHelper(aElement, &rectCenter.lineDesc);
-	ReadFillDescHelper(aElement, &rectCenter.fillDesc);
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &rectCenter.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &rectCenter.fillDesc);
 
 	return true;
 }

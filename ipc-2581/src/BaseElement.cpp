@@ -1,5 +1,34 @@
 #include "BaseElement.hxx"
 
+bool ReadXform(tinyxml2::XMLElement* aElement, Xform& xForm)
+{
+	auto xOffset = aElement->FindAttribute("xOffset");
+	if (xOffset != nullptr)
+		xForm.xOffset = xOffset->DoubleValue();
+
+	auto yOffset = aElement->FindAttribute("yOffset");
+	if (yOffset != nullptr)
+		xForm.yOffset = yOffset->DoubleValue();
+
+	auto rotation = aElement->FindAttribute("rotation");
+	if (rotation != nullptr)
+		xForm.rotation = rotation->DoubleValue();
+
+	auto scale = aElement->FindAttribute("scale");
+	if (scale != nullptr)
+		xForm.scale = scale->DoubleValue();
+
+	auto mirror = aElement->FindAttribute("mirror");
+	if (mirror != nullptr)
+		xForm.mirror = aElement->BoolAttribute("mirror");
+
+	auto faceUp = aElement->FindAttribute("faceUp");
+	if (faceUp != nullptr)
+		xForm.faceUp = aElement->BoolAttribute("faceUp");
+
+	return false;
+}
+
 bool ReadLineDesc(tinyxml2::XMLElement* aElement, LineDesc* lineDesc) {
 	lineDesc->lineWidth = aElement->FindAttribute("lineWidth")->DoubleValue();
 
@@ -110,7 +139,7 @@ bool ReadFillPreDef(tinyxml2::XMLElement* aElement, FillDescPreDef& fillDescPreD
 	return true;
 }
 
-bool ReadLineDescHelper(tinyxml2::XMLElement* aElement, LineDesc** lineDesc) {
+bool ReadLineDescHelper(tinyxml2::XMLElement* aElement, std::unordered_map<std::string, LineDesc>& lineDescPreDef, LineDesc** lineDesc) {
 	if (aElement->FirstChildElement("LineDesc") == nullptr && aElement->FirstChildElement("LineDescRef") == nullptr)
 		return false;
 
@@ -119,7 +148,8 @@ bool ReadLineDescHelper(tinyxml2::XMLElement* aElement, LineDesc** lineDesc) {
 		lineDescElement = aElement->FirstChildElement("LineDescRef");
 		auto id = lineDescElement->FindAttribute("id")->Value();
 
-		// todo find lineDesc by id from lineDescPreDefinitions
+		if (lineDescPreDef.count(id))
+			*lineDesc = &lineDescPreDef[id];
 	}
 	else {
 		*lineDesc = new LineDesc;
@@ -129,7 +159,7 @@ bool ReadLineDescHelper(tinyxml2::XMLElement* aElement, LineDesc** lineDesc) {
 	return true;
 }
 
-bool ReadFillDescHelper(tinyxml2::XMLElement* aElement, FillDesc** fillDesc) {
+bool ReadFillDescHelper(tinyxml2::XMLElement* aElement, std::unordered_map<std::string, FillDesc>& fillDescPreDef, FillDesc** fillDesc) {
 	if (aElement->FirstChildElement("FillDesc") == nullptr && aElement->FirstChildElement("FillDescRef") == nullptr)
 		return false;
 
@@ -138,12 +168,32 @@ bool ReadFillDescHelper(tinyxml2::XMLElement* aElement, FillDesc** fillDesc) {
 		fillDescElement = aElement->FirstChildElement("FillDescRef");
 		auto id = fillDescElement->FindAttribute("id")->Value();
 
-		// todo find lineDesc by id from lineDescPreDefinitions
+		if (fillDescPreDef.count(id))
+			*fillDesc = &fillDescPreDef[id];
 	}
 	else {
 		*fillDesc = new FillDesc;
 		ReadFillDesc(fillDescElement, *fillDesc);
 	}
 
+	return true;
+}
+
+bool ReadOutline(tinyxml2::XMLElement* aElement, Outline& outline) {
+	return true;
+}
+
+bool ReadLocation(tinyxml2::XMLElement* aElement, Location& location)
+{
+	location.x = aElement->FindAttribute("x")->DoubleValue();
+	location.y = aElement->FindAttribute("y")->DoubleValue();
+	return true;
+}
+
+bool ReadPinRef(tinyxml2::XMLElement* aElement, PinRef& pinRef)
+{
+	pinRef.componentRef = aElement->FindAttribute("componentRef")->Value();
+	pinRef.pin = aElement->FindAttribute("pin")->Value();
+	pinRef.title = aElement->FindAttribute("title")->Value();
 	return true;
 }

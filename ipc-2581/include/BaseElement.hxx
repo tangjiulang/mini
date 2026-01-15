@@ -3,7 +3,18 @@
 #include <tinyxml2.h>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include "BaseTypeDef.hxx"
+
+
+struct Xform {
+	double xOffset;
+	double yOffset;
+	double rotation;
+	double scale;
+	bool mirror;
+	bool faceUp;
+};
 
 struct LineDesc {
 	double lineWidth;
@@ -55,8 +66,6 @@ public:
 
 using PolyStep = std::vector<PolyStepBase*>;
 
-struct Xform;
-
 struct Color;
 
 struct FillDesc {
@@ -101,6 +110,20 @@ struct Outline {
 	LineDesc* lineDesc;
 };
 
+struct Location {
+	double x;
+	double y;
+};
+
+struct PinRef {
+	std::string componentRef;
+	std::string pin;
+	std::string title;
+};
+
+struct Property;
+
+bool ReadXform(tinyxml2::XMLElement* aElement, Xform& xForm);
 bool ReadLineDesc(tinyxml2::XMLElement* aElement, LineDesc* lineDesc);
 bool ReadLinePreDef(tinyxml2::XMLElement* aElement, LineDescPreDef& lineDescPreDef);
 bool ReadLine(tinyxml2::XMLElement* aElement, Line& line);
@@ -108,5 +131,9 @@ bool ReadArc(tinyxml2::XMLElement* aElement, Arc& arc);
 bool ReadPolyBegin(tinyxml2::XMLElement* aElement, Polygon& poly);
 bool ReadFillDesc(tinyxml2::XMLElement* aElement, FillDesc* fillDesc);
 bool ReadFillPreDef(tinyxml2::XMLElement* aElement, FillDescPreDef& fillDescPreDef);
-bool ReadLineDescHelper(tinyxml2::XMLElement* aElement, LineDesc** lineDesc);
-bool ReadFillDescHelper(tinyxml2::XMLElement* aElement, FillDesc** fillDesc);
+bool ReadLineDescHelper(tinyxml2::XMLElement* aElement, std::unordered_map<std::string, LineDesc>& lineDescPreDef, LineDesc** lineDesc);
+bool ReadFillDescHelper(tinyxml2::XMLElement* aElement, std::unordered_map<std::string, FillDesc>& fillDescPreDef, FillDesc** fillDesc);
+bool ReadOutline(tinyxml2::XMLElement* aElement, Outline& outline);
+bool ReadLocation(tinyxml2::XMLElement* aElement, Location& location);
+bool ReadPinRef(tinyxml2::XMLElement* aElement, PinRef& pinRef);
+bool ReadProperty(tinyxml2::XMLElement* aElement, Property& property);

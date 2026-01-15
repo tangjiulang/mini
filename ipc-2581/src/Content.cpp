@@ -1,7 +1,10 @@
 #include "Content.hxx"
 
 ContentSection::ContentSection(tinyxml2::XMLElement* aContent)
-	: m_content(aContent) {}
+	: m_content(aContent) 
+{
+	m_standardShape = new StandardShape(this);
+}
 
 WrongType ContentSection::Read()
 {
@@ -34,7 +37,7 @@ WrongType ContentSection::Read()
 	for (auto entryLineDesc = dictionaryLineDesc->FirstChildElement(); entryLineDesc; entryLineDesc = entryLineDesc->NextSiblingElement()) {
 		LineDescPreDef line;
 		ReadLinePreDef(entryLineDesc, line);
-		m_lineDescPreDefs.push_back(line);
+		m_lineDescPreDefs[line.id] = line.lineDesc;
 	}
 
 	// Read DictionaryFillDesc in Content;
@@ -42,7 +45,7 @@ WrongType ContentSection::Read()
 	for (auto entryFillDesc = dictionaryFillDesc->FirstChildElement(); entryFillDesc; entryFillDesc = entryFillDesc->NextSiblingElement()) {
 		FillDescPreDef fill;
 		ReadFillPreDef(entryFillDesc, fill);
-		m_fillDescPreDefs.push_back(fill);
+		m_fillDescPreDefs[fill.id] = fill.fillDesc;
 	}
 
 	// Read DictionaryStandard in Content
@@ -53,13 +56,13 @@ WrongType ContentSection::Read()
 		if (shape == "Circle") {
 			CircleDef circleDef;
 			circleDef.id = entryStandard->FindAttribute("id")->Value();
-			ReadCircle(entryStandard->FirstChildElement(), circleDef.circle);
+			m_standardShape->ReadCircle(entryStandard->FirstChildElement(), circleDef.circle);
 			m_circlePreDefs.push_back(circleDef);
 		}
 		else if (shape == "RectCenter") {
 			RectDef rectDef;
 			rectDef.id = entryStandard->FindAttribute("id")->Value();
-			ReadRectCenter(entryStandard->FirstChildElement(), rectDef.rectCenter);
+			m_standardShape->ReadRectCenter(entryStandard->FirstChildElement(), rectDef.rectCenter);
 			m_rectPreDefs.push_back(rectDef);
 		}
 
@@ -75,7 +78,7 @@ WrongType ContentSection::Read()
 		if (std::string(shape->Name()) == "Circle") {
 			CircleDef circleDef;
 			circleDef.id = id;
-			ReadCircle(shape, circleDef.circle);
+			m_standardShape->ReadCircle(shape, circleDef.circle);
 			m_circlePreDefs.push_back(circleDef);
 		}
 		else {

@@ -16,7 +16,7 @@ WrongType IPC2581Document::DocumentReader() {
 	m_header.xmlns = root->Attribute("xmlns");
 	m_header.schemaLocation = root->Attribute("xsi:schemaLocation");
 
-	// IPC Main Sections Initialize
+	// IPC Main Sections Initial
 	m_content = ContentSection(root->FirstChildElement("Content"));
 	m_logisticHeader = root->FirstChildElement("LogisticHeader");
 	m_historyRecord = root->FirstChildElement("HistoryRecord");
