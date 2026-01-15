@@ -230,7 +230,8 @@ enum class PinPolarityType {
 	PLUS,
 	MINUS,
 	ANODE,
-	CATHODE
+	CATHODE,
+	UNDEFINED
 };
 
 enum class PinMountType
@@ -274,6 +275,28 @@ enum class HoleShape {
 	CIRCLE,
 	SQUARE
 };
+
+enum class StandardType
+{
+	BUTTERFLY,
+	CIRCLE,
+	CONTOUR,
+	DIAMOND,
+	DONUT,
+	ELLIPSE,
+	HEXAGON,
+	MOIRE,
+	OCTAGON,
+	OVAL,
+	RECTCENTER,
+	RECTCHAM,
+	RECTCORNER,
+	RECTROUND,
+	THERMAL,
+	TRIANGLE,
+	OTHER
+};
+
 
 inline LayerFunction GetLayerFunction(std::string layerFunc) {
 	if (layerFunc == "ASSEMBLY")
@@ -699,4 +722,42 @@ inline HoleShape GetHoleShape(const std::string value) {
 		return HoleShape::CIRCLE;
 	else
 		return HoleShape::SQUARE;
+}
+
+inline StandardType GetStandardType(const std::string& value)
+{
+	if (value == "Butterfly")
+		return StandardType::BUTTERFLY;
+	else if (value == "Circle")
+		return StandardType::CIRCLE;
+	else if (value == "Contour")
+		return StandardType::CONTOUR;
+	else if (value == "Diamond")
+		return StandardType::DIAMOND;
+	else if (value == "Donut")
+		return StandardType::DONUT;
+	else if (value == "Ellipse")
+		return StandardType::ELLIPSE;
+	else if (value == "Hexagon")
+		return StandardType::HEXAGON;
+	else if (value == "Moire")
+		return StandardType::MOIRE;
+	else if (value == "Octagon")
+		return StandardType::OCTAGON;
+	else if (value == "Oval")
+		return StandardType::OVAL;
+	else if (value == "RectCenter")
+		return StandardType::RECTCENTER;
+	else if (value == "RectCham")
+		return StandardType::RECTCHAM;
+	else if (value == "RectCorner")
+		return StandardType::RECTCORNER;
+	else if (value == "RectRound")
+		return StandardType::RECTROUND;
+	else if (value == "Thermal")
+		return StandardType::THERMAL;
+	else if (value == "Triangle")
+		return StandardType::TRIANGLE;
+	else
+		return StandardType::OTHER;
 }

@@ -110,8 +110,7 @@ bool EcadSection::ReadLayer(tinyxml2::XMLElement* aLayer)
 		auto span = aLayer->FirstChildElement("Span");
 
 		for (auto profile = aLayer->FirstChildElement("profile"); profile; profile = profile->NextSiblingElement()) {
-			Contour prof;
-			m_standardShape->ReadContour(profile, prof);
+			lay.profiles.push_back(m_standardShape->ReadContour(profile));
 		}
 
 	}
@@ -175,13 +174,13 @@ bool EcadSection::ReadStep(tinyxml2::XMLElement* aStep)
 	// Read Profile(Contour)
 	auto profile = aStep->FirstChildElement("Profile");
 	if (profile != nullptr)
-		m_standardShape->ReadContour(profile, step.profile);
+		step.profile = m_standardShape->ReadContour(profile);
 
 	// Read StepRepeat
 	for (auto stepRepeatDoc = aStep->FirstChildElement("StepRepeat"); stepRepeatDoc; stepRepeatDoc = stepRepeatDoc->NextSiblingElement("StepRepeat")) {
 		StepRepeat stepRepeat;
 		// Read StepRepeat
-
+		ReadStepRepeat(stepRepeatDoc, stepRepeat);
 		step.stepRepeats.emplace_back(stepRepeat);
 	}
 
@@ -189,7 +188,7 @@ bool EcadSection::ReadStep(tinyxml2::XMLElement* aStep)
 	for (auto packageDoc = aStep->FirstChildElement("Package"); packageDoc; packageDoc = packageDoc->NextSiblingElement("Package")) {
 		Package package;
 		// Read Package
-
+		ReadPackage(packageDoc, package);
 		step.packages.emplace_back(package);
 	}
 
@@ -326,6 +325,208 @@ bool EcadSection::ReadPadStackPadDef(tinyxml2::XMLElement* aPadStackPadDefDoc, P
 	ReadLocation(aPadStackPadDefDoc->FirstChildElement("Location"), padStackPadDef.location);
 
 	// Read Feature
+	if (aPadStackPadDefDoc->FirstChildElement("StandardPrimitiveRef") != nullptr) {
+		auto standardPrimitiveRef = aPadStackPadDefDoc->FirstChildElement("StandardPrimitiveRef");
+		std::string shapeId = standardPrimitiveRef->FindAttribute("id")->Value();
+		padStackPadDef.feature = m_content->m_standaredPrimitive[shapeId];
+	}
+	else {
+		auto userPrimitiveRef = aPadStackPadDefDoc->FirstChildElement("UserPrimitiveRef");
+		std::string shapeId = userPrimitiveRef->FindAttribute("id")->Value();
+		padStackPadDef.feature = m_content->m_userPrimitive[shapeId];
+	}
 
 	return true;
+}
+
+bool EcadSection::ReadStepRepeat(tinyxml2::XMLElement* aStepRepeat, StepRepeat& stepRepeat)
+{
+	stepRepeat.x = aStepRepeat->FindAttribute("x")->DoubleValue();
+	stepRepeat.y = aStepRepeat->FindAttribute("y")->DoubleValue();
+	stepRepeat.nx = aStepRepeat->FindAttribute("nx")->DoubleValue();
+	stepRepeat.ny = aStepRepeat->FindAttribute("ny")->DoubleValue();
+	stepRepeat.dx = aStepRepeat->FindAttribute("dx")->DoubleValue();
+	stepRepeat.dy = aStepRepeat->FindAttribute("dy")->DoubleValue();
+	stepRepeat.angle = aStepRepeat->FindAttribute("angle")->DoubleValue();
+	stepRepeat.mirror = aStepRepeat->FindAttribute("mirror")->BoolValue();
+
+	return true;
+}
+
+bool EcadSection::ReadPackage(tinyxml2::XMLElement* aPackageDoc, Package& package)
+{
+	package.name = aPackageDoc->FindAttribute("name")->Value();
+	package.packageType = GetPackageType(aPackageDoc->FindAttribute("type")->Value());
+	package.pinOne = aPackageDoc->FindAttribute("pinOne") != nullptr ? aPackageDoc->FindAttribute("pinOne")->Value() : "";
+	package.pinOneOrientation = GetPinOneOrientation(aPackageDoc->FindAttribute("pinOneOrientation")->Value());
+	package.height = aPackageDoc->FindAttribute("height") != nullptr ? aPackageDoc->FindAttribute("height")->DoubleValue() : -1;
+	package.comment = aPackageDoc->FindAttribute("comment") != nullptr ? aPackageDoc->FindAttribute("comment")->Value() : "";
+	package.negativeBodyExtension = aPackageDoc->FindAttribute("negativeBodyExtension") != nullptr ? aPackageDoc->FindAttribute("negativeBodyExtension")->DoubleValue() : -1;
+	
+	ReadOutline(aPackageDoc->FirstChildElement("Outline"), package.outline);
+	
+	auto pickupPointDoc = aPackageDoc->FirstChildElement("PickupPoint");
+	if (pickupPointDoc != nullptr)
+		ReadLocation(pickupPointDoc, package.pickupPoint);
+
+	auto landPatternDoc = aPackageDoc->FirstChildElement("LandPattern");
+	if (landPatternDoc != nullptr)
+		ReadLandPattern(landPatternDoc, package.landPattern);
+
+	auto silkScreenDoc = aPackageDoc->FirstChildElement("SilkScreen");
+	if (silkScreenDoc != nullptr)
+		ReadSilkScreen(silkScreenDoc, package.silkStreen);
+
+	auto assemblyDrawingDoc = aPackageDoc->FirstChildElement("AssemblyDrawing");
+	if (assemblyDrawingDoc != nullptr)
+		ReadAssemblyDrawing(assemblyDrawingDoc, package.assemblyDrawing);
+
+	for (auto pinDoc = aPackageDoc->FirstChildElement("Pin"); pinDoc; pinDoc = pinDoc->NextSiblingElement("Pin")) {
+		Pin pin;
+		ReadPin(pinDoc, pin);
+		package.pins.emplace_back(pin);
+	}
+
+	auto topsideDoc = aPackageDoc->FirstChildElement("Topside");
+	if (topsideDoc != nullptr)
+		ReadTopside(topsideDoc, package.topside);
+
+	auto otherSideView = aPackageDoc->FirstChildElement("OtherSideView");
+	if (otherSideView != nullptr)
+		ReadOtherSideView(otherSideView, package.otherSideView);
+
+	return false;
+}
+
+bool EcadSection::ReadLandPattern(tinyxml2::XMLElement* aLandPattern, LandPattern& landPattern)
+{
+	for (auto padDoc = aLandPattern->FirstChildElement("Pad"); padDoc; padDoc = padDoc->NextSiblingElement("Pad")) {
+		Pad pad;
+		ReadPad(padDoc, pad);
+		landPattern.pads.emplace_back(pad);
+	}
+
+	for (auto targetDoc = aLandPattern->FirstChildElement("TargetDoc"); targetDoc; targetDoc = targetDoc->NextSiblingElement("TargetDoc")) {
+		Target target;
+		ReadTarget(targetDoc, target);
+		landPattern.target.emplace_back(target);
+	}
+
+	return false;
+}
+
+bool EcadSection::ReadPad(tinyxml2::XMLElement* aPadDoc, Pad& pad)
+{
+	auto xformDoc = aPadDoc->FirstChildElement("Xform");
+	if (xformDoc != nullptr)
+		ReadXform(xformDoc, pad.xform);
+
+	ReadLocation(aPadDoc->FirstChildElement("Location"), pad.location);
+
+	if (aPadDoc->FirstChildElement("StandardPrimitiveRef") != nullptr) {
+		auto standardPrimitiveRef = aPadDoc->FirstChildElement("StandardPrimitiveRef");
+		std::string shapeId = standardPrimitiveRef->FindAttribute("id")->Value();
+		pad.feature = m_content->m_standaredPrimitive[shapeId];
+	}
+	else {
+		auto userPrimitiveRef = aPadDoc->FirstChildElement("UserPrimitiveRef");
+		std::string shapeId = userPrimitiveRef->FindAttribute("id")->Value();
+		pad.feature = m_content->m_userPrimitive[shapeId];
+	}
+
+	for (auto pinRefDoc = aPadDoc->FirstChildElement("PinRef"); pinRefDoc; pinRefDoc = pinRefDoc->NextSiblingElement("PinRef")) {
+		PinRef pinRef;
+		ReadPinRef(pinRefDoc, pinRef);
+		pad.pinRefs.push_back(pinRef);
+	}
+
+
+	return true;
+}
+
+bool EcadSection::ReadTarget(tinyxml2::XMLElement* aTargetDoc, Target& target)
+{
+	auto xformDoc = aTargetDoc->FirstChildElement("Xform");
+	if (xformDoc != nullptr)
+		ReadXform(xformDoc, target.xform);
+
+	ReadLocation(aTargetDoc->FirstChildElement("Location"), target.location);
+
+	auto standardPrimitiveRef = aTargetDoc->FirstChildElement("StandardPrimitiveRef");
+	std::string shapeId = standardPrimitiveRef->FindAttribute("id")->Value();
+	target.shape = m_content->m_standaredPrimitive[shapeId];
+
+	return true;
+}
+
+bool EcadSection::ReadSilkScreen(tinyxml2::XMLElement* aSilkScreenDoc, SilkScreen& silkScreen)
+{
+	for (auto outlineDoc = aSilkScreenDoc->FirstChildElement("Outline"); outlineDoc; outlineDoc = outlineDoc->NextSiblingElement("Outline")) {
+		Outline outline;
+		ReadOutline(outlineDoc, outline);
+		silkScreen.outlines.emplace_back(outline);
+	}
+
+	for (auto markingDoc = aSilkScreenDoc->FirstChildElement("Marking"); markingDoc; markingDoc = markingDoc->NextSiblingElement("Marking")) {
+		Marking marking;
+		ReadMarking(markingDoc, marking);
+		silkScreen.markings.emplace_back(marking);
+	}
+
+	return false;
+}
+
+bool EcadSection::ReadAssemblyDrawing(tinyxml2::XMLElement* aAssemblyDrawingDoc, AssemblyDrawing& assemblyDrawing)
+{
+	return false;
+}
+
+bool EcadSection::ReadPin(tinyxml2::XMLElement* pinDoc, Pin& pin)
+{
+	pin.number = pinDoc->FindAttribute("number")->Value();
+	pin.name = pinDoc->FindAttribute("name") ? pinDoc->FindAttribute("name")->Value() : "";
+	pin.cadPin = GetCadPinType(pinDoc->FindAttribute("type")->Value());
+	pin.electrical = pinDoc->FindAttribute("electricalType") ? GetPinElectricalType(pinDoc->FindAttribute("electricalType")->Value()) : PinElectricalType::UNDEFINED;
+	pin.mountType = pinDoc->FindAttribute("mountType") ? GetPinMountType(pinDoc->FindAttribute("mountType")->Value()) : PinMountType::UNDEFINED;
+	pin.pinPolarity = pinDoc->FindAttribute("pinPolarity") ? GetPinPolarityType(pinDoc->FindAttribute("pinPolarity")->Value()) : PinPolarityType::UNDEFINED;
+
+	auto xform = pinDoc->FirstChildElement("Xform");
+	if (xform != nullptr)
+		ReadXform(xform, pin.xform);
+
+	auto location = pinDoc->FirstChildElement("Location");
+	if (location != nullptr)
+		ReadLocation(location, pin.location);
+
+	auto standardPrimitive = pinDoc->FirstChildElement("StandardPrimitiveRef");
+	std::string id = standardPrimitive->FindAttribute("id")->Value();
+	pin.shape = m_content->m_standaredPrimitive[id];
+
+	return false;
+}
+
+bool EcadSection::ReadTopside(tinyxml2::XMLElement* topsideDoc, Topside& topside)
+{
+	return false;
+}
+
+bool EcadSection::ReadOtherSideView(tinyxml2::XMLElement* otherSideViewDoc, OtherSideView& otherSideView)
+{
+	return false;
+}
+
+bool EcadSection::ReadMarking(tinyxml2::XMLElement* aMarkingDoc, Marking& marking)
+{
+	marking.markingUsage = GetMarkingUsage(aMarkingDoc->FindAttribute("markingUsage")->Value());
+	
+	auto xformDoc = aMarkingDoc->FirstChildElement("Xform");
+	if (xformDoc != nullptr)
+		ReadXform(xformDoc, marking.xform);
+
+	auto location = aMarkingDoc->FirstChildElement("Location");
+	if (location != nullptr)
+		ReadLocation(location, marking.location);
+
+
+	return false;
 }

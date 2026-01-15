@@ -136,24 +136,25 @@ struct Pad {
 	Xform xform;
 	Location location;
 	Shape* feature;
-	PinRef pinRef;
+	std::vector<PinRef> pinRefs;
+};
+
+struct Target {
+	Xform xform;
+	Location location;
+	Shape* shape;
 };
 
 struct LandPattern {
 	std::vector<Pad> pads;
-	Xform xform;
-	Location location;
-	Shape* feature;
-	PinRef pinRef;
-	// Todo Target
+	std::vector<Target> target;
 };
 
 struct Marking {
 	MarkingUsage markingUsage;
 	Xform xform;
 	Location location;
-	// Todo Shapes
-	 std::vector<Shape*> feature;
+	std::vector<Shape*> feature;
 
 };
 
@@ -168,7 +169,7 @@ struct AssemblyDrawing {
 };
 
 struct Pin {
-	int number;
+	std::string number;
 	std::string name;
 	CadPinType cadPin;
 	PinElectricalType electrical;
@@ -200,13 +201,13 @@ struct Package {
 	PinOneOrientation pinOneOrientation;
 	double height;
 	double negativeBodyExtension;
-	std::string conment;
+	std::string comment;
 	Outline outline;
 	Location pickupPoint;
 	LandPattern landPattern;
 	SilkScreen silkStreen;
 	AssemblyDrawing assemblyDrawing;
-	Pin pins;
+	std::vector<Pin> pins;
 	Topside topside;
 	OtherSideView otherSideView;
 
@@ -320,7 +321,7 @@ struct Step {
 	std::vector<NonstandardAttribute> nonStandardAttributs;
 	std::vector<PadStackDef> padStackDefs;
 	Datum datum;
-	Contour profile;
+	Contour* profile;
 	std::vector<StepRepeat> stepRepeats;
 	std::vector<Package> packages;
 	std::vector<Component> components;
@@ -346,6 +347,19 @@ private:
 	bool ReadDatum(tinyxml2::XMLElement* aDaum, Datum& datum);
 	bool ReadPadStackHoleDef(tinyxml2::XMLElement* aPadStackHoleDef, PadstackHoleDef& padStackHoleDef);
 	bool ReadPadStackPadDef(tinyxml2::XMLElement* aPadStackPadDef, PadstackPadDef& padStackPadDef);
+	bool ReadStepRepeat(tinyxml2::XMLElement* aStepRepeatDoc, StepRepeat& stepRepeat);
+	bool ReadPackage(tinyxml2::XMLElement* aPackageDoc, Package& package);
+	bool ReadLandPattern(tinyxml2::XMLElement* aLandPatternDoc, LandPattern& landPattern);
+	bool ReadPad(tinyxml2::XMLElement* aPadDoc, Pad& pad);
+	bool ReadTarget(tinyxml2::XMLElement* aTargetDoc, Target& target);
+	bool ReadSilkScreen(tinyxml2::XMLElement* aSilkScreenDoc, SilkScreen& silkScreen);
+	bool ReadAssemblyDrawing(tinyxml2::XMLElement* aAssemblyDrawingDoc, AssemblyDrawing& assemblyDrawing);
+	bool ReadPin(tinyxml2::XMLElement* pinDoc, Pin& pin);
+	bool ReadTopside(tinyxml2::XMLElement* topsideDoc, Topside& topside);
+	bool ReadOtherSideView(tinyxml2::XMLElement* otherSideViewDoc, OtherSideView& otherSideView);
+	bool ReadMarking(tinyxml2::XMLElement* markingDoc, Marking& marking);
+	bool ReadComponent(tinyxml2::XMLElement* aComponentDoc, Component& component);
+	bool ReadLayerFeature(tinyxml2::XMLElement* aLayerFeatureDoc, LayerFeature& layerFeature);
 private:
 	tinyxml2::XMLElement* m_ecad;
 	ContentSection* m_content;

@@ -4,7 +4,8 @@
 
 class ContentSection;
 
-struct Shape {};
+struct Shape {
+};
 
 struct Butterfly : public Shape {
 	std::string shape;
@@ -129,23 +130,41 @@ struct Triangle : public Shape {
 class StandardShape {
 public:
 	StandardShape(ContentSection* content);
-	bool ReadButterfly(tinyxml2::XMLElement* aElement, Butterfly& butterfly);
-	bool ReadCircle(tinyxml2::XMLElement* aElement, Circle& circle);
-	bool ReadContour(tinyxml2::XMLElement* aElement, Contour& contour);
-	bool ReadDiamond(tinyxml2::XMLElement* aElement, Diamond& diamond);
-	bool ReadDonut(tinyxml2::XMLElement* aElement, Donut& donut);
-	bool ReadEllipse(tinyxml2::XMLElement* aElement, Ellipse& ellipse);
-	bool ReadHexagon(tinyxml2::XMLElement* aElement, Hexagon& hexagon);
-	bool ReadMoire(tinyxml2::XMLElement* aElement, Moire& moire);
-	bool ReadOctagon(tinyxml2::XMLElement* aElement, Octagon& octagon);
-	bool ReadOval(tinyxml2::XMLElement* aElement, Oval& oval);
-	bool ReadRectCenter(tinyxml2::XMLElement* aElement, RectCenter& rectCenter);
-	bool ReadRectCham(tinyxml2::XMLElement* aElement, RectCham& rectChame);
-	bool ReadRectCorner(tinyxml2::XMLElement* aElement, RectCorner& rectCorner);
-	bool ReadRectRound(tinyxml2::XMLElement* aElement, RectRound& rectRound);
-	bool ReadThermal(tinyxml2::XMLElement* aElement, Thermal& thermal);
-	bool ReadTriangle(tinyxml2::XMLElement* aElement, Triangle& triangle);
+	Shape* ReadStandard(tinyxml2::XMLElement* aElement);
+	Butterfly* ReadButterfly(tinyxml2::XMLElement* aElement);
+	Circle* ReadCircle(tinyxml2::XMLElement* aElement);
+	Contour* ReadContour(tinyxml2::XMLElement* aElement);
+	Diamond* ReadDiamond(tinyxml2::XMLElement* aElement);
+	Donut* ReadDonut(tinyxml2::XMLElement* aElement);
+	Ellipse* ReadEllipse(tinyxml2::XMLElement* aElement);
+	Hexagon* ReadHexagon(tinyxml2::XMLElement* aElement);
+	Moire* ReadMoire(tinyxml2::XMLElement* aElement);
+	Octagon* ReadOctagon(tinyxml2::XMLElement* aElement);
+	Oval* ReadOval(tinyxml2::XMLElement* aElement);
+	RectCenter* ReadRectCenter(tinyxml2::XMLElement* aElement);
+	RectCham* ReadRectCham(tinyxml2::XMLElement* aElement);
+	RectCorner* ReadRectCorner(tinyxml2::XMLElement* aElement);
+	RectRound* ReadRectRound(tinyxml2::XMLElement* aElement);
+	Thermal* ReadThermal(tinyxml2::XMLElement* aElement);
+	Triangle* ReadTriangle(tinyxml2::XMLElement* aElement);
 private:
 	ContentSection* m_content;
+public:
+	std::vector<Butterfly>	m_butterfly;
+	std::vector<Circle>		m_circle;
+	std::vector<Contour>	m_contour;
+	std::vector<Diamond>	m_diamond;
+	std::vector<Donut>		m_donut;
+	std::vector<Ellipse>	m_ellipse;
+	std::vector<Hexagon>	m_hexagon;
+	std::vector<Moire>		m_moire;
+	std::vector<Octagon>	m_octagon;
+	std::vector<Oval>		m_oval;
+	std::vector<RectCenter> m_rectCenter;
+	std::vector<RectCham>	m_rectCham;
+	std::vector<RectCorner> m_rectCorner;
+	std::vector<RectRound>	m_rectRound;
+	std::vector<Thermal>	m_thermal;
+	std::vector<Triangle>	m_triangle;
 };
 
