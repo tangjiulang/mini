@@ -4,6 +4,25 @@
 StandardShape::StandardShape(ContentSection* content)
 	: m_content(content) {}
 
+Shape* StandardShape::ReadSimple(tinyxml2::XMLElement* aElement)
+{
+	SimpleType type = GetSimpleType(aElement->Name());
+	if (type == SimpleType::Arc) {
+		return ReadArc(aElement);
+	}
+	else if (type == SimpleType::Line) {
+		return ReadLine(aElement);
+	}
+	else if (type == SimpleType::Outline) {
+		return ReadOutline(aElement);
+	}
+	else if (type == SimpleType::Polyline) {
+		return ReadPolyline(aElement);
+	}
+	else 
+		return nullptr;
+}
+
 Shape* StandardShape::ReadStandard(tinyxml2::XMLElement* aElement)
 {
 	StandardType type = GetStandardType(aElement->Name());
@@ -43,6 +62,154 @@ Shape* StandardShape::ReadStandard(tinyxml2::XMLElement* aElement)
 	return nullptr;   // OTHER / 不支持
 }
 
+// Simple Begin
+Simple* StandardShape::ReadLine(tinyxml2::XMLElement* aElement) {
+	m_line.push_back(Line{});
+	auto& line = m_line.back();
+	line.startX = aElement->FindAttribute("startX")->DoubleValue();
+	line.startY = aElement->FindAttribute("startY")->DoubleValue();
+	line.endX = aElement->FindAttribute("endX")->DoubleValue();
+	line.endY = aElement->FindAttribute("endY")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &line.lineDesc);
+
+	return &m_line.back();
+}
+
+Simple* StandardShape::ReadArc(tinyxml2::XMLElement* aElement) {
+	m_arc.push_back(Arc{});
+	auto& arc = m_arc.back();
+	
+	arc.startX = aElement->FindAttribute("startX")->DoubleValue();
+	arc.startY = aElement->FindAttribute("startY")->DoubleValue();
+	arc.endX = aElement->FindAttribute("endX")->DoubleValue();
+	arc.endY = aElement->FindAttribute("endY")->DoubleValue();
+	arc.centerX = aElement->FindAttribute("centerX")->DoubleValue();
+	arc.centerY = aElement->FindAttribute("centerY")->DoubleValue();
+	arc.clockwise = aElement->FindAttribute("clockwise")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &arc.lineDesc);
+	return &m_arc.back();
+}
+
+bool StandardShape::ReadPolyBegin(tinyxml2::XMLElement* aElement, PolyBegin& poly)
+{
+	poly.x = aElement->FindAttribute("x")->DoubleValue();
+	poly.y = aElement->FindAttribute("y")->DoubleValue();
+	
+	return true;
+}
+
+bool StandardShape::ReadPolyStepCurve(tinyxml2::XMLElement* aElement, PolyStepCurve& polyStepCurve)
+{
+	polyStepCurve.x = aElement->FindAttribute("x")->DoubleValue();
+	polyStepCurve.y = aElement->FindAttribute("y")->DoubleValue();
+	polyStepCurve.centerX = aElement->FindAttribute("centerX")->DoubleValue();
+	polyStepCurve.centerY = aElement->FindAttribute("centerY")->DoubleValue();
+	polyStepCurve.clockwise = aElement->FindAttribute("clockwise")->BoolValue();
+	
+	return true;
+}
+
+bool StandardShape::ReadPolyStepSegment(tinyxml2::XMLElement* aElement, PolyStepSegment& polyStepSegment)
+{
+	polyStepSegment.x = aElement->FindAttribute("x")->DoubleValue();
+	polyStepSegment.y = aElement->FindAttribute("y")->DoubleValue();
+
+	return true;
+}
+
+bool StandardShape::ReadPolygon(tinyxml2::XMLElement* aElement, Polygon& polygon)
+{
+	ReadPolyBegin(aElement->FirstChildElement("PolyBegin"), polygon.polyBegin);
+
+	for (auto stepElemDoc = aElement->FirstChildElement()->NextSiblingElement(); stepElemDoc && stepElemDoc->Name() != std::string("PolyStepCurve") && stepElemDoc->Name() != std::string("PolyStepSegment"); stepElemDoc = stepElemDoc->NextSiblingElement()) {
+		if (stepElemDoc->Name() == std::string("PolyStepCurve")) {
+			PolyStepCurve polyStepCurve;
+			ReadPolyStepCurve(stepElemDoc, polyStepCurve);
+			polygon.polyStep.emplace_back(polyStepCurve);
+		}
+		else if (stepElemDoc->Name() == std::string("PolyStepSegment")) {
+			PolyStepSegment polyStepSegment;
+			ReadPolyStepSegment(stepElemDoc, polyStepSegment);
+			polygon.polyStep.emplace_back(polyStepSegment);
+		}
+	}
+
+	auto xformDoc = aElement->FirstChildElement("Xform");
+	if (xformDoc != nullptr)
+		ReadXform(xformDoc, polygon.xform);
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &polygon.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &polygon.fillDesc);
+
+	return true;
+}
+
+Simple* StandardShape::ReadPolyline(tinyxml2::XMLElement* aElement)
+{
+	m_polyline.push_back(Polyline{});
+	auto& polyline = m_polyline.back();
+
+	ReadPolyBegin(aElement->FirstChildElement("PolyBegin"), polyline.polyBegin);
+
+	for (auto stepElemDoc = aElement->FirstChildElement()->NextSiblingElement(); stepElemDoc && stepElemDoc->Name() != std::string("PolyStepCurve") && stepElemDoc->Name() != std::string("PolyStepSegment"); stepElemDoc = stepElemDoc->NextSiblingElement()) {
+		if (stepElemDoc->Name() == std::string("PolyStepCurve")) {
+			PolyStepCurve polyStepCurve;
+			ReadPolyStepCurve(stepElemDoc, polyStepCurve);
+			polyline.polyStep.emplace_back(polyStepCurve);
+		}
+		else if (stepElemDoc->Name() == std::string("PolyStepSegment")) {
+			PolyStepSegment polyStepSegment;
+			ReadPolyStepSegment(stepElemDoc, polyStepSegment);
+			polyline.polyStep.emplace_back(polyStepSegment);
+		}
+	}
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &polyline.lineDesc);
+
+	return &m_polyline.back();
+}
+
+bool StandardShape::ReadCutout(tinyxml2::XMLElement* aElement, Cutout& cutout)
+{
+	ReadPolyBegin(aElement->FirstChildElement("PolyBegin"), cutout.polyBegin);
+
+	for (auto stepElemDoc = aElement->FirstChildElement()->NextSiblingElement(); stepElemDoc && stepElemDoc->Name() != std::string("PolyStepCurve") && stepElemDoc->Name() != std::string("PolyStepSegment"); stepElemDoc = stepElemDoc->NextSiblingElement()) {
+		if (stepElemDoc->Name() == std::string("PolyStepCurve")) {
+			PolyStepCurve polyStepCurve;
+			ReadPolyStepCurve(stepElemDoc, polyStepCurve);
+			cutout.polyStep.emplace_back(polyStepCurve);
+		}
+		else if (stepElemDoc->Name() == std::string("PolyStepSegment")) {
+			PolyStepSegment polyStepSegment;
+			ReadPolyStepSegment(stepElemDoc, polyStepSegment);
+			cutout.polyStep.emplace_back(polyStepSegment);
+		}
+	}
+
+	auto xformDoc = aElement->FirstChildElement("Xform");
+	if (xformDoc != nullptr)
+		ReadXform(xformDoc, cutout.xform);
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &cutout.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &cutout.fillDesc);
+
+	return true;
+}
+
+Simple* StandardShape::ReadOutline(tinyxml2::XMLElement* aElement) {
+	m_outline.push_back(Outline{});
+	auto& outline = m_outline.back();
+
+	ReadPolygon(aElement->FirstChildElement("Polygon"), outline.polygon);
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &outline.lineDesc);
+
+	return &m_outline.back();
+}
+// Simple End
+
+
 Butterfly* StandardShape::ReadButterfly(tinyxml2::XMLElement* aElement) {
 	m_butterfly.resize(m_butterfly.size() + 1);
 	Butterfly& butterfly = m_butterfly.back();
@@ -70,7 +237,17 @@ Circle* StandardShape::ReadCircle(tinyxml2::XMLElement* aElement) {
 
 Contour* StandardShape::ReadContour(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_contour.resize(m_contour.size() + 1);
+	auto& contour = m_contour.back();
+	ReadPolygon(aElement->FirstChildElement("Polygon"), contour.polygon);
+
+	for (auto cutoutDoc = aElement->FirstChildElement("Cutout"); cutoutDoc != nullptr; cutoutDoc = cutoutDoc->NextSiblingElement("Cutout")) {
+		Cutout cutout;
+		ReadCutout(cutoutDoc, cutout);
+		contour.cutouts.push_back(cutout);
+	}
+
+	return &m_contour.back();
 }
 
 
@@ -143,5 +320,50 @@ Thermal* StandardShape::ReadThermal(tinyxml2::XMLElement* aElement)
 
 Triangle * StandardShape::ReadTriangle(tinyxml2::XMLElement * aElement)
 {
-return nullptr;
+	return nullptr;
+}
+
+Shape* StandardShape::ReadFeature(tinyxml2::XMLElement* aElement)
+{
+	if (aElement->Name() == std::string("StandardPrimitiveRef")) {
+		std::string ref = aElement->FindAttribute("id")->Value();
+		auto it = m_content->m_standaredPrimitive.find(ref);
+		if (it != m_content->m_standaredPrimitive.end())
+			return it->second;
+	} 
+	else if (aElement->Name() == std::string("UserPrimitiveRef")) {
+		std::string ref = aElement->FindAttribute("id")->Value();
+		auto it = m_content->m_userPrimitive.find(ref);
+		if (it != m_content->m_userPrimitive.end())
+			return it->second;
+	}
+	else if (GetStandardType(aElement->Name()) != StandardType::OTHER){
+		return ReadStandard(aElement);
+	} 
+	else if (GetSimpleType(aElement->Name()) != SimpleType::OTHER){
+		return ReadSimple(aElement);
+	}
+	else {
+		return ReadUserSpecial(aElement);
+	}
+	return nullptr;
+}
+
+Shape* StandardShape::ReadUserSpecial(tinyxml2::XMLElement* aElement)
+{
+	for (auto shapeDoc = aElement->FirstChildElement(); shapeDoc; shapeDoc = shapeDoc->NextSiblingElement()) {
+		if (shapeDoc->Name() == std::string("UserPrimitiveRef")) {
+			std::string ref = shapeDoc->FindAttribute("id")->Value();
+			auto it = m_content->m_userPrimitive.find(ref);
+			if (it != m_content->m_userPrimitive.end())
+				return it->second;
+		}
+		else if (GetSimpleType(shapeDoc->Name()) != SimpleType::OTHER) {
+			return ReadSimple(shapeDoc);
+		}
+		else
+			return ReadUserSpecial(shapeDoc);
+
+	}
+		return nullptr;
 }

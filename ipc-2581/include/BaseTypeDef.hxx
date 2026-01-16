@@ -94,7 +94,8 @@ enum class Side {
 
 enum class Polarity {
 	POSITIVE = 1,
-	NEGATIVE
+	NEGATIVE,
+	UNDEFINED
 };
 
 enum class WhereMeasured {
@@ -297,6 +298,26 @@ enum class StandardType
 	OTHER
 };
 
+enum class PadUsage
+{
+	TERMINATION,
+	VIA,
+	PLANE,
+	TOOLING_HOLE,
+	FIDUCIAL,
+	MASK,
+	THIEVING,
+	THERMAL_RELIEF,
+	NONE
+};
+
+enum class SimpleType {
+	Arc,
+	Line,
+	Outline,
+	Polyline,
+	OTHER
+};
 
 inline LayerFunction GetLayerFunction(std::string layerFunc) {
 	if (layerFunc == "ASSEMBLY")
@@ -760,4 +781,40 @@ inline StandardType GetStandardType(const std::string& value)
 		return StandardType::TRIANGLE;
 	else
 		return StandardType::OTHER;
+}
+
+inline PadUsage GetPadUsage(const std::string& value)
+{
+	if (value == "TERMINATION")
+		return PadUsage::TERMINATION;
+	else if (value == "VIA")
+		return PadUsage::VIA;
+	else if (value == "PLANE")
+		return PadUsage::PLANE;
+	else if (value == "TOOLING_HOLE")
+		return PadUsage::TOOLING_HOLE;
+	else if (value == "FIDUCIAL")
+		return PadUsage::FIDUCIAL;
+	else if (value == "MASK")
+		return PadUsage::MASK;
+	else if (value == "THIEVING")
+		return PadUsage::THIEVING;
+	else if (value == "THERMAL_RELIEF")
+		return PadUsage::THERMAL_RELIEF;
+	else
+		return PadUsage::NONE;
+}
+
+inline SimpleType GetSimpleType(const std::string& value)
+{
+	if (value == "Arc")
+		return SimpleType::Arc;
+	else if (value == "Line")
+		return SimpleType::Line;
+	else if (value == "Outline")
+		return SimpleType::Outline;
+	else if (value == "Polyline")
+		return SimpleType::Polyline;
+	else
+		return SimpleType::OTHER;
 }

@@ -45,53 +45,12 @@ bool ReadLineDesc(tinyxml2::XMLElement* aElement, LineDesc* lineDesc) {
 	return true;
 }
 
-bool ReadLine(tinyxml2::XMLElement* aElement, Line& line) {
-	line.startX = aElement->FindAttribute("startX")->DoubleValue();
-	line.startY = aElement->FindAttribute("startY")->DoubleValue();
-	line.endX = aElement->FindAttribute("endX")->DoubleValue();
-	line.endY = aElement->FindAttribute("endY")->DoubleValue();
-
-	tinyxml2::XMLElement* lineDesc = nullptr;
-	if ((lineDesc = aElement->FirstChildElement("LineDesc")) == nullptr) {
-		lineDesc = aElement->FirstChildElement("LineDescRef");
-		auto id = lineDesc->FindAttribute("id")->Value();
-
-		// todo find lineDesc by id from lineDescPreDefinitions
-	}
-	else {
-		line.lineDesc = new LineDesc();
-		ReadLineDesc(lineDesc, line.lineDesc);
-	}
-
-	return true;
-}
 
 bool ReadLinePreDef(tinyxml2::XMLElement* aElement, LineDescPreDef& lineDescPreDef) {
 	lineDescPreDef.id = aElement->FindAttribute("id")->Value();
 	ReadLineDesc(aElement->FirstChildElement("LineDesc"), &lineDescPreDef.lineDesc);
 
 	return true;
-}
-
-bool ReadArc(tinyxml2::XMLElement* aElement, Arc& arc) {
-	arc.startX = aElement->FindAttribute("startX")->DoubleValue();
-	arc.startY = aElement->FindAttribute("startY")->DoubleValue();
-	arc.endX = aElement->FindAttribute("endX")->DoubleValue();
-	arc.endY = aElement->FindAttribute("endY")->DoubleValue();
-	arc.centerX = aElement->FindAttribute("centerX")->DoubleValue();
-	arc.centerY = aElement->FindAttribute("centerY")->DoubleValue();
-	arc.clockwise = aElement->FindAttribute("clockwise")->DoubleValue();
-	tinyxml2::XMLElement* lineDesc = nullptr;
-	if ((lineDesc = aElement->FirstChildElement("LineDesc")) == nullptr) {
-		lineDesc = aElement->FirstChildElement("LineDescRef");
-		auto id = lineDesc->FindAttribute("id")->Value();
-		// todo find lineDesc by id from lineDescPreDefinitions
-	}
-	else {
-		arc.lineDesc = new LineDesc();
-		ReadLineDesc(lineDesc, arc.lineDesc);
-	}
-	return 1;
 }
 
 bool ReadFillDesc(tinyxml2::XMLElement* aElement, FillDesc* fillDesc) {
@@ -179,10 +138,6 @@ bool ReadFillDescHelper(tinyxml2::XMLElement* aElement, std::unordered_map<std::
 	return true;
 }
 
-bool ReadOutline(tinyxml2::XMLElement* aElement, Outline& outline) {
-	return true;
-}
-
 bool ReadLocation(tinyxml2::XMLElement* aElement, Location& location)
 {
 	location.x = aElement->FindAttribute("x")->DoubleValue();
@@ -192,8 +147,8 @@ bool ReadLocation(tinyxml2::XMLElement* aElement, Location& location)
 
 bool ReadPinRef(tinyxml2::XMLElement* aElement, PinRef& pinRef)
 {
-	pinRef.componentRef = aElement->FindAttribute("componentRef")->Value();
+	pinRef.componentRef = aElement->FindAttribute("componentRef") ? aElement->FindAttribute("componentRef")->Value() : "";
 	pinRef.pin = aElement->FindAttribute("pin")->Value();
-	pinRef.title = aElement->FindAttribute("title")->Value();
+	pinRef.title = aElement->FindAttribute("title") ? aElement->FindAttribute("title")->Value() : "";
 	return true;
 }

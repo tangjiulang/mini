@@ -1,10 +1,80 @@
 #pragma once
+#include <variant>
 #include <tinyxml2.h>
 #include "BaseElement.hxx"
 
 class ContentSection;
 
 struct Shape {
+};
+
+struct Simple : public Shape {};
+
+struct Line : public Simple {
+	double startX;
+	double startY;
+	double endX;
+	double endY;
+	LineDesc* lineDesc;
+};
+
+struct Arc : public Simple {
+	double startX;
+	double startY;
+	double endX;
+	double endY;
+	double centerX;
+	double centerY;
+	double clockwise;
+	LineDesc* lineDesc;
+};
+
+struct PolyBegin {
+	double x, y;
+};
+
+class PolyStepCurve {
+public:
+	double x;
+	double y;
+	double centerX;
+	double centerY;
+	bool clockwise;
+};
+class PolyStepSegment {
+public:
+	double x;
+	double y;
+};
+
+using PolyStepBase = std::variant<PolyStepCurve, PolyStepSegment>;
+using PolyStep = std::vector<PolyStepBase>;
+
+struct Polygon {
+	PolyBegin polyBegin;
+	PolyStep polyStep;
+	Xform xform;
+	LineDesc* lineDesc;
+	FillDesc* fillDesc;
+};
+
+struct Polyline : public Simple {
+	PolyBegin polyBegin;
+	PolyStep polyStep;
+	LineDesc* lineDesc;
+};
+
+struct Cutout {
+	PolyBegin polyBegin;
+	PolyStep polyStep;
+	Xform xform;
+	LineDesc* lineDesc;
+	FillDesc* fillDesc;
+};
+
+struct Outline : public Simple {
+	Polygon polygon;
+	LineDesc* lineDesc;
 };
 
 struct Butterfly : public Shape {
@@ -127,10 +197,24 @@ struct Triangle : public Shape {
 	FillDesc* fillDesc;
 };
 
+struct UserSpecial : public Shape {
+	std::vector<Simple*> simpleShape;
+};
+
 class StandardShape {
 public:
 	StandardShape(ContentSection* content);
+	Shape* ReadSimple(tinyxml2::XMLElement* aElement);
 	Shape* ReadStandard(tinyxml2::XMLElement* aElement);
+	Simple* ReadLine(tinyxml2::XMLElement* aElement);
+	Simple* ReadArc(tinyxml2::XMLElement* aElement);
+	bool ReadPolyBegin(tinyxml2::XMLElement* aElement, PolyBegin& poly);
+	Simple* ReadOutline(tinyxml2::XMLElement* aElement);
+	bool ReadPolygon(tinyxml2::XMLElement* aElement, Polygon& polygon);
+	Simple* ReadPolyline(tinyxml2::XMLElement* aElement);
+	bool ReadCutout(tinyxml2::XMLElement* aElement, Cutout& cutout);
+	bool ReadPolyStepCurve(tinyxml2::XMLElement* aElement, PolyStepCurve& polyStepCurve);
+	bool ReadPolyStepSegment(tinyxml2::XMLElement* aElement, PolyStepSegment& polyStepSegment);
 	Butterfly* ReadButterfly(tinyxml2::XMLElement* aElement);
 	Circle* ReadCircle(tinyxml2::XMLElement* aElement);
 	Contour* ReadContour(tinyxml2::XMLElement* aElement);
@@ -147,9 +231,15 @@ public:
 	RectRound* ReadRectRound(tinyxml2::XMLElement* aElement);
 	Thermal* ReadThermal(tinyxml2::XMLElement* aElement);
 	Triangle* ReadTriangle(tinyxml2::XMLElement* aElement);
+	Shape* ReadFeature(tinyxml2::XMLElement* aElement);
+	Shape* ReadUserSpecial(tinyxml2::XMLElement* aElement);
 private:
 	ContentSection* m_content;
 public:
+	std::vector<Arc>		m_arc;
+	std::vector<Line>		m_line;
+	std::vector<Polyline>	m_polyline;
+	std::vector<Outline>	m_outline;
 	std::vector<Butterfly>	m_butterfly;
 	std::vector<Circle>		m_circle;
 	std::vector<Contour>	m_contour;

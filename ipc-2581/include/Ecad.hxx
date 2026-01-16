@@ -221,6 +221,7 @@ struct Component {
 	std::string refDes;
 	std::string matDes;
 	std::string packageRef;
+	std::string part;
 	std::string layerRef;
 	MountType mountType;
 	std::string modelRef;
@@ -287,13 +288,19 @@ struct SlotCavity {
 	Fill fill;
 };
 
+struct Features {
+	Xform xform;
+	Location location;
+	std::vector<Shape*> featureShapes;
+};
+
 struct NetShort {};
 
 struct Set {
 	std::string net;
 	std::string netPair;
 	Polarity polarity;
-	PadUse padUse;
+	PadUsage padUsage;
 	bool testPoint;
 	std::string geometry;
 	bool plate;
@@ -303,7 +310,7 @@ struct Set {
 	std::vector<Pad> pads;
 	std::vector<Hole> holes;
 	std::vector<SlotCavity> slotCavities;
-	std::vector<Shape*> feature;
+	std::vector<Features> features;
 	std::vector<LineDesc*> lineDescs;
 	std::vector<NetShort> netShort;
 
@@ -360,6 +367,11 @@ private:
 	bool ReadMarking(tinyxml2::XMLElement* markingDoc, Marking& marking);
 	bool ReadComponent(tinyxml2::XMLElement* aComponentDoc, Component& component);
 	bool ReadLayerFeature(tinyxml2::XMLElement* aLayerFeatureDoc, LayerFeature& layerFeature);
+	bool ReadSlotCavityRef(tinyxml2::XMLElement* aSlotCavityRefDoc, SlotCavityRef& slotCavityRef);
+	bool ReadSet(tinyxml2::XMLElement* aSetDoc, Set& set);
+	bool ReadHole(tinyxml2::XMLElement* aHoleDoc, Hole& hole);
+	bool ReadSlotCavity(tinyxml2::XMLElement* aSlotCavityDoc, SlotCavity& slotCavity);
+	bool ReadFeatures(tinyxml2::XMLElement* aFeaturesDoc, Features& features);
 private:
 	tinyxml2::XMLElement* m_ecad;
 	ContentSection* m_content;

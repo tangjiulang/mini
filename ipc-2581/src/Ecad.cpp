@@ -1,4 +1,5 @@
 #include "Ecad.hxx"
+#include "StandardShape.hxx"
 
 EcadSection::EcadSection(tinyxml2::XMLElement* aEcad, ContentSection* aContent)
 	: m_ecad(aEcad),
@@ -71,7 +72,7 @@ bool EcadSection::ReadSpec(tinyxml2::XMLElement* aElement)
 	auto outline = aElement->FirstChildElement("Outline");
 	if (outline != nullptr) {
 		spec.outline = new Outline;
-		ReadOutline(outline, *spec.outline);
+		m_standardShape->ReadOutline(outline, *spec.outline);
 	}
 
 	m_specs.push_back(spec);
@@ -208,6 +209,7 @@ bool EcadSection::ReadStep(tinyxml2::XMLElement* aStep)
 	for (auto layerFeatureDoc = aStep->FirstChildElement("LayerFeature"); layerFeatureDoc; layerFeatureDoc = layerFeatureDoc->NextSiblingElement("LayerFeature")) {
 		LayerFeature layerFeature;
 		// Read LayerFeature
+		ReadLayerFeature(layerFeatureDoc, layerFeature);
 
 		step.layerFeatures.emplace_back(layerFeature);
 	}
@@ -322,19 +324,11 @@ bool EcadSection::ReadPadStackPadDef(tinyxml2::XMLElement* aPadStackPadDefDoc, P
 	if (xform != nullptr)
 		ReadXform(xform, padStackPadDef.xform);
 
-	ReadLocation(aPadStackPadDefDoc->FirstChildElement("Location"), padStackPadDef.location);
+	auto locationDoc = aPadStackPadDefDoc->FirstChildElement("Location");
+	ReadLocation(locationDoc, padStackPadDef.location);
 
 	// Read Feature
-	if (aPadStackPadDefDoc->FirstChildElement("StandardPrimitiveRef") != nullptr) {
-		auto standardPrimitiveRef = aPadStackPadDefDoc->FirstChildElement("StandardPrimitiveRef");
-		std::string shapeId = standardPrimitiveRef->FindAttribute("id")->Value();
-		padStackPadDef.feature = m_content->m_standaredPrimitive[shapeId];
-	}
-	else {
-		auto userPrimitiveRef = aPadStackPadDefDoc->FirstChildElement("UserPrimitiveRef");
-		std::string shapeId = userPrimitiveRef->FindAttribute("id")->Value();
-		padStackPadDef.feature = m_content->m_userPrimitive[shapeId];
-	}
+	padStackPadDef.feature = m_standardShape->ReadFeature(locationDoc->NextSiblingElement());
 
 	return true;
 }
@@ -363,7 +357,7 @@ bool EcadSection::ReadPackage(tinyxml2::XMLElement* aPackageDoc, Package& packag
 	package.comment = aPackageDoc->FindAttribute("comment") != nullptr ? aPackageDoc->FindAttribute("comment")->Value() : "";
 	package.negativeBodyExtension = aPackageDoc->FindAttribute("negativeBodyExtension") != nullptr ? aPackageDoc->FindAttribute("negativeBodyExtension")->DoubleValue() : -1;
 	
-	ReadOutline(aPackageDoc->FirstChildElement("Outline"), package.outline);
+	m_standardShape->ReadOutline(aPackageDoc->FirstChildElement("Outline"), package.outline);
 	
 	auto pickupPointDoc = aPackageDoc->FirstChildElement("PickupPoint");
 	if (pickupPointDoc != nullptr)
@@ -463,7 +457,7 @@ bool EcadSection::ReadSilkScreen(tinyxml2::XMLElement* aSilkScreenDoc, SilkScree
 {
 	for (auto outlineDoc = aSilkScreenDoc->FirstChildElement("Outline"); outlineDoc; outlineDoc = outlineDoc->NextSiblingElement("Outline")) {
 		Outline outline;
-		ReadOutline(outlineDoc, outline);
+		m_standardShape->ReadOutline(outlineDoc, outline);
 		silkScreen.outlines.emplace_back(outline);
 	}
 
@@ -527,6 +521,162 @@ bool EcadSection::ReadMarking(tinyxml2::XMLElement* aMarkingDoc, Marking& markin
 	if (location != nullptr)
 		ReadLocation(location, marking.location);
 
+
+	return true;
+}
+
+bool EcadSection::ReadComponent(tinyxml2::XMLElement* aComponentDoc, Component& component)
+{
+	component.refDes = aComponentDoc->FindAttribute("refDes") ? aComponentDoc->FindAttribute("refDes")->Value() : "";
+	component.matDes = aComponentDoc->FindAttribute("matDes") ? aComponentDoc->FindAttribute("matDes")->Value() : "";
+	component.packageRef = aComponentDoc->FindAttribute("packageRef") ? aComponentDoc->FindAttribute("packageRef")->Value() : "";
+	component.part = aComponentDoc->FindAttribute("part")->Value();
+	component.layerRef = aComponentDoc->FindAttribute("layerRef")->Value();
+	component.mountType = GetMountType(aComponentDoc->FindAttribute("mountType")->Value());
+	component.modelRef = aComponentDoc->FindAttribute("modelRef") ? aComponentDoc->FindAttribute("modelRef")->Value() : "";
+	component.weight = aComponentDoc->FindAttribute("weight") ? aComponentDoc->FindAttribute("weight")->DoubleValue() : -1;
+	component.height = aComponentDoc->FindAttribute("height") ? aComponentDoc->FindAttribute("height")->DoubleValue() : -1;
+	component.standoff = aComponentDoc->FindAttribute("standoff") ? aComponentDoc->FindAttribute("standoff")->DoubleValue() : -1;
+
+	for (auto nonstandardAttributeDoc = aComponentDoc->FirstChildElement("NonstandardAttribute"); nonstandardAttributeDoc; nonstandardAttributeDoc = nonstandardAttributeDoc->NextSiblingElement("NonstandardAttribute")) {
+		NonstandardAttribute nonstandardAtrribute;
+		ReadNonstandardAttribute(nonstandardAttributeDoc, nonstandardAtrribute);
+		component.nonstandardAttributes.emplace_back(nonstandardAtrribute);
+	}
+
+	auto xformDoc = aComponentDoc->FirstChildElement("Xform");
+	if (xformDoc != nullptr)
+		ReadXform(xformDoc, component.xform);
+
+	auto locationDoc = aComponentDoc->FirstChildElement("Location");
+	if (locationDoc != nullptr)
+		ReadLocation(locationDoc, component.location);
+
+	auto slotCavityRefDoc = aComponentDoc->FirstChildElement("SlotCavityRef");
+	if (slotCavityRefDoc != nullptr)
+		ReadSlotCavityRef(slotCavityRefDoc, component.slotCavityRef);
+
+	for (auto specRefDoc = aComponentDoc->FirstChildElement("SpecRef"); specRefDoc; specRefDoc = specRefDoc->NextSiblingElement("SpecRef")) {
+		Spec specRef;
+		// Todo Read SpecRef
+	}
+
+	return true;
+}
+
+bool EcadSection::ReadSlotCavityRef(tinyxml2::XMLElement* aSlotCavityRefDoc, SlotCavityRef& slotCavityRef)
+{
+	slotCavityRef.id = aSlotCavityRefDoc->FindAttribute("id")->Value();
+	return true;
+}
+
+bool EcadSection::ReadLayerFeature(tinyxml2::XMLElement* aLayerFeatureDoc, LayerFeature& layerFeature)
+{
+	layerFeature.layerRef = aLayerFeatureDoc->FindAttribute("layerRef")->Value();
+
+	for (auto setDoc = aLayerFeatureDoc->FirstChildElement("Set"); setDoc; setDoc = setDoc->NextSiblingElement("Set")) {
+		Set set;
+		ReadSet(setDoc, set);
+		layerFeature.sets.emplace_back(set);
+	}
+
+	return true;
+}
+
+bool EcadSection::ReadSet(tinyxml2::XMLElement* aSetDoc, Set& set)
+{
+	set.net = aSetDoc->FindAttribute("net") ? aSetDoc->FindAttribute("net")->Value() : "";
+	set.netPair = aSetDoc->FindAttribute("netPair") ? aSetDoc->FindAttribute("netPair")->Value() : "";
+	set.polarity = aSetDoc->FindAttribute("polarity") ? GetPolarity(aSetDoc->FindAttribute("polarity")->Value()) : Polarity::UNDEFINED;
+	set.padUsage = aSetDoc->FindAttribute("padUsage") ? GetPadUsage(aSetDoc->FindAttribute("padUsase")->Value()) : PadUsage::NONE;  
+	set.testPoint = aSetDoc->FindAttribute("testPoint") ? aSetDoc->FindAttribute("testPoint")->BoolValue() : false;
+	set.geometry = aSetDoc->FindAttribute("geometry") ? aSetDoc->FindAttribute("geometry")->Value() : "";
+	set.plate = aSetDoc->FindAttribute("plate") ? aSetDoc->FindAttribute("plate")->BoolValue() : false;
+	set.componentRef = aSetDoc->FindAttribute("componentRef") ? aSetDoc->FindAttribute("componentRef")->Value() : "";
+	set.geometryUsage = aSetDoc->FindAttribute("geometryUsage") ? GetGeometryUsage(aSetDoc->FindAttribute("geometryUsage")->Value()) : GeometryUsage::NONE;
+
+	for (auto nonstandardAttributeDoc = aSetDoc->FirstChildElement("NonstandardAttribute"); nonstandardAttributeDoc; nonstandardAttributeDoc = nonstandardAttributeDoc->NextSiblingElement("NonstandardAttribute")) {
+		NonstandardAttribute nonstandardAttribute;
+		ReadNonstandardAttribute(nonstandardAttributeDoc, nonstandardAttribute);
+		set.nonstandardAttributes.emplace_back(nonstandardAttribute);
+	}
+
+	for (auto padDoc = aSetDoc->FirstChildElement("Pad"); padDoc; padDoc = padDoc->NextSiblingElement("Pad")) {
+		Pad pad;
+		ReadPad(padDoc, pad);
+		set.pads.emplace_back(pad);
+	}
+
+	for (auto fiducialDoc = aSetDoc->FirstChildElement("Fiducial"); fiducialDoc; fiducialDoc = fiducialDoc->NextSiblingElement("Fiducial")) {
+		// Todo Read Fiducial
+		
+	}
+
+	for (auto holeDoc = aSetDoc->FirstChildElement("Hole"); holeDoc; holeDoc = holeDoc->NextSiblingElement("Hole")) {
+		Hole hole;
+		ReadHole(holeDoc, hole);
+		set.holes.emplace_back(hole);
+	}
+
+	for (auto slotCavityDoc = aSetDoc->FirstChildElement("SlotCavity"); slotCavityDoc; slotCavityDoc = slotCavityDoc->NextSiblingElement("SlotCavity")) {
+		SlotCavity slotCavity;
+		ReadSlotCavity(slotCavityDoc, slotCavity);
+		set.slotCavities.emplace_back(slotCavity);
+	}
+
+	for (auto specRefDoc = aSetDoc->FirstChildElement("SpecRef"); specRefDoc; specRefDoc = specRefDoc->NextSiblingElement("SpecRef")) {
+		// Todo Read Spec Ref
+	}
+
+	for (auto featuresDoc = aSetDoc->FirstChildElement("Features"); featuresDoc; featuresDoc = featuresDoc->NextSiblingElement("Features")) {
+		Features features;
+		ReadFeatures(featuresDoc, features);
+		set.features.emplace_back(features);
+	}
+
+	return true;
+}
+
+bool EcadSection::ReadHole(tinyxml2::XMLElement* aHoleDoc, Hole& hole)
+{
+	hole.name = aHoleDoc->FindAttribute("name")->Value();
+	hole.type = aHoleDoc->FindAttribute("type") ? GetHoleShape(aHoleDoc->FindAttribute("type")->Value()) : HoleShape::CIRCLE;
+	hole.diameter = aHoleDoc->FindAttribute("diameter")->DoubleValue();
+	hole.platingStatus = GetPlatingStatus(aHoleDoc->FindAttribute("platingStatus")->Value());
+	hole.plusTol = aHoleDoc->FindAttribute("plusTol")->DoubleValue();
+	hole.minusTol = aHoleDoc->FindAttribute("minusTol")->DoubleValue();
+	hole.x = aHoleDoc->FindAttribute("x")->DoubleValue();
+	hole.y = aHoleDoc->FindAttribute("y")->DoubleValue();
+
+	for (auto specRefDoc = aHoleDoc->FirstChildElement("SpecRef"); specRefDoc; specRefDoc = specRefDoc->NextSiblingElement("SpecRef")) {
+		// Todo Read Spec Ref
+	}
+
+	auto xformDoc = aHoleDoc->FirstChildElement("Xform");
+	if (xformDoc != nullptr)
+		ReadXform(xformDoc, hole.xform);
+
+	return false;
+}
+
+bool EcadSection::ReadSlotCavity(tinyxml2::XMLElement* aSlotCavityDoc, SlotCavity& slotCavity)
+{
+	return false;
+}
+
+bool EcadSection::ReadFeatures(tinyxml2::XMLElement* aFeaturesDoc, Features& features)
+{
+	auto xformDoc = aFeaturesDoc->FirstChildElement("Xform");
+	if (xformDoc != nullptr)
+		ReadXform(xformDoc, features.xform);
+
+	auto locationDoc = aFeaturesDoc->FirstChildElement("Location");
+	if (locationDoc != nullptr)
+		ReadLocation(locationDoc, features.location);
+
+	for (auto shapeDoc = locationDoc->NextSiblingElement(); shapeDoc; shapeDoc = shapeDoc->NextSiblingElement()) {
+		features.featureShapes.emplace_back(m_standardShape->ReadFeature(shapeDoc));
+	}
 
 	return false;
 }
