@@ -159,7 +159,7 @@ struct Marking {
 };
 
 struct SilkScreen {
-	std::vector<Outline> outlines;
+	std::vector<Outline*> outlines;
 	std::vector<Marking> markings;
 };
 
@@ -202,7 +202,7 @@ struct Package {
 	double height;
 	double negativeBodyExtension;
 	std::string comment;
-	Outline outline;
+	Outline* outline;
 	Location pickupPoint;
 	LandPattern landPattern;
 	SilkScreen silkStreen;
@@ -330,7 +330,7 @@ struct Step {
 	Datum datum;
 	Contour* profile;
 	std::vector<StepRepeat> stepRepeats;
-	std::vector<Package> packages;
+	std::unordered_map<std::string, Package> packages;
 	std::vector<Component> components;
 	// Todo LogicalNet, PhyNetGroup
 	std::vector<LayerFeature> layerFeatures;

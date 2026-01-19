@@ -34,5 +34,6 @@ protected:
 
     QWidget*            m_centralWidget;
     DrawPanelGal*       m_drawPanelGal;
+public:
     DataManager*        m_dataManager;
 };

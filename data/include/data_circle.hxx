@@ -7,7 +7,7 @@ class DATA_Circle : public BOARD_ITEM
 {
 public:
 	DATA_Circle() = default;
-	DATA_Circle(VECTOR2I, double);
+	DATA_Circle(VECTOR2I, double, double = 1);
 
 	virtual const BOX2I GetBoundingBox() const override;
 	std::string GetClass() const override {
@@ -16,6 +16,7 @@ public:
 	
 	VECTOR2D m_centerPoint;
 	double m_radius;
+	double m_lineWidth;
 };
 }
 

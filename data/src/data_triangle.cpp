@@ -2,11 +2,12 @@
 
 using namespace KIGFX;
 
-DATA_Triangle::DATA_Triangle(VECTOR2I aPoint1, VECTOR2I aPoint2, VECTOR2I aPoint3)
+DATA_Triangle::DATA_Triangle(VECTOR2I aPoint1, VECTOR2I aPoint2, VECTOR2I aPoint3, double lineWidth)
 	: BOARD_ITEM(ITEM_TYPE::TRIANGLE),
 	  m_point1(aPoint1),
 	  m_point2(aPoint2),
-	  m_point3(aPoint3) {}
+	  m_point3(aPoint3),
+	  m_lineWidth(lineWidth) {}
 
 const BOX2I DATA_Triangle::GetBoundingBox() const
 {

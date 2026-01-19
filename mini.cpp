@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <ipc-2581/include/reader.hxx>
+#include "TranslateToData.hxx"
 
 int main(int argc, char* argv[])
 {
@@ -18,7 +19,17 @@ int main(int argc, char* argv[])
     w.show();
 
 
-    w.GeneratorData();
+    //w.GeneratorData();
+    
+
+    std::string filePath = "C:\\Users\\Administrator\\Documents\\333\\default1.xml";
+    IPC2581Document doc(filePath);
+    doc.DocumentReader();
+    doc.ContentReader();
+    doc.EcadReader();
+    
+    TranslateToData translate(&doc.m_ecad, w.m_dataManager);
+    translate.Translate();
 
     w.InitialViewData();
 
@@ -26,11 +37,6 @@ int main(int argc, char* argv[])
     qDebug() << (const char*)glGetString(GL_RENDERER);
     qDebug() << (const char*)glGetString(GL_VERSION);
 
-    std::string filePath = "C:\\Users\\Administrator\\Documents\\333\\default1.xml";
-    IPC2581Document doc(filePath);
-    doc.DocumentReader();
-    doc.ContentReader();
-    doc.EcadReader();
-
+    
     return app.exec();
 }

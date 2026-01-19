@@ -26,7 +26,7 @@ public:
 	WrongType BomReader();
 	WrongType AvlReader();
 
-private:
+public:
 	std::string				m_fileName;
 	tinyxml2::XMLDocument	m_document;
 	IPC2581Header			m_header;

@@ -123,7 +123,7 @@ bool StandardShape::ReadPolygon(tinyxml2::XMLElement* aElement, Polygon& polygon
 {
 	ReadPolyBegin(aElement->FirstChildElement("PolyBegin"), polygon.polyBegin);
 
-	for (auto stepElemDoc = aElement->FirstChildElement()->NextSiblingElement(); stepElemDoc && stepElemDoc->Name() != std::string("PolyStepCurve") && stepElemDoc->Name() != std::string("PolyStepSegment"); stepElemDoc = stepElemDoc->NextSiblingElement()) {
+	for (auto stepElemDoc = aElement->FirstChildElement()->NextSiblingElement(); stepElemDoc && (stepElemDoc->Name() == std::string("PolyStepCurve") || stepElemDoc->Name() == std::string("PolyStepSegment")); stepElemDoc = stepElemDoc->NextSiblingElement()) {
 		if (stepElemDoc->Name() == std::string("PolyStepCurve")) {
 			PolyStepCurve polyStepCurve;
 			ReadPolyStepCurve(stepElemDoc, polyStepCurve);
@@ -153,7 +153,7 @@ Simple* StandardShape::ReadPolyline(tinyxml2::XMLElement* aElement)
 
 	ReadPolyBegin(aElement->FirstChildElement("PolyBegin"), polyline.polyBegin);
 
-	for (auto stepElemDoc = aElement->FirstChildElement()->NextSiblingElement(); stepElemDoc && stepElemDoc->Name() != std::string("PolyStepCurve") && stepElemDoc->Name() != std::string("PolyStepSegment"); stepElemDoc = stepElemDoc->NextSiblingElement()) {
+	for (auto stepElemDoc = aElement->FirstChildElement()->NextSiblingElement(); stepElemDoc && (stepElemDoc->Name() == std::string("PolyStepCurve") || stepElemDoc->Name() == std::string("PolyStepSegment")); stepElemDoc = stepElemDoc->NextSiblingElement()) {
 		if (stepElemDoc->Name() == std::string("PolyStepCurve")) {
 			PolyStepCurve polyStepCurve;
 			ReadPolyStepCurve(stepElemDoc, polyStepCurve);
@@ -175,7 +175,7 @@ bool StandardShape::ReadCutout(tinyxml2::XMLElement* aElement, Cutout& cutout)
 {
 	ReadPolyBegin(aElement->FirstChildElement("PolyBegin"), cutout.polyBegin);
 
-	for (auto stepElemDoc = aElement->FirstChildElement()->NextSiblingElement(); stepElemDoc && stepElemDoc->Name() != std::string("PolyStepCurve") && stepElemDoc->Name() != std::string("PolyStepSegment"); stepElemDoc = stepElemDoc->NextSiblingElement()) {
+	for (auto stepElemDoc = aElement->FirstChildElement()->NextSiblingElement(); stepElemDoc && (stepElemDoc->Name() == std::string("PolyStepCurve") || stepElemDoc->Name() == std::string("PolyStepSegment")); stepElemDoc = stepElemDoc->NextSiblingElement()) {
 		if (stepElemDoc->Name() == std::string("PolyStepCurve")) {
 			PolyStepCurve polyStepCurve;
 			ReadPolyStepCurve(stepElemDoc, polyStepCurve);
@@ -265,62 +265,188 @@ RectCenter* StandardShape::ReadRectCenter(tinyxml2::XMLElement* aElement) {
 
 Diamond* StandardShape::ReadDiamond(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_diamond.push_back(Diamond{});
+	auto& diamond = m_diamond.back();
+
+	diamond.height = aElement->FindAttribute("height")->DoubleValue();
+	diamond.width = aElement->FindAttribute("width")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &diamond.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &diamond.fillDesc);
+
+	return &m_diamond.back();
 }
 
 Donut* StandardShape::ReadDonut(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_donut.push_back(Donut{});
+	auto& donut = m_donut.back();
+
+	donut.shape = GetDonutShape(aElement->FindAttribute("shape")->Value());
+	donut.outerDiameter = aElement->FindAttribute("outerDiameter")->DoubleValue();
+	donut.innerDiameter = aElement->FindAttribute("innerDiameter")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &donut.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &donut.fillDesc);
+
+	return &m_donut.back();
 }
 
 Ellipse* StandardShape::ReadEllipse(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_ellipse.push_back(Ellipse{});
+	auto& ellipse = m_ellipse.back();
+
+	ellipse.height = aElement->FindAttribute("height")->DoubleValue();
+	ellipse.width = aElement->FindAttribute("width")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &ellipse.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &ellipse.fillDesc);
+
+	return &m_ellipse.back();
 }
 
 Hexagon* StandardShape::ReadHexagon(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_hexagon.push_back(Hexagon{});
+	auto hexagon = m_hexagon.back();
+
+	hexagon.length = aElement->FindAttribute("length")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &hexagon.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &hexagon.fillDesc);
+
+	return &m_hexagon.back();
 }
 
 Moire* StandardShape::ReadMoire(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_moire.push_back(Moire{});
+	auto& moire = m_moire.back();
+	
+	moire.diameter = aElement->FindAttribute("diameter")->DoubleValue();
+	moire.ringWidth = aElement->FindAttribute("ringWidth")->DoubleValue();
+	moire.ringGap = aElement->FindAttribute("ringGap")->DoubleValue();
+	moire.ringNumber = aElement->FindAttribute("ringNumber")->IntValue();
+
+	moire.lineWidth = aElement->FindAttribute("lineWidth") ? aElement->FindAttribute("lineWidth")->DoubleValue() : -1;
+	moire.lineLength = aElement->FindAttribute("lineLength") ? aElement->FindAttribute("lineLength")->DoubleValue() : -1;
+	moire.lineAngle = aElement->FindAttribute("lineAngle") ? aElement->FindAttribute("lineAngle")->DoubleValue() : -1;
+
+	return &m_moire.back();
 }
 
 Octagon* StandardShape::ReadOctagon(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_octagon.push_back(Octagon{});
+	auto octagon = m_octagon.back();
+
+	octagon.length = aElement->FindAttribute("length")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &octagon.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &octagon.fillDesc);
+
+	return &m_octagon.back();
 }
 
 Oval* StandardShape::ReadOval(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_oval.push_back(Oval{});
+	auto& oval = m_oval.back();
+
+	oval.height = aElement->FindAttribute("height")->DoubleValue();
+	oval.width = aElement->FindAttribute("width")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &oval.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &oval.fillDesc);
+
+	return &m_oval.back();
 }
 
 RectCham* StandardShape::ReadRectCham(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_rectCham.push_back(RectCham{});
+	auto& rectCham = m_rectCham.back();
+
+	rectCham.width = aElement->FindAttribute("width")->DoubleValue();
+	rectCham.height = aElement->FindAttribute("height")->DoubleValue();
+	rectCham.chamfer = aElement->FindAttribute("chamfer")->DoubleValue();
+	rectCham.upperRight = aElement->FindAttribute("upperRight") ? aElement->FindAttribute("upperRight")->BoolValue() : false;
+	rectCham.upperLeft = aElement->FindAttribute("upperLeft") ? aElement->FindAttribute("upperLeft")->BoolValue() : false;
+	rectCham.lowerLeft = aElement->FindAttribute("lowerLeft") ? aElement->FindAttribute("lowerLeft")->BoolValue() : false;
+	rectCham.lowerRight = aElement->FindAttribute("lowerRight") ? aElement->FindAttribute("lowerRight")->BoolValue() : false;
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &rectCham.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &rectCham.fillDesc);
+
+	return &m_rectCham.back();
 }
 
 RectCorner* StandardShape::ReadRectCorner(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_rectCorner.push_back(RectCorner{});
+	auto& rectCorner = m_rectCorner.back();
+
+	rectCorner.lowerLeftX = aElement->FindAttribute("lowerLeftX")->DoubleValue();
+	rectCorner.lowerLeftY = aElement->FindAttribute("lowerLeftY")->DoubleValue();
+	rectCorner.upperRightX = aElement->FindAttribute("upperRightX")->DoubleValue();
+	rectCorner.upperRightY = aElement->FindAttribute("upperRightY")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &rectCorner.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &rectCorner.fillDesc);
+
+	return &m_rectCorner.back();
 }
 
 RectRound* StandardShape::ReadRectRound(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_rectRound.push_back(RectRound{});
+	auto& rectRound = m_rectRound.back();
+
+	rectRound.width = aElement->FindAttribute("width")->DoubleValue();
+	rectRound.height = aElement->FindAttribute("height")->DoubleValue();
+	rectRound.radius = aElement->FindAttribute("chamfer")->DoubleValue();
+	rectRound.upperRight = aElement->FindAttribute("upperRight") ? aElement->FindAttribute("upperRight")->BoolValue() : false;
+	rectRound.upperLeft = aElement->FindAttribute("upperLeft") ? aElement->FindAttribute("upperLeft")->BoolValue() : false;
+	rectRound.lowerLeft = aElement->FindAttribute("lowerLeft") ? aElement->FindAttribute("lowerLeft")->BoolValue() : false;
+	rectRound.lowerRight = aElement->FindAttribute("lowerRight") ? aElement->FindAttribute("lowerRight")->BoolValue() : false;
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &rectRound.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &rectRound.fillDesc);
+
+	return &m_rectRound.back();
 }
 
 Thermal* StandardShape::ReadThermal(tinyxml2::XMLElement* aElement)
 {
-	return nullptr;
+	m_thermal.push_back(Thermal{});
+	auto& thermal = m_thermal.back();
+
+	thermal.shape = GetThermalShape(aElement->FindAttribute("shape")->Value());
+	thermal.outerDiameter = aElement->FindAttribute("outerDiameter")->DoubleValue();
+	thermal.innerDiameter = aElement->FindAttribute("innerDiameter")->DoubleValue();
+	thermal.spockCount = aElement->FindAttribute("spockCount") ? aElement->FindAttribute("spockCount")->IntValue() : -1;
+	thermal.spokeWidth = aElement->FindAttribute("spockWidth") ? aElement->FindAttribute("spockWidth")->DoubleValue() : -1;
+	thermal.spokeStartAngle = aElement->FindAttribute("spockStartAngle")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &thermal.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &thermal.fillDesc);
+
+	return &m_thermal.back();
 }
 
 Triangle * StandardShape::ReadTriangle(tinyxml2::XMLElement * aElement)
 {
-	return nullptr;
+	m_triangle.push_back(Triangle{});
+	auto& triangle = m_triangle.back();
+
+	triangle.base = aElement->FindAttribute("base")->DoubleValue();
+	triangle.height = aElement->FindAttribute("height")->DoubleValue();
+
+	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &triangle.lineDesc);
+	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &triangle.fillDesc);
+
+	return &m_triangle.back();
 }
 
 Shape* StandardShape::ReadFeature(tinyxml2::XMLElement* aElement)
@@ -351,19 +477,22 @@ Shape* StandardShape::ReadFeature(tinyxml2::XMLElement* aElement)
 
 Shape* StandardShape::ReadUserSpecial(tinyxml2::XMLElement* aElement)
 {
+	m_userspecial.push_back(UserSpecial{});
+	auto& userSpecial = m_userspecial.back();
 	for (auto shapeDoc = aElement->FirstChildElement(); shapeDoc; shapeDoc = shapeDoc->NextSiblingElement()) {
 		if (shapeDoc->Name() == std::string("UserPrimitiveRef")) {
 			std::string ref = shapeDoc->FindAttribute("id")->Value();
 			auto it = m_content->m_userPrimitive.find(ref);
 			if (it != m_content->m_userPrimitive.end())
-				return it->second;
+				userSpecial.simpleShape.push_back(it->second);
 		}
 		else if (GetSimpleType(shapeDoc->Name()) != SimpleType::OTHER) {
-			return ReadSimple(shapeDoc);
+			userSpecial.simpleShape.push_back(ReadSimple(shapeDoc));
 		}
+		else if (GetStandardType(shapeDoc->Name()) != StandardType::OTHER)
+			userSpecial.simpleShape.push_back(ReadStandard(shapeDoc));
 		else
-			return ReadUserSpecial(shapeDoc);
-
+			userSpecial.simpleShape.push_back(ReadUserSpecial(shapeDoc));
 	}
-		return nullptr;
+		return &m_userspecial.back();
 }

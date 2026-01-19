@@ -585,12 +585,14 @@ void DrawPanelGal::InitialViewData(DataManager* data)
 	for (auto &circle : data->m_circles) {
 		circle.m_centerPoint = m_view->ToWorld(circle.m_centerPoint);
 		circle.m_radius = m_view->ToWorld(circle.m_radius);
+        circle.m_lineWidth = m_view->ToWorld(circle.m_lineWidth);
 		m_view->Add(&circle);
 	}
 
 	for (auto& rectangle : data->m_rectangles) {
 		rectangle.m_startPoint = m_view->ToWorld(rectangle.m_startPoint);
 		rectangle.m_endPoint = m_view->ToWorld(rectangle.m_endPoint);
+		rectangle.m_lineWidth = m_view->ToWorld(rectangle.m_lineWidth);
 		m_view->Add(&rectangle);
 	}
 	
@@ -598,6 +600,7 @@ void DrawPanelGal::InitialViewData(DataManager* data)
 		triangle.m_point1 = m_view->ToWorld(triangle.m_point1);
         triangle.m_point2 = m_view->ToWorld(triangle.m_point2);
         triangle.m_point3 = m_view->ToWorld(triangle.m_point3);
+		triangle.m_lineWidth = m_view->ToWorld(triangle.m_lineWidth);
         m_view->Add(&triangle);
     }
 
@@ -608,6 +611,7 @@ void DrawPanelGal::InitialViewData(DataManager* data)
 		for (auto& point : polygon.m_points) {
 			point = m_view->ToWorld(point);
 		}
+		polygon.m_lineWidth = m_view->ToWorld(polygon.m_lineWidth);
 		m_view->Add(&polygon);
 	}
 

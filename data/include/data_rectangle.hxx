@@ -7,7 +7,7 @@ class DATA_Rectangle : public BOARD_ITEM
 {
 public:
 	DATA_Rectangle() = default;
-	DATA_Rectangle(VECTOR2I, VECTOR2I);
+	DATA_Rectangle(VECTOR2I, VECTOR2I, double = 1);
 
 	virtual const BOX2I GetBoundingBox() const override;
 	std::string GetClass() const override {
@@ -16,6 +16,8 @@ public:
 
 	VECTOR2D m_startPoint;
 	VECTOR2D m_endPoint;
+
+	double m_lineWidth;
 };
 }
 

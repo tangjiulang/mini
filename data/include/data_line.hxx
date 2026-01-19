@@ -6,7 +6,7 @@ namespace KIGFX {
 class DATA_Line : public BOARD_ITEM
 {
 public:
-	DATA_Line(VECTOR2I, VECTOR2I);
+	DATA_Line(VECTOR2I, VECTOR2I, double = 1);
 
 	virtual const BOX2I GetBoundingBox() const override;
 	std::string GetClass() const override {
@@ -15,6 +15,8 @@ public:
 
 	VECTOR2I m_startPoint;
 	VECTOR2I m_endPoint;
+
+	double m_lineWidth;
 };
 }
 

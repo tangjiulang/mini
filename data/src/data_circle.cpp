@@ -2,10 +2,11 @@
 
 using namespace KIGFX;
 
-DATA_Circle::DATA_Circle(VECTOR2I aCenterPoint, double aRadius)
+DATA_Circle::DATA_Circle(VECTOR2I aCenterPoint, double aRadius, double lineWidth)
 	: BOARD_ITEM(ITEM_TYPE::CIRCLE),
 	  m_centerPoint(aCenterPoint),
-	  m_radius(aRadius) { }
+	  m_radius(aRadius),
+	  m_lineWidth(lineWidth) {}
 
 const BOX2I DATA_Circle::GetBoundingBox() const
 {

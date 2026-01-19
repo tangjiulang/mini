@@ -49,7 +49,6 @@ WrongType ContentSection::Read()
 	}
 
 	// Read DictionaryStandard in Content
-	// Todo all standard shape, there just circle and rectCenter
 	auto dictionaryStandardDoc = m_content->FirstChildElement("DictionaryStandard");
 	if (dictionaryStandardDoc != nullptr)
 		ReadDictionaryStandard(dictionaryStandardDoc);
@@ -58,19 +57,9 @@ WrongType ContentSection::Read()
 	// Read DictionaryUser in Content
 	// not complete all dictionaryUser, there just circle
 	auto dictionaryUser = m_content->FirstChildElement("DictionaryUser");
-	for (auto entryUser = dictionaryUser->FirstChildElement(); entryUser; entryUser = entryUser->NextSiblingElement()) {
-		std::string id = entryUser->FindAttribute("id")->Value();
-		auto userSpecial = entryUser->FirstChildElement();
-		auto shape = userSpecial->FirstChildElement();
-		Shape* userShape;
-		if (std::string(shape->Name()) == "Circle") {
-			userShape = m_standardShape->ReadCircle(shape);
-		}
-		else {
-			// Todo any other shape
-		}
-		m_userPrimitive[id] = userShape;
-	}
+	if (dictionaryUser != nullptr)
+		ReadDictionaryUser(dictionaryUser);
+
 
 	return WrongType::Success;
 }
@@ -83,11 +72,19 @@ bool ContentSection::IsValid()
 bool ContentSection::ReadDictionaryStandard(tinyxml2::XMLElement* aDictionaryStandardDoc)
 {
 	for (auto entryStandardDoc = aDictionaryStandardDoc->FirstChildElement(); entryStandardDoc; entryStandardDoc = entryStandardDoc->NextSiblingElement()) {
-		Shape* standardShape = nullptr;
-		
 		std::string id = entryStandardDoc->FindAttribute("id")->Value();
-
 		m_standaredPrimitive[id] = m_standardShape->ReadStandard(entryStandardDoc->FirstChildElement());
 	}
-	return false;
+	return true;
+}
+
+bool ContentSection::ReadDictionaryUser(tinyxml2::XMLElement* aDictionanryUser)
+{
+	for (auto entryUser = aDictionanryUser->FirstChildElement(); entryUser; entryUser = entryUser->NextSiblingElement()) {
+		std::string id = entryUser->FindAttribute("id")->Value();
+		auto userSpecial = entryUser->FirstChildElement();
+		m_userPrimitive[id] = m_standardShape->ReadUserSpecial(userSpecial);
+	}
+
+	return true;
 }

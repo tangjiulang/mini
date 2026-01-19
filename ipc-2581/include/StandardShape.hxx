@@ -2,23 +2,35 @@
 #include <variant>
 #include <tinyxml2.h>
 #include "BaseElement.hxx"
+#include "data_manager.hxx"
 
 class ContentSection;
 
 struct Shape {
+	ShapeType type;
 };
 
-struct Simple : public Shape {};
+struct Simple : public Shape {
+	Simple() { Shape::type = ShapeType::Simple; }
+	SimpleType simpleType;
+};
+
+struct Standard : public Shape {
+	Standard() { Shape::type = ShapeType::Standard; }
+	StandardType standardType;
+};
 
 struct Line : public Simple {
+	Line() { Simple::simpleType = SimpleType::Line; }
 	double startX;
 	double startY;
 	double endX;
 	double endY;
-	LineDesc* lineDesc;
+	LineDesc* lineDesc = nullptr;
 };
 
 struct Arc : public Simple {
+	Arc() { Simple::simpleType = SimpleType::Arc; }
 	double startX;
 	double startY;
 	double endX;
@@ -26,23 +38,22 @@ struct Arc : public Simple {
 	double centerX;
 	double centerY;
 	double clockwise;
-	LineDesc* lineDesc;
+	LineDesc* lineDesc = nullptr;
 };
 
 struct PolyBegin {
 	double x, y;
 };
 
-class PolyStepCurve {
-public:
+struct PolyStepCurve {
 	double x;
 	double y;
 	double centerX;
 	double centerY;
 	bool clockwise;
 };
-class PolyStepSegment {
-public:
+struct PolyStepSegment {
+
 	double x;
 	double y;
 };
@@ -54,103 +65,117 @@ struct Polygon {
 	PolyBegin polyBegin;
 	PolyStep polyStep;
 	Xform xform;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
 
 struct Polyline : public Simple {
+	Polyline() { Simple::simpleType = SimpleType::Polyline; }
 	PolyBegin polyBegin;
 	PolyStep polyStep;
-	LineDesc* lineDesc;
+	LineDesc* lineDesc = nullptr;
 };
 
 struct Cutout {
 	PolyBegin polyBegin;
 	PolyStep polyStep;
 	Xform xform;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
 
 struct Outline : public Simple {
+	Outline() { Simple::simpleType = SimpleType::Outline; }
 	Polygon polygon;
-	LineDesc* lineDesc;
+	LineDesc* lineDesc = nullptr;
 };
 
-struct Butterfly : public Shape {
+struct Butterfly : public Standard {
+	Butterfly() { Standard::standardType = StandardType::BUTTERFLY; }
 	std::string shape;
 	double expand;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
 
-struct Circle : public Shape {
+struct Circle : public Standard {
+	Circle() { Standard::standardType = StandardType::CIRCLE; }
 	double diameter;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
 
-struct Contour : public Shape {
+struct Contour : public Standard {
+	Contour() { Standard::standardType = StandardType::CONTOUR; }
 	Polygon polygon;
 	std::vector<Cutout> cutouts;
 };
 
-struct Diamond : public Shape {
+struct Diamond : public Standard {
+	Diamond() { Standard::standardType = StandardType::DIAMOND; }
 	double width;
 	double height;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
 
-struct Donut : public Shape {
-	std::string shape;
+struct Donut : public Standard {
+	Donut() { Standard::standardType = StandardType::DONUT; }
+	DonutShape shape;
 	double outerDiameter;
 	double innerDiameter;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
 
-struct Ellipse : public Shape {
+struct Ellipse : public Standard {
+	Ellipse() { Standard::standardType = StandardType::ELLIPSE; }
 	double width;
 	double height;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
 
-struct Hexagon : public Shape {
+struct Hexagon : public Standard {
+	Hexagon() { Standard::standardType = StandardType::HEXAGON; }
 	double length;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
-struct Moire : public Shape {
+struct Moire : public Standard {
+	Moire() { Standard::standardType = StandardType::MOIRE; }
 	double diameter;
 	double ringWidth;
 	double ringGap;
-	double ringNumber;
-	int lineNumber;
+	int ringNumber;
+	double lineWidth;
 	double lineLength;
 	int lineAngle;
 };
-struct Octagon : public Shape {
+struct Octagon : public Standard {
+	Octagon() { Standard::standardType = StandardType::OCTAGON; }
 	double length;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
-struct Oval : public Shape {
+struct Oval : public Standard {
+	Oval() { Standard::standardType = StandardType::OVAL; }
 	double width;
 	double height;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
 
-struct RectCenter : public Shape {
+struct RectCenter : public Standard {
+	RectCenter() { Standard::standardType = StandardType::RECTCENTER; }
 	double width;
 	double height;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
 
-struct RectCham : public Shape {
+struct RectCham : public Standard {
+	RectCham() { Standard::standardType = StandardType::RECTCHAM; }
 	double width;
 	double height;
 	double chamfer;
@@ -158,18 +183,20 @@ struct RectCham : public Shape {
 	bool upperLeft;
 	bool lowerLeft;
 	bool lowerRight;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
-struct RectCorner : public Shape {
+struct RectCorner : public Standard {
+	RectCorner() { Standard::standardType = StandardType::RECTCORNER; }
 	double lowerLeftX;
 	double lowerLeftY;
 	double upperRightX;
 	double upperRightY;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
-struct RectRound : public Shape {
+struct RectRound : public Standard {
+	RectRound() { Standard::standardType = StandardType::RECTROUND; }
 	double width;
 	double height;
 	double radius;
@@ -177,28 +204,31 @@ struct RectRound : public Shape {
 	bool upperLeft;
 	bool lowerRight;
 	bool lowerLeft;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
-struct Thermal : public Shape {
-	std::string shape;
+struct Thermal : public Standard {
+	Thermal() { Standard::standardType = StandardType::THERMAL; }
+	ThermalShape shape;
 	double outerDiameter;
 	double innerDiameter;
 	int spockCount;
 	double spokeWidth;
 	double spokeStartAngle;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
-struct Triangle : public Shape {
+struct Triangle : public Standard {
+	Triangle() { Standard::standardType = StandardType::TRIANGLE; }
 	double base;
 	double height;
-	LineDesc* lineDesc;
-	FillDesc* fillDesc;
+	LineDesc* lineDesc = nullptr;
+	FillDesc* fillDesc = nullptr;
 };
 
 struct UserSpecial : public Shape {
-	std::vector<Simple*> simpleShape;
+	UserSpecial() { Shape::type = ShapeType::UserSpecial; }
+	std::vector<Shape*> simpleShape;
 };
 
 class StandardShape {
@@ -233,6 +263,9 @@ public:
 	Triangle* ReadTriangle(tinyxml2::XMLElement* aElement);
 	Shape* ReadFeature(tinyxml2::XMLElement* aElement);
 	Shape* ReadUserSpecial(tinyxml2::XMLElement* aElement);
+	KIGFX::DATA_Circle TransToDataCircle(Circle* circle);
+	KIGFX::DATA_Line   TransToDataLine(Line* line);
+	KIGFX::DATA_Rectangle TransToDataRectangle(RectCenter* rectCenter);
 private:
 	ContentSection* m_content;
 public:
@@ -256,5 +289,6 @@ public:
 	std::vector<RectRound>	m_rectRound;
 	std::vector<Thermal>	m_thermal;
 	std::vector<Triangle>	m_triangle;
+	std::vector<UserSpecial> m_userspecial;
 };
 

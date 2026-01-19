@@ -2,10 +2,11 @@
 
 using namespace KIGFX;
 
-DATA_Rectangle::DATA_Rectangle(VECTOR2I aStartPoint, VECTOR2I aEndPoint)
+DATA_Rectangle::DATA_Rectangle(VECTOR2I aStartPoint, VECTOR2I aEndPoint, double lineWidth)
 	: BOARD_ITEM(ITEM_TYPE::RECTANGLE),
 	  m_startPoint(aStartPoint),
-	  m_endPoint(aEndPoint) { }
+	  m_endPoint(aEndPoint),
+	  m_lineWidth(lineWidth) {}
 
 const BOX2I DATA_Rectangle::GetBoundingBox() const
 {

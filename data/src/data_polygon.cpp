@@ -15,8 +15,8 @@ typedef bg::model::multi_polygon<Polygon> MultiPolygon;
 
 
 
-KIGFX::DATA_Polygon::DATA_Polygon(std::vector<VECTOR2I> points)
-	: BOARD_ITEM(KIGFX::POLYGON), m_points(points)
+KIGFX::DATA_Polygon::DATA_Polygon(std::vector<VECTOR2I> points, double lineWidth)
+	: BOARD_ITEM(KIGFX::POLYGON), m_points(points), m_lineWidth(lineWidth)
 {
 }
 

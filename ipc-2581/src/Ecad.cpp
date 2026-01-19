@@ -70,10 +70,8 @@ bool EcadSection::ReadSpec(tinyxml2::XMLElement* aElement)
 	}
 
 	auto outline = aElement->FirstChildElement("Outline");
-	if (outline != nullptr) {
-		spec.outline = new Outline;
-		m_standardShape->ReadOutline(outline, *spec.outline);
-	}
+	if (outline != nullptr)
+		spec.outline = static_cast<Outline*>(m_standardShape->ReadOutline(outline));
 
 	m_specs.push_back(spec);
 
@@ -190,14 +188,14 @@ bool EcadSection::ReadStep(tinyxml2::XMLElement* aStep)
 		Package package;
 		// Read Package
 		ReadPackage(packageDoc, package);
-		step.packages.emplace_back(package);
+		step.packages[package.name] = package;
 	}
 
 	// Read Component
 	for (auto componentDoc = aStep->FirstChildElement("Component"); componentDoc; componentDoc = componentDoc->NextSiblingElement("Component")) {
 		Component component;
 		// Read Component
-
+		ReadComponent(componentDoc, component);
 		step.components.emplace_back(component);
 	}
 
@@ -223,6 +221,8 @@ bool EcadSection::ReadStep(tinyxml2::XMLElement* aStep)
 	// Read Model
 
 	// Read DfxMeasurementList
+
+	m_steps.emplace_back(step);
 
 	return true;
 }
@@ -357,7 +357,7 @@ bool EcadSection::ReadPackage(tinyxml2::XMLElement* aPackageDoc, Package& packag
 	package.comment = aPackageDoc->FindAttribute("comment") != nullptr ? aPackageDoc->FindAttribute("comment")->Value() : "";
 	package.negativeBodyExtension = aPackageDoc->FindAttribute("negativeBodyExtension") != nullptr ? aPackageDoc->FindAttribute("negativeBodyExtension")->DoubleValue() : -1;
 	
-	m_standardShape->ReadOutline(aPackageDoc->FirstChildElement("Outline"), package.outline);
+	package.outline = static_cast<Outline*>(m_standardShape->ReadOutline(aPackageDoc->FirstChildElement("Outline")));
 	
 	auto pickupPointDoc = aPackageDoc->FirstChildElement("PickupPoint");
 	if (pickupPointDoc != nullptr)
@@ -455,11 +455,8 @@ bool EcadSection::ReadTarget(tinyxml2::XMLElement* aTargetDoc, Target& target)
 
 bool EcadSection::ReadSilkScreen(tinyxml2::XMLElement* aSilkScreenDoc, SilkScreen& silkScreen)
 {
-	for (auto outlineDoc = aSilkScreenDoc->FirstChildElement("Outline"); outlineDoc; outlineDoc = outlineDoc->NextSiblingElement("Outline")) {
-		Outline outline;
-		m_standardShape->ReadOutline(outlineDoc, outline);
-		silkScreen.outlines.emplace_back(outline);
-	}
+	for (auto outlineDoc = aSilkScreenDoc->FirstChildElement("Outline"); outlineDoc; outlineDoc = outlineDoc->NextSiblingElement("Outline"))
+		silkScreen.outlines.emplace_back(static_cast<Outline*>(m_standardShape->ReadOutline(outlineDoc)));
 
 	for (auto markingDoc = aSilkScreenDoc->FirstChildElement("Marking"); markingDoc; markingDoc = markingDoc->NextSiblingElement("Marking")) {
 		Marking marking;

@@ -319,6 +319,27 @@ enum class SimpleType {
 	OTHER
 };
 
+enum class DonutShape {
+	ROUND,
+	SQUARE,
+	HECAGON,
+	ODCTAGON
+};
+
+enum class ThermalShape {
+	ROUND,
+	SQUARE,
+	HEXAGON,
+	OCTAGON
+};
+
+enum class ShapeType {
+	Standard,
+	Simple,
+	UserSpecial,
+	Other,
+};
+
 inline LayerFunction GetLayerFunction(std::string layerFunc) {
 	if (layerFunc == "ASSEMBLY")
 		return LayerFunction::ASSEMBLY;
@@ -817,4 +838,28 @@ inline SimpleType GetSimpleType(const std::string& value)
 		return SimpleType::Polyline;
 	else
 		return SimpleType::OTHER;
+}
+
+inline DonutShape GetDonutShape(const std::string& value)
+{
+	if (value == "ROUND")
+		return DonutShape::ROUND;
+	else if (value == "SQUARE")
+		return DonutShape::SQUARE;
+	else if (value == "HECAGON")
+		return DonutShape::HECAGON;
+	else
+		return DonutShape::ODCTAGON;
+}
+
+inline ThermalShape GetThermalShape(const std::string& value)
+{
+	if (value == "ROUND")
+		return ThermalShape::ROUND;
+	else if (value == "SQUARE")
+		return ThermalShape::SQUARE;
+	else if (value == "HEXAGON")
+		return ThermalShape::HEXAGON;
+	else
+		return ThermalShape::OCTAGON;
 }
