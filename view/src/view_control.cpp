@@ -48,7 +48,7 @@ void ViewControler::onWheel(QWheelEvent* aEvent)
 		if (alt)
 			scrollX = scrollVec.x;
 		else
-			scrollY = -scrollVec.y;
+			scrollY = scrollVec.y;
 
 		VECTOR2D delta(scrollX, scrollY);
 

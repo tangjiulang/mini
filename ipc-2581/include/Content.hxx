@@ -18,14 +18,14 @@ private:
 	bool ReadDictionaryUser(tinyxml2::XMLElement* aDictionanryUser);
 private:
 	tinyxml2::XMLElement*							m_content;
-	StandardShape*									m_standardShape;
 public:
+	StandardShape*									m_standardShape;
 	std::string										m_mode;
 	std::string										m_stepRef;
 	std::vector<std::string>						m_layerRefs;
 	std::vector<std::string>						m_colorRefs;
 	std::unordered_map<std::string, LineDesc>		m_lineDescPreDefs;
 	std::unordered_map<std::string, FillDesc>		m_fillDescPreDefs;
-	std::unordered_map<std::string, Shape*>			m_standaredPrimitive;
-	std::unordered_map<std::string, Shape*>			m_userPrimitive;
+	std::unordered_map<std::string, Shape>			m_standaredPrimitive;
+	std::unordered_map<std::string, Shape>			m_userPrimitive;
 };

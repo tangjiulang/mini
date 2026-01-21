@@ -1,12 +1,10 @@
 #include "Ecad.hxx"
 #include "StandardShape.hxx"
 
-EcadSection::EcadSection(tinyxml2::XMLElement* aEcad, ContentSection* aContent)
+EcadSection::EcadSection(tinyxml2::XMLElement* aEcad, ContentSection* aContent, StandardShape* aStandardShape)
 	: m_ecad(aEcad),
-	  m_content(aContent)
-{
-	m_standardShape = new StandardShape(m_content);
-}
+	  m_content(aContent),
+	  m_standardShape(aStandardShape) {}
 
 WrongType EcadSection::Read()
 {
@@ -71,7 +69,7 @@ bool EcadSection::ReadSpec(tinyxml2::XMLElement* aElement)
 
 	auto outline = aElement->FirstChildElement("Outline");
 	if (outline != nullptr)
-		spec.outline = static_cast<Outline*>(m_standardShape->ReadOutline(outline));
+		spec.outline = m_standardShape->ReadOutline(outline);
 
 	m_specs.push_back(spec);
 
@@ -357,7 +355,7 @@ bool EcadSection::ReadPackage(tinyxml2::XMLElement* aPackageDoc, Package& packag
 	package.comment = aPackageDoc->FindAttribute("comment") != nullptr ? aPackageDoc->FindAttribute("comment")->Value() : "";
 	package.negativeBodyExtension = aPackageDoc->FindAttribute("negativeBodyExtension") != nullptr ? aPackageDoc->FindAttribute("negativeBodyExtension")->DoubleValue() : -1;
 	
-	package.outline = static_cast<Outline*>(m_standardShape->ReadOutline(aPackageDoc->FirstChildElement("Outline")));
+	package.outline = m_standardShape->ReadOutline(aPackageDoc->FirstChildElement("Outline"));
 	
 	auto pickupPointDoc = aPackageDoc->FirstChildElement("PickupPoint");
 	if (pickupPointDoc != nullptr)
@@ -456,7 +454,7 @@ bool EcadSection::ReadTarget(tinyxml2::XMLElement* aTargetDoc, Target& target)
 bool EcadSection::ReadSilkScreen(tinyxml2::XMLElement* aSilkScreenDoc, SilkScreen& silkScreen)
 {
 	for (auto outlineDoc = aSilkScreenDoc->FirstChildElement("Outline"); outlineDoc; outlineDoc = outlineDoc->NextSiblingElement("Outline"))
-		silkScreen.outlines.emplace_back(static_cast<Outline*>(m_standardShape->ReadOutline(outlineDoc)));
+		silkScreen.outlines.emplace_back(m_standardShape->ReadOutline(outlineDoc));
 
 	for (auto markingDoc = aSilkScreenDoc->FirstChildElement("Marking"); markingDoc; markingDoc = markingDoc->NextSiblingElement("Marking")) {
 		Marking marking;
@@ -518,6 +516,8 @@ bool EcadSection::ReadMarking(tinyxml2::XMLElement* aMarkingDoc, Marking& markin
 	if (location != nullptr)
 		ReadLocation(location, marking.location);
 
+	for (auto featureDoc = aMarkingDoc->FirstChildElement(); featureDoc && featureDoc->Name() != std::string("Xform") && featureDoc->Name() != std::string("Location"); featureDoc = featureDoc->NextSiblingElement())
+		marking.feature.push_back(m_standardShape->ReadFeature(featureDoc));
 
 	return true;
 }

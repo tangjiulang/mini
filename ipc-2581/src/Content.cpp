@@ -1,10 +1,7 @@
 #include "Content.hxx"
 
 ContentSection::ContentSection(tinyxml2::XMLElement* aContent)
-	: m_content(aContent) 
-{
-	m_standardShape = new StandardShape(this);
-}
+	: m_content(aContent) {}
 
 WrongType ContentSection::Read()
 {

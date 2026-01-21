@@ -34,6 +34,7 @@ public:
         m_control->onWheel(event);
         m_selectionTool.ClearSelection();
         m_selectionTool.SelectRectArea();
+        m_view->MarkDirty();
     }
 
     void Paint(QPaintEvent*);

@@ -531,7 +531,7 @@ void OPENGL_GAL::BeginDrawing()
     QMatrix4x4 modelView(matrixData);
     modelView = modelView.transposed();
     QMatrix4x4 projection;
-    projection.ortho(0, (GLint)m_screenSize.x, (GLsizei)m_screenSize.y, 0, -m_depthRange.x, -m_depthRange.y);
+    projection.ortho(0, (GLint)m_screenSize.x, 0, (GLsizei)m_screenSize.y, -m_depthRange.x, -m_depthRange.y);
 
     //// Set defaults
     SetFillColor( m_fillColor );
@@ -2921,9 +2921,9 @@ void OPENGL_GAL::resizeGL(int w, int h) {
 }
 void OPENGL_GAL::paintGL() {
     //ClearScreen();
-    m_fpsCounter.frame();   // ← 就加这一句
+    //m_fpsCounter.frame();
 
-    qDebug() << m_fpsCounter.value();
+    //qDebug() << m_fpsCounter.value();
     this->glClearColor(0, 0, 0, 0);
     this->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     if (m_isInitialized) {

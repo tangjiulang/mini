@@ -30,6 +30,7 @@ public:
 	std::string				m_fileName;
 	tinyxml2::XMLDocument	m_document;
 	IPC2581Header			m_header;
+	StandardShape			m_standardShape;
 	ContentSection			m_content;
 	EcadSection				m_ecad;						// Electronic Computer Aided Design
 	tinyxml2::XMLElement*	m_logisticHeader;

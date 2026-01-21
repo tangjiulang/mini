@@ -7,7 +7,7 @@ using namespace KIGFX;
 
 
 SIMPLE_OVERLAY_ITEM::SIMPLE_OVERLAY_ITEM() :
-    BOARD_ITEM(NOT_USED),    // this item is never added to a BOARD so it needs no type.
+    BOARD_ITEM(ITEM_TYPE::NOT_USED),    // this item is never added to a BOARD so it needs no type.
     m_fillColor(WHITE),
     m_strokeColor(WHITE),
     m_lineWidth(1.0)

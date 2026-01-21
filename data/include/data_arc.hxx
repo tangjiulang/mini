@@ -3,26 +3,19 @@
 #include "vector2d.hxx"
 #include "data_board_item.hxx"
 #include "shape_arc.hxx"
-#include "shape_segment.hxx"
-
-
 
 namespace KIGFX {
-
-	using Segment = std::variant<SHAPE_ARC, SHAPE_SEGMENT>;
-
-	class DATA_Polygon : public BOARD_ITEM
+	class DATA_Arc : public BOARD_ITEM
 	{
 	public:
-		DATA_Polygon(std::vector<Segment> points, double = 1);
+		DATA_Arc(SHAPE_ARC arc, double = 1);
 
 		virtual const BOX2I GetBoundingBox() const override;
 
 		std::string GetClass() const override {
 			return "Polygon";
 		}
-
-		std::vector<Segment> m_segments;
+		SHAPE_ARC m_arc;
 
 		double m_lineWidth;
 	};

@@ -1,20 +1,20 @@
 #pragma once
 
 #include "data_board_item.hxx"
+#include "shape_segment.hxx"
 
 namespace KIGFX {
 class DATA_Line : public BOARD_ITEM
 {
 public:
-	DATA_Line(VECTOR2I, VECTOR2I, double = 1);
+	DATA_Line(SHAPE_SEGMENT, double = 1);
 
 	virtual const BOX2I GetBoundingBox() const override;
 	std::string GetClass() const override {
 		return "Line";
 	}
 
-	VECTOR2I m_startPoint;
-	VECTOR2I m_endPoint;
+	SHAPE_SEGMENT m_line;
 
 	double m_lineWidth;
 };

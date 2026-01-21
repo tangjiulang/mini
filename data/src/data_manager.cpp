@@ -1,8 +1,9 @@
 #include <random>
 
 #include "data_manager.hxx"
+#include "view.hxx"
 
-void DataManager::GenerateData()
+void DataManager::GenerateData(KIGFX::VIEW* view)
 {
     constexpr int N = 100000; // 数量
     constexpr double WIDTH = 1000.0;
@@ -27,13 +28,14 @@ void DataManager::GenerateData()
         if (x1 > x2) std::swap(x1, x2);
         if (y1 > y2) std::swap(y1, y2);
 
-        m_rectangles.push_back({ VECTOR2D(x1, y1), VECTOR2D(x2, y2) });
+        m_rectangles.push_back(SHAPE_RECT{ view->ToWorld(VECTOR2D(x1, y1)), view->ToWorld(VECTOR2D(x2, y2)) });
     }
     
     for (int i = 0; i < N; ++i) {
         double cx = distX(gen);
         double cy = distY(gen);
         double r = distR(gen);
-        m_circles.push_back({ VECTOR2D(cx, cy), r });
+        m_circles.push_back(SHAPE_CIRCLE{ view->ToWorld(VECTOR2D(cx, cy)), static_cast<int32_t>(view->ToWorld(r)) });
     }
+
 }

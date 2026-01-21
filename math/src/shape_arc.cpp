@@ -236,6 +236,9 @@ SHAPE_ARC& SHAPE_ARC::ConstructFromStartEndCenter( const VECTOR2I& aStart, const
 
     RotatePoint( m_mid, aCenter, -angle / 2.0 );
 
+    if (aClockwise)
+        std::swap(m_start, m_end);
+
     update_values();
 
     return *this;

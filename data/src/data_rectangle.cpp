@@ -2,17 +2,12 @@
 
 using namespace KIGFX;
 
-DATA_Rectangle::DATA_Rectangle(VECTOR2I aStartPoint, VECTOR2I aEndPoint, double lineWidth)
+DATA_Rectangle::DATA_Rectangle(SHAPE_RECT rect, double lineWidth)
 	: BOARD_ITEM(ITEM_TYPE::RECTANGLE),
-	  m_startPoint(aStartPoint),
-	  m_endPoint(aEndPoint),
+	  m_rect(rect),
 	  m_lineWidth(lineWidth) {}
 
 const BOX2I DATA_Rectangle::GetBoundingBox() const
 {
-	double dx = abs(m_endPoint.x - m_startPoint.x);
-	double dy = abs(m_endPoint.y - m_startPoint.y);
-	VECTOR2D pos = { std::min(m_startPoint.x, m_endPoint.x), std::min(m_startPoint.y, m_endPoint.y) };
-	VECTOR2D dis = { dx, dy };
-	return BOX2I(pos, dis);
+	return m_rect.BBox();
 }

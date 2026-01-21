@@ -1,8 +1,6 @@
 #include "mini_frame.hxx"
-#include "mini_frame.hxx"
-#include "mini_frame.hxx"
-#include "mini_frame.hxx"
-
+#include "reader.hxx"
+#include "TranslateToData.hxx"
 #include <QBoxLayout>
 
 MiniFrame::MiniFrame(QWidget* parent)
@@ -36,7 +34,15 @@ MiniFrame::~MiniFrame()
 
 void MiniFrame::GeneratorData()
 {
-	m_dataManager->GenerateData();
+	std::string filePath = "C:\\Users\\Administrator\\Documents\\333\\default1.xml";
+	IPC2581Document doc(filePath);
+	doc.DocumentReader();
+	doc.ContentReader();
+	doc.EcadReader();
+
+	TranslateToData translate(&doc.m_ecad, m_dataManager, m_drawPanelGal->m_view);
+	translate.Translate(m_drawPanelGal->m_view);
+	//m_dataManager->GenerateData(m_drawPanelGal->m_view);
 }
 
 void MiniFrame::InitialViewData()

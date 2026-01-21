@@ -6,14 +6,16 @@
 
 namespace KIGFX {
 
-enum ITEM_TYPE {
+enum class ITEM_TYPE {
 	NOT_USED = -1,
 	TYPE_NOT_INIT = 0,
 	TRIANGLE,
 	RECTANGLE,
 	LINE,
+    ARC,
 	CIRCLE,
 	POLYGON,
+    POLYLINE,
 	GROUP
 };
 

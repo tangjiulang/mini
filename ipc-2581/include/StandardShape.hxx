@@ -2,26 +2,24 @@
 #include <variant>
 #include <tinyxml2.h>
 #include "BaseElement.hxx"
-#include "data_manager.hxx"
 
 class ContentSection;
 
 struct Shape {
 	ShapeType type;
+	int index;
+	std::variant<StandardType, SimpleType> shape_type;
 };
 
-struct Simple : public Shape {
-	Simple() { Shape::type = ShapeType::Simple; }
+struct Simple {
 	SimpleType simpleType;
 };
 
-struct Standard : public Shape {
-	Standard() { Shape::type = ShapeType::Standard; }
+struct Standard {
 	StandardType standardType;
 };
 
-struct Line : public Simple {
-	Line() { Simple::simpleType = SimpleType::Line; }
+struct Line{
 	double startX;
 	double startY;
 	double endX;
@@ -29,8 +27,7 @@ struct Line : public Simple {
 	LineDesc* lineDesc = nullptr;
 };
 
-struct Arc : public Simple {
-	Arc() { Simple::simpleType = SimpleType::Arc; }
+struct Arc {
 	double startX;
 	double startY;
 	double endX;
@@ -69,8 +66,7 @@ struct Polygon {
 	FillDesc* fillDesc = nullptr;
 };
 
-struct Polyline : public Simple {
-	Polyline() { Simple::simpleType = SimpleType::Polyline; }
+struct Polyline{
 	PolyBegin polyBegin;
 	PolyStep polyStep;
 	LineDesc* lineDesc = nullptr;
@@ -84,43 +80,37 @@ struct Cutout {
 	FillDesc* fillDesc = nullptr;
 };
 
-struct Outline : public Simple {
-	Outline() { Simple::simpleType = SimpleType::Outline; }
+struct Outline{
 	Polygon polygon;
 	LineDesc* lineDesc = nullptr;
 };
 
-struct Butterfly : public Standard {
-	Butterfly() { Standard::standardType = StandardType::BUTTERFLY; }
+struct Butterfly{
 	std::string shape;
 	double expand;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
 
-struct Circle : public Standard {
-	Circle() { Standard::standardType = StandardType::CIRCLE; }
+struct Circle {
 	double diameter;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
 
-struct Contour : public Standard {
-	Contour() { Standard::standardType = StandardType::CONTOUR; }
+struct Contour {
 	Polygon polygon;
 	std::vector<Cutout> cutouts;
 };
 
-struct Diamond : public Standard {
-	Diamond() { Standard::standardType = StandardType::DIAMOND; }
+struct Diamond {
 	double width;
 	double height;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
 
-struct Donut : public Standard {
-	Donut() { Standard::standardType = StandardType::DONUT; }
+struct Donut {
 	DonutShape shape;
 	double outerDiameter;
 	double innerDiameter;
@@ -128,22 +118,19 @@ struct Donut : public Standard {
 	FillDesc* fillDesc = nullptr;
 };
 
-struct Ellipse : public Standard {
-	Ellipse() { Standard::standardType = StandardType::ELLIPSE; }
+struct Ellipse {
 	double width;
 	double height;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
 
-struct Hexagon : public Standard {
-	Hexagon() { Standard::standardType = StandardType::HEXAGON; }
+struct Hexagon {
 	double length;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
-struct Moire : public Standard {
-	Moire() { Standard::standardType = StandardType::MOIRE; }
+struct Moire {
 	double diameter;
 	double ringWidth;
 	double ringGap;
@@ -152,30 +139,26 @@ struct Moire : public Standard {
 	double lineLength;
 	int lineAngle;
 };
-struct Octagon : public Standard {
-	Octagon() { Standard::standardType = StandardType::OCTAGON; }
+struct Octagon {
 	double length;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
-struct Oval : public Standard {
-	Oval() { Standard::standardType = StandardType::OVAL; }
+struct Oval {
 	double width;
 	double height;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
 
-struct RectCenter : public Standard {
-	RectCenter() { Standard::standardType = StandardType::RECTCENTER; }
+struct RectCenter {
 	double width;
 	double height;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
 
-struct RectCham : public Standard {
-	RectCham() { Standard::standardType = StandardType::RECTCHAM; }
+struct RectCham {
 	double width;
 	double height;
 	double chamfer;
@@ -186,8 +169,7 @@ struct RectCham : public Standard {
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
-struct RectCorner : public Standard {
-	RectCorner() { Standard::standardType = StandardType::RECTCORNER; }
+struct RectCorner {
 	double lowerLeftX;
 	double lowerLeftY;
 	double upperRightX;
@@ -195,8 +177,7 @@ struct RectCorner : public Standard {
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
-struct RectRound : public Standard {
-	RectRound() { Standard::standardType = StandardType::RECTROUND; }
+struct RectRound {
 	double width;
 	double height;
 	double radius;
@@ -207,8 +188,7 @@ struct RectRound : public Standard {
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
-struct Thermal : public Standard {
-	Thermal() { Standard::standardType = StandardType::THERMAL; }
+struct Thermal {
 	ThermalShape shape;
 	double outerDiameter;
 	double innerDiameter;
@@ -218,54 +198,50 @@ struct Thermal : public Standard {
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
-struct Triangle : public Standard {
-	Triangle() { Standard::standardType = StandardType::TRIANGLE; }
+struct Triangle {
 	double base;
 	double height;
 	LineDesc* lineDesc = nullptr;
 	FillDesc* fillDesc = nullptr;
 };
 
-struct UserSpecial : public Shape {
-	UserSpecial() { Shape::type = ShapeType::UserSpecial; }
-	std::vector<Shape*> simpleShape;
+struct UserSpecial {
+	std::vector<Shape> simpleShape;
 };
 
 class StandardShape {
 public:
-	StandardShape(ContentSection* content);
-	Shape* ReadSimple(tinyxml2::XMLElement* aElement);
-	Shape* ReadStandard(tinyxml2::XMLElement* aElement);
-	Simple* ReadLine(tinyxml2::XMLElement* aElement);
-	Simple* ReadArc(tinyxml2::XMLElement* aElement);
+	StandardShape();
+	void SetContent(ContentSection* aContent);
+	Shape ReadSimple(tinyxml2::XMLElement* aElement);
+	Shape ReadStandard(tinyxml2::XMLElement* aElement);
+	Shape ReadLine(tinyxml2::XMLElement* aElement);
+	Shape ReadArc(tinyxml2::XMLElement* aElement);
 	bool ReadPolyBegin(tinyxml2::XMLElement* aElement, PolyBegin& poly);
-	Simple* ReadOutline(tinyxml2::XMLElement* aElement);
+	Shape ReadOutline(tinyxml2::XMLElement* aElement);
 	bool ReadPolygon(tinyxml2::XMLElement* aElement, Polygon& polygon);
-	Simple* ReadPolyline(tinyxml2::XMLElement* aElement);
+	Shape ReadPolyline(tinyxml2::XMLElement* aElement);
 	bool ReadCutout(tinyxml2::XMLElement* aElement, Cutout& cutout);
 	bool ReadPolyStepCurve(tinyxml2::XMLElement* aElement, PolyStepCurve& polyStepCurve);
 	bool ReadPolyStepSegment(tinyxml2::XMLElement* aElement, PolyStepSegment& polyStepSegment);
-	Butterfly* ReadButterfly(tinyxml2::XMLElement* aElement);
-	Circle* ReadCircle(tinyxml2::XMLElement* aElement);
-	Contour* ReadContour(tinyxml2::XMLElement* aElement);
-	Diamond* ReadDiamond(tinyxml2::XMLElement* aElement);
-	Donut* ReadDonut(tinyxml2::XMLElement* aElement);
-	Ellipse* ReadEllipse(tinyxml2::XMLElement* aElement);
-	Hexagon* ReadHexagon(tinyxml2::XMLElement* aElement);
-	Moire* ReadMoire(tinyxml2::XMLElement* aElement);
-	Octagon* ReadOctagon(tinyxml2::XMLElement* aElement);
-	Oval* ReadOval(tinyxml2::XMLElement* aElement);
-	RectCenter* ReadRectCenter(tinyxml2::XMLElement* aElement);
-	RectCham* ReadRectCham(tinyxml2::XMLElement* aElement);
-	RectCorner* ReadRectCorner(tinyxml2::XMLElement* aElement);
-	RectRound* ReadRectRound(tinyxml2::XMLElement* aElement);
-	Thermal* ReadThermal(tinyxml2::XMLElement* aElement);
-	Triangle* ReadTriangle(tinyxml2::XMLElement* aElement);
-	Shape* ReadFeature(tinyxml2::XMLElement* aElement);
-	Shape* ReadUserSpecial(tinyxml2::XMLElement* aElement);
-	KIGFX::DATA_Circle TransToDataCircle(Circle* circle);
-	KIGFX::DATA_Line   TransToDataLine(Line* line);
-	KIGFX::DATA_Rectangle TransToDataRectangle(RectCenter* rectCenter);
+	Shape ReadButterfly(tinyxml2::XMLElement* aElement);
+	Shape ReadCircle(tinyxml2::XMLElement* aElement);
+	Shape ReadContour(tinyxml2::XMLElement* aElement);
+	Shape ReadDiamond(tinyxml2::XMLElement* aElement);
+	Shape ReadDonut(tinyxml2::XMLElement* aElement);
+	Shape ReadEllipse(tinyxml2::XMLElement* aElement);
+	Shape ReadHexagon(tinyxml2::XMLElement* aElement);
+	Shape ReadMoire(tinyxml2::XMLElement* aElement);
+	Shape ReadOctagon(tinyxml2::XMLElement* aElement);
+	Shape ReadOval(tinyxml2::XMLElement* aElement);
+	Shape ReadRectCenter(tinyxml2::XMLElement* aElement);
+	Shape ReadRectCham(tinyxml2::XMLElement* aElement);
+	Shape ReadRectCorner(tinyxml2::XMLElement* aElement);
+	Shape ReadRectRound(tinyxml2::XMLElement* aElement);
+	Shape ReadThermal(tinyxml2::XMLElement* aElement);
+	Shape ReadTriangle(tinyxml2::XMLElement* aElement);
+	Shape ReadFeature(tinyxml2::XMLElement* aElement);
+	Shape ReadUserSpecial(tinyxml2::XMLElement* aElement);
 private:
 	ContentSection* m_content;
 public:

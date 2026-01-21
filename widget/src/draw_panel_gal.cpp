@@ -401,7 +401,7 @@ void DrawPanelGal::Paint(QPaintEvent* event)
 void DrawPanelGal::SetCursor()
 {
 	QPoint widgetPos = m_gal->mapFromGlobal(QCursor::pos());
-	m_cursor = { (double)widgetPos.x(), (double)widgetPos.y() };
+	m_cursor = { (double)widgetPos.x(), m_gal->GetScreenPixelSize().y - (double)widgetPos.y()};
 	m_cursor = GetClampedCoords(m_gal->GetGridPoint(m_view->ToWorld(m_cursor)));
 }
 
@@ -583,16 +583,10 @@ void DrawPanelGal::InitialViewData(DataManager* data)
 	//m_gal->SetIsFill(true);
 	//m_gal->SetFillColor(KIGFX::COLOR4D(1, 1, 1, 1));
 	for (auto &circle : data->m_circles) {
-		circle.m_centerPoint = m_view->ToWorld(circle.m_centerPoint);
-		circle.m_radius = m_view->ToWorld(circle.m_radius);
-        circle.m_lineWidth = m_view->ToWorld(circle.m_lineWidth);
 		m_view->Add(&circle);
 	}
 
 	for (auto& rectangle : data->m_rectangles) {
-		rectangle.m_startPoint = m_view->ToWorld(rectangle.m_startPoint);
-		rectangle.m_endPoint = m_view->ToWorld(rectangle.m_endPoint);
-		rectangle.m_lineWidth = m_view->ToWorld(rectangle.m_lineWidth);
 		m_view->Add(&rectangle);
 	}
 	
@@ -604,16 +598,22 @@ void DrawPanelGal::InitialViewData(DataManager* data)
         m_view->Add(&triangle);
     }
 
-	for (int i = 0; i < data->m_polygons.size(); i++) {
-		auto& polygon = data->m_polygons[i];
-		if (i & 1)
-			polygon.CorrectPolygon();
-		for (auto& point : polygon.m_points) {
-			point = m_view->ToWorld(point);
-		}
-		polygon.m_lineWidth = m_view->ToWorld(polygon.m_lineWidth);
-		m_view->Add(&polygon);
-	}
+    for (auto& polygon : data->m_polygons) {
+        m_view->Add(&polygon);
+    }
+
+    for (auto& polyline : data->m_polylines) {
+        m_view->Add(&polyline);
+    }
+
+    for (auto& arc : data->m_arcs) {
+        BOX2I box = arc.GetBoundingBox();
+        m_view->Add(&arc);
+    }
+        
+
+    for (auto& line : data->m_lines)
+        m_view->Add(&line);
 
 	m_view->MarkDirty();
 }

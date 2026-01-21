@@ -1,10 +1,9 @@
 #include "StandardShape.hxx"
 #include "Content.hxx"
 
-StandardShape::StandardShape(ContentSection* content)
-	: m_content(content) {}
+StandardShape::StandardShape(){}
 
-Shape* StandardShape::ReadSimple(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadSimple(tinyxml2::XMLElement* aElement)
 {
 	SimpleType type = GetSimpleType(aElement->Name());
 	if (type == SimpleType::Arc) {
@@ -20,10 +19,15 @@ Shape* StandardShape::ReadSimple(tinyxml2::XMLElement* aElement)
 		return ReadPolyline(aElement);
 	}
 	else 
-		return nullptr;
+		return Shape{ ShapeType::Other, -1 };
 }
 
-Shape* StandardShape::ReadStandard(tinyxml2::XMLElement* aElement)
+void StandardShape::SetContent(ContentSection* aContent)
+{
+	m_content = aContent;
+}
+
+Shape StandardShape::ReadStandard(tinyxml2::XMLElement* aElement)
 {
 	StandardType type = GetStandardType(aElement->Name());
 	if (type == StandardType::BUTTERFLY)
@@ -59,11 +63,11 @@ Shape* StandardShape::ReadStandard(tinyxml2::XMLElement* aElement)
 	else if (type == StandardType::TRIANGLE)
 		return ReadTriangle(aElement);
 		
-	return nullptr;   // OTHER / 不支持
+	return Shape{ ShapeType::Other, -1, StandardType::OTHER };   // OTHER / 不支持
 }
 
 // Simple Begin
-Simple* StandardShape::ReadLine(tinyxml2::XMLElement* aElement) {
+Shape StandardShape::ReadLine(tinyxml2::XMLElement* aElement) {
 	m_line.push_back(Line{});
 	auto& line = m_line.back();
 	line.startX = aElement->FindAttribute("startX")->DoubleValue();
@@ -73,10 +77,10 @@ Simple* StandardShape::ReadLine(tinyxml2::XMLElement* aElement) {
 
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &line.lineDesc);
 
-	return &m_line.back();
+	return Shape{ ShapeType::Simple, static_cast<int32_t>(m_line.size() - 1), SimpleType::Line };
 }
 
-Simple* StandardShape::ReadArc(tinyxml2::XMLElement* aElement) {
+Shape StandardShape::ReadArc(tinyxml2::XMLElement* aElement) {
 	m_arc.push_back(Arc{});
 	auto& arc = m_arc.back();
 	
@@ -89,7 +93,7 @@ Simple* StandardShape::ReadArc(tinyxml2::XMLElement* aElement) {
 	arc.clockwise = aElement->FindAttribute("clockwise")->DoubleValue();
 
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &arc.lineDesc);
-	return &m_arc.back();
+	return Shape{ ShapeType::Simple, static_cast<int32_t>(m_arc.size() - 1), SimpleType::Arc };
 }
 
 bool StandardShape::ReadPolyBegin(tinyxml2::XMLElement* aElement, PolyBegin& poly)
@@ -146,7 +150,7 @@ bool StandardShape::ReadPolygon(tinyxml2::XMLElement* aElement, Polygon& polygon
 	return true;
 }
 
-Simple* StandardShape::ReadPolyline(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadPolyline(tinyxml2::XMLElement* aElement)
 {
 	m_polyline.push_back(Polyline{});
 	auto& polyline = m_polyline.back();
@@ -168,7 +172,7 @@ Simple* StandardShape::ReadPolyline(tinyxml2::XMLElement* aElement)
 
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &polyline.lineDesc);
 
-	return &m_polyline.back();
+	return Shape{ ShapeType::Simple, static_cast<int32_t>(m_polyline.size() - 1), SimpleType::Polyline };
 }
 
 bool StandardShape::ReadCutout(tinyxml2::XMLElement* aElement, Cutout& cutout)
@@ -198,19 +202,19 @@ bool StandardShape::ReadCutout(tinyxml2::XMLElement* aElement, Cutout& cutout)
 	return true;
 }
 
-Simple* StandardShape::ReadOutline(tinyxml2::XMLElement* aElement) {
+Shape StandardShape::ReadOutline(tinyxml2::XMLElement* aElement) {
 	m_outline.push_back(Outline{});
 	auto& outline = m_outline.back();
 
 	ReadPolygon(aElement->FirstChildElement("Polygon"), outline.polygon);
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &outline.lineDesc);
 
-	return &m_outline.back();
+	return Shape{ ShapeType::Simple, static_cast<int32_t>(m_outline.size() - 1), SimpleType::Outline };
 }
 // Simple End
 
 
-Butterfly* StandardShape::ReadButterfly(tinyxml2::XMLElement* aElement) {
+Shape StandardShape::ReadButterfly(tinyxml2::XMLElement* aElement) {
 	m_butterfly.resize(m_butterfly.size() + 1);
 	Butterfly& butterfly = m_butterfly.back();
 	butterfly.shape = aElement->FindAttribute("shape")->Value();
@@ -220,11 +224,11 @@ Butterfly* StandardShape::ReadButterfly(tinyxml2::XMLElement* aElement) {
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &butterfly.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &butterfly.fillDesc);
 
-	return &m_butterfly.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_butterfly.size() - 1), StandardType::BUTTERFLY };
 }
 
 
-Circle* StandardShape::ReadCircle(tinyxml2::XMLElement* aElement) {
+Shape StandardShape::ReadCircle(tinyxml2::XMLElement* aElement) {
 	m_circle.resize(m_butterfly.size() + 1);
 	Circle& circle = m_circle.back();
 	circle.diameter = aElement->FindAttribute("diameter")->DoubleValue();
@@ -232,10 +236,10 @@ Circle* StandardShape::ReadCircle(tinyxml2::XMLElement* aElement) {
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &circle.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &circle.fillDesc);
 
-	return &m_circle.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_circle.size() - 1), StandardType::CIRCLE };
 }
 
-Contour* StandardShape::ReadContour(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadContour(tinyxml2::XMLElement* aElement)
 {
 	m_contour.resize(m_contour.size() + 1);
 	auto& contour = m_contour.back();
@@ -247,11 +251,11 @@ Contour* StandardShape::ReadContour(tinyxml2::XMLElement* aElement)
 		contour.cutouts.push_back(cutout);
 	}
 
-	return &m_contour.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_contour.size() - 1), StandardType::CONTOUR };
 }
 
 
-RectCenter* StandardShape::ReadRectCenter(tinyxml2::XMLElement* aElement) {
+Shape StandardShape::ReadRectCenter(tinyxml2::XMLElement* aElement) {
 	m_rectCenter.resize(m_rectCenter.size() + 1);
 	auto& rectCenter = m_rectCenter.back();
 	rectCenter.height = aElement->FindAttribute("height")->DoubleValue();
@@ -260,10 +264,10 @@ RectCenter* StandardShape::ReadRectCenter(tinyxml2::XMLElement* aElement) {
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &rectCenter.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &rectCenter.fillDesc);
 
-	return &m_rectCenter.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_rectCenter.size() - 1), StandardType::RECTCENTER };
 }
 
-Diamond* StandardShape::ReadDiamond(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadDiamond(tinyxml2::XMLElement* aElement)
 {
 	m_diamond.push_back(Diamond{});
 	auto& diamond = m_diamond.back();
@@ -274,10 +278,10 @@ Diamond* StandardShape::ReadDiamond(tinyxml2::XMLElement* aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &diamond.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &diamond.fillDesc);
 
-	return &m_diamond.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_diamond.size() - 1), StandardType::DIAMOND };
 }
 
-Donut* StandardShape::ReadDonut(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadDonut(tinyxml2::XMLElement* aElement)
 {
 	m_donut.push_back(Donut{});
 	auto& donut = m_donut.back();
@@ -289,10 +293,10 @@ Donut* StandardShape::ReadDonut(tinyxml2::XMLElement* aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &donut.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &donut.fillDesc);
 
-	return &m_donut.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_donut.size() - 1), StandardType::DONUT };
 }
 
-Ellipse* StandardShape::ReadEllipse(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadEllipse(tinyxml2::XMLElement* aElement)
 {
 	m_ellipse.push_back(Ellipse{});
 	auto& ellipse = m_ellipse.back();
@@ -303,10 +307,10 @@ Ellipse* StandardShape::ReadEllipse(tinyxml2::XMLElement* aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &ellipse.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &ellipse.fillDesc);
 
-	return &m_ellipse.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_ellipse.size() - 1), StandardType::ELLIPSE };
 }
 
-Hexagon* StandardShape::ReadHexagon(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadHexagon(tinyxml2::XMLElement* aElement)
 {
 	m_hexagon.push_back(Hexagon{});
 	auto hexagon = m_hexagon.back();
@@ -316,10 +320,10 @@ Hexagon* StandardShape::ReadHexagon(tinyxml2::XMLElement* aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &hexagon.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &hexagon.fillDesc);
 
-	return &m_hexagon.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_hexagon.size() - 1), StandardType::HEXAGON };
 }
 
-Moire* StandardShape::ReadMoire(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadMoire(tinyxml2::XMLElement* aElement)
 {
 	m_moire.push_back(Moire{});
 	auto& moire = m_moire.back();
@@ -333,10 +337,10 @@ Moire* StandardShape::ReadMoire(tinyxml2::XMLElement* aElement)
 	moire.lineLength = aElement->FindAttribute("lineLength") ? aElement->FindAttribute("lineLength")->DoubleValue() : -1;
 	moire.lineAngle = aElement->FindAttribute("lineAngle") ? aElement->FindAttribute("lineAngle")->DoubleValue() : -1;
 
-	return &m_moire.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_moire.size() - 1), StandardType::MOIRE };
 }
 
-Octagon* StandardShape::ReadOctagon(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadOctagon(tinyxml2::XMLElement* aElement)
 {
 	m_octagon.push_back(Octagon{});
 	auto octagon = m_octagon.back();
@@ -346,10 +350,10 @@ Octagon* StandardShape::ReadOctagon(tinyxml2::XMLElement* aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &octagon.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &octagon.fillDesc);
 
-	return &m_octagon.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_octagon.size() - 1), StandardType::OCTAGON };
 }
 
-Oval* StandardShape::ReadOval(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadOval(tinyxml2::XMLElement* aElement)
 {
 	m_oval.push_back(Oval{});
 	auto& oval = m_oval.back();
@@ -360,10 +364,10 @@ Oval* StandardShape::ReadOval(tinyxml2::XMLElement* aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &oval.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &oval.fillDesc);
 
-	return &m_oval.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_oval.size() - 1), StandardType::OVAL };
 }
 
-RectCham* StandardShape::ReadRectCham(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadRectCham(tinyxml2::XMLElement* aElement)
 {
 	m_rectCham.push_back(RectCham{});
 	auto& rectCham = m_rectCham.back();
@@ -379,10 +383,10 @@ RectCham* StandardShape::ReadRectCham(tinyxml2::XMLElement* aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &rectCham.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &rectCham.fillDesc);
 
-	return &m_rectCham.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_rectCham.size() - 1), StandardType::RECTCHAM };
 }
 
-RectCorner* StandardShape::ReadRectCorner(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadRectCorner(tinyxml2::XMLElement* aElement)
 {
 	m_rectCorner.push_back(RectCorner{});
 	auto& rectCorner = m_rectCorner.back();
@@ -395,10 +399,10 @@ RectCorner* StandardShape::ReadRectCorner(tinyxml2::XMLElement* aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &rectCorner.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &rectCorner.fillDesc);
 
-	return &m_rectCorner.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_rectCorner.size() - 1), StandardType::RECTCORNER };
 }
 
-RectRound* StandardShape::ReadRectRound(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadRectRound(tinyxml2::XMLElement* aElement)
 {
 	m_rectRound.push_back(RectRound{});
 	auto& rectRound = m_rectRound.back();
@@ -414,10 +418,10 @@ RectRound* StandardShape::ReadRectRound(tinyxml2::XMLElement* aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &rectRound.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &rectRound.fillDesc);
 
-	return &m_rectRound.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_rectRound.size() - 1), StandardType::RECTROUND };
 }
 
-Thermal* StandardShape::ReadThermal(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadThermal(tinyxml2::XMLElement* aElement)
 {
 	m_thermal.push_back(Thermal{});
 	auto& thermal = m_thermal.back();
@@ -432,10 +436,10 @@ Thermal* StandardShape::ReadThermal(tinyxml2::XMLElement* aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &thermal.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &thermal.fillDesc);
 
-	return &m_thermal.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_thermal.size() - 1), StandardType::THERMAL };
 }
 
-Triangle * StandardShape::ReadTriangle(tinyxml2::XMLElement * aElement)
+Shape StandardShape::ReadTriangle(tinyxml2::XMLElement * aElement)
 {
 	m_triangle.push_back(Triangle{});
 	auto& triangle = m_triangle.back();
@@ -446,10 +450,10 @@ Triangle * StandardShape::ReadTriangle(tinyxml2::XMLElement * aElement)
 	ReadLineDescHelper(aElement, m_content->m_lineDescPreDefs, &triangle.lineDesc);
 	ReadFillDescHelper(aElement, m_content->m_fillDescPreDefs, &triangle.fillDesc);
 
-	return &m_triangle.back();
+	return Shape{ ShapeType::Standard, static_cast<int32_t>(m_triangle.size() - 1), StandardType::TRIANGLE };
 }
 
-Shape* StandardShape::ReadFeature(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadFeature(tinyxml2::XMLElement* aElement)
 {
 	if (aElement->Name() == std::string("StandardPrimitiveRef")) {
 		std::string ref = aElement->FindAttribute("id")->Value();
@@ -472,10 +476,10 @@ Shape* StandardShape::ReadFeature(tinyxml2::XMLElement* aElement)
 	else {
 		return ReadUserSpecial(aElement);
 	}
-	return nullptr;
+	return Shape{ ShapeType::Other, -1 };
 }
 
-Shape* StandardShape::ReadUserSpecial(tinyxml2::XMLElement* aElement)
+Shape StandardShape::ReadUserSpecial(tinyxml2::XMLElement* aElement)
 {
 	m_userspecial.push_back(UserSpecial{});
 	auto& userSpecial = m_userspecial.back();
@@ -494,5 +498,5 @@ Shape* StandardShape::ReadUserSpecial(tinyxml2::XMLElement* aElement)
 		else
 			userSpecial.simpleShape.push_back(ReadUserSpecial(shapeDoc));
 	}
-		return &m_userspecial.back();
+	return Shape{ ShapeType::UserSpecial, static_cast<int32_t>(m_userspecial.size() - 1) };
 }

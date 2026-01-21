@@ -9,7 +9,7 @@ struct Spec {
 	SpecificationType* specType;
 	Xform *xform;
 	Location *location;
-	Outline *outline;
+	Shape outline;
 };
 
 struct Approval {
@@ -38,7 +38,7 @@ struct Layer {
 	Polarity polarity;
 	std::vector<Spec*> specs;
 	Span span;
-	std::vector<Contour*> profiles;
+	std::vector<Shape> profiles;
 };
 
 struct StackupLayer {
@@ -106,7 +106,7 @@ struct PadstackPadDef {
 	std::string comment;
 	Xform xform;
 	Location location;
-	Shape* feature;
+	Shape feature;
 };
 
 struct PadStackDef {
@@ -135,14 +135,14 @@ struct Pad {
 	std::string padstackDefRef;
 	Xform xform;
 	Location location;
-	Shape* feature;
+	Shape feature;
 	std::vector<PinRef> pinRefs;
 };
 
 struct Target {
 	Xform xform;
 	Location location;
-	Shape* shape;
+	Shape shape;
 };
 
 struct LandPattern {
@@ -154,12 +154,12 @@ struct Marking {
 	MarkingUsage markingUsage;
 	Xform xform;
 	Location location;
-	std::vector<Shape*> feature;
+	std::vector<Shape> feature;
 
 };
 
 struct SilkScreen {
-	std::vector<Outline*> outlines;
+	std::vector<Shape> outlines;
 	std::vector<Marking> markings;
 };
 
@@ -177,7 +177,7 @@ struct Pin {
 	PinPolarityType pinPolarity;
 	Xform xform;
 	Location location;
-	Shape* shape;
+	Shape shape;
 };
 
 struct Topside {
@@ -202,7 +202,7 @@ struct Package {
 	double height;
 	double negativeBodyExtension;
 	std::string comment;
-	Outline* outline;
+	Shape outline;
 	Location pickupPoint;
 	LandPattern landPattern;
 	SilkScreen silkStreen;
@@ -283,7 +283,7 @@ struct SlotCavity {
 	double miniusTol;
 	Location location;
 	Xform xform;
-	Shape* shape;
+	Shape shape;
 	Z_AxisDim zAxis;
 	Fill fill;
 };
@@ -291,7 +291,7 @@ struct SlotCavity {
 struct Features {
 	Xform xform;
 	Location location;
-	std::vector<Shape*> featureShapes;
+	std::vector<Shape> featureShapes;
 };
 
 struct NetShort {};
@@ -328,7 +328,7 @@ struct Step {
 	std::vector<NonstandardAttribute> nonStandardAttributs;
 	std::vector<PadStackDef> padStackDefs;
 	Datum datum;
-	Contour* profile;
+	Shape profile;
 	std::vector<StepRepeat> stepRepeats;
 	std::unordered_map<std::string, Package> packages;
 	std::vector<Component> components;
@@ -340,7 +340,7 @@ struct Step {
 class EcadSection {
 public:
 	EcadSection() = default;
-	EcadSection(tinyxml2::XMLElement* aEcad, ContentSection* aContent);
+	EcadSection(tinyxml2::XMLElement* aEcad, ContentSection* aContent, StandardShape* standardShape);
 	WrongType Read();
 	bool IsValid();
 private:
@@ -375,8 +375,8 @@ private:
 private:
 	tinyxml2::XMLElement* m_ecad;
 	ContentSection* m_content;
-	StandardShape*  m_standardShape;
 public:
+	StandardShape* m_standardShape;
 	UnitsType				m_unit;
 	std::vector<Spec>		m_specs;
 	std::vector<ChangeRec>	m_changeRecs;

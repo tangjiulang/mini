@@ -18,10 +18,12 @@ WrongType IPC2581Document::DocumentReader() {
 
 	// IPC Main Sections Initial
 	m_content = ContentSection(root->FirstChildElement("Content"));
+	m_standardShape.SetContent(&m_content);
+	m_content.m_standardShape = &m_standardShape;
 	m_logisticHeader = root->FirstChildElement("LogisticHeader");
 	m_historyRecord = root->FirstChildElement("HistoryRecord");
 	m_bom = root->FirstChildElement("Bom");
-	m_ecad = EcadSection(root->FirstChildElement("Ecad"), &m_content);
+	m_ecad = EcadSection(root->FirstChildElement("Ecad"), &m_content, &m_standardShape);
 	m_avl = root->FirstChildElement("Avl");
 
 
