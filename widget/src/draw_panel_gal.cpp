@@ -408,14 +408,14 @@ void DrawPanelGal::SetCursor()
 void DrawPanelGal::CreateSelectRect()
 {
 	QPoint widgetPos = m_gal->mapFromGlobal(QCursor::pos());
-    VECTOR2I pos = { widgetPos.x(), widgetPos.y() };
+    VECTOR2I pos = { widgetPos.x(), m_gal->GetScreenPixelSize().y - widgetPos.y() };
     m_selectionTool.SetOrigin(m_view->ToWorld(pos));
 }
 
 void DrawPanelGal::UpdateSelectRect()
 {
 	QPoint widgetPos = m_gal->mapFromGlobal(QCursor::pos());
-    VECTOR2I pos = { widgetPos.x(), widgetPos.y() };
+    VECTOR2I pos = { widgetPos.x(), m_gal->GetScreenPixelSize().y - widgetPos.y() };
 	m_selectionTool.SetEnd(m_view->ToWorld(pos));
 }
 
