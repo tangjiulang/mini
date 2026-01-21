@@ -18,19 +18,14 @@ bool TranslateToData::Translate(KIGFX::VIEW* view)
 	}
 
 	for (auto layerFeatures : m_ecad->m_steps[0].layerFeatures) {
-		if (layerFeatures.layerRef == "F.Silkscreen")
-		{
-			for (auto set : layerFeatures.sets) {
-				if (set.geometryUsage == GeometryUsage::GRAPHIC) {
-					for (auto feature : set.features) {
-						VECTOR2D location = { feature.location.x, feature.location.y };
-						for (auto shape : feature.featureShapes) {
-							TranslateShape(shape, location);
-						}
-					}
+		for (auto set : layerFeatures.sets) {
+			for (auto feature : set.features) {
+				VECTOR2D location = { feature.location.x, feature.location.y };
+				for (auto shape : feature.featureShapes) {
+					TranslateShape(shape, location);
 				}
-
 			}
+
 		}
 	}
 
@@ -145,6 +140,7 @@ bool TranslateToData::TranslatePolyline(Polyline* polyline, const VECTOR2D& loca
 			point += location;
 			SHAPE_SEGMENT shape_line{ m_view->ToWorld(prePoint), m_view->ToWorld(point) };
 			segments.push_back(shape_line);
+			prePoint = point;
 		}
 		else {
 			auto& curve = std::get<PolyStepCurve>(polyStep);
@@ -156,6 +152,7 @@ bool TranslateToData::TranslatePolyline(Polyline* polyline, const VECTOR2D& loca
 			centerPoint += location;
 			shape_arc.ConstructFromStartEndCenter(prePoint, endPoint, centerPoint);
 			segments.push_back(shape_arc);
+			prePoint = endPoint;
 		}
 	}
 	double lineWidth = polyline->lineDesc ? polyline->lineDesc->lineWidth : 0;
@@ -296,7 +293,7 @@ bool TranslateToData::TranslateUserSpecial(Shape shape, const VECTOR2D& location
 {
 	UserSpecial* userSpecial = &m_ecad->m_standardShape->m_userspecial[shape.index];
 	for (auto shape : userSpecial->simpleShape) {
-		TranslateShape(shape);
+		TranslateShape(shape, location);
 	}
 
 	return true;
