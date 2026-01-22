@@ -534,6 +534,7 @@ void DrawPanelGal::resizeEvent(QResizeEvent* event)
 	if (m_view) {
 		m_view->MarkTargetDirty(KIGFX::TARGET_CACHED);
 		m_view->MarkTargetDirty(KIGFX::TARGET_NONCACHED);
+        m_view->MarkTargetDirty(KIGFX::TARGET_OVERLAY);
 	}
 
 }

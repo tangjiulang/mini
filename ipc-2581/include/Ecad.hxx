@@ -326,7 +326,7 @@ struct Step {
 	StepType stepType;
 	std::string stackupRef;
 	std::vector<NonstandardAttribute> nonStandardAttributs;
-	std::vector<PadStackDef> padStackDefs;
+	std::unordered_map<std::string, PadStackDef> padStackDefs;
 	Datum datum;
 	Shape profile;
 	std::vector<StepRepeat> stepRepeats;

@@ -34,7 +34,7 @@ MiniFrame::~MiniFrame()
 
 void MiniFrame::GeneratorData()
 {
-	std::string filePath = "C:\\Users\\Administrator\\Documents\\333\\default1.xml";
+	std::string filePath = "C:\\Users\\Administrator\\Downloads\\Te_p0ed1_02.xml";
 	IPC2581Document doc(filePath);
 	doc.DocumentReader();
 	doc.ContentReader();
@@ -51,12 +51,13 @@ void MiniFrame::InitialViewData()
 }
 
 void MiniFrame::resizeEvent(QResizeEvent*)
-{ 
+{
 	m_drawPanelGal->resize(this->size());
 }
 
 void MiniFrame::mousePressEvent(QMouseEvent* event)
 {
+	m_drawPanelGal->m_selectionTool.ClearSelection();
 	m_drawPanelGal->CreateSelectRect();
 }
 

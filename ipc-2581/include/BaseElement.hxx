@@ -8,12 +8,12 @@
 
 
 struct Xform {
-	double xOffset;
-	double yOffset;
-	double rotation;
-	double scale;
-	bool mirror;
-	bool faceUp;
+	double xOffset = 0;
+	double yOffset = 0;
+	double rotation = 0;
+	double scale = 0;
+	bool mirror = 0;
+	bool faceUp = 0;
 };
 
 struct LineDesc {
@@ -44,8 +44,8 @@ struct FillDescPreDef {
 };
 
 struct Location {
-	double x;
-	double y;
+	double x = 0;
+	double y = 0;
 };
 
 struct PinRef {

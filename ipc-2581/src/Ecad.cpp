@@ -161,7 +161,7 @@ bool EcadSection::ReadStep(tinyxml2::XMLElement* aStep)
 	for (auto padStackDef = aStep->FirstChildElement("PadStackDef"); padStackDef; padStackDef = padStackDef->NextSiblingElement("PadStackDef")) {
 		PadStackDef pad;
 		ReadPadStackDef(padStackDef, pad);
-		step.padStackDefs.emplace_back(pad);
+		step.padStackDefs[pad.name] = pad;
 	}
 
 	// Read Datum
@@ -409,6 +409,8 @@ bool EcadSection::ReadLandPattern(tinyxml2::XMLElement* aLandPattern, LandPatter
 
 bool EcadSection::ReadPad(tinyxml2::XMLElement* aPadDoc, Pad& pad)
 {
+	pad.padstackDefRef = aPadDoc->FindAttribute("padstackDefRef")->Value();
+
 	auto xformDoc = aPadDoc->FirstChildElement("Xform");
 	if (xformDoc != nullptr)
 		ReadXform(xformDoc, pad.xform);
@@ -585,7 +587,7 @@ bool EcadSection::ReadSet(tinyxml2::XMLElement* aSetDoc, Set& set)
 	set.net = aSetDoc->FindAttribute("net") ? aSetDoc->FindAttribute("net")->Value() : "";
 	set.netPair = aSetDoc->FindAttribute("netPair") ? aSetDoc->FindAttribute("netPair")->Value() : "";
 	set.polarity = aSetDoc->FindAttribute("polarity") ? GetPolarity(aSetDoc->FindAttribute("polarity")->Value()) : Polarity::UNDEFINED;
-	set.padUsage = aSetDoc->FindAttribute("padUsage") ? GetPadUsage(aSetDoc->FindAttribute("padUsase")->Value()) : PadUsage::NONE;  
+	set.padUsage = aSetDoc->FindAttribute("padUsage") ? GetPadUsage(aSetDoc->FindAttribute("padUsage")->Value()) : PadUsage::NONE;  
 	set.testPoint = aSetDoc->FindAttribute("testPoint") ? aSetDoc->FindAttribute("testPoint")->BoolValue() : false;
 	set.geometry = aSetDoc->FindAttribute("geometry") ? aSetDoc->FindAttribute("geometry")->Value() : "";
 	set.plate = aSetDoc->FindAttribute("plate") ? aSetDoc->FindAttribute("plate")->BoolValue() : false;
@@ -624,7 +626,9 @@ bool EcadSection::ReadSet(tinyxml2::XMLElement* aSetDoc, Set& set)
 	for (auto specRefDoc = aSetDoc->FirstChildElement("SpecRef"); specRefDoc; specRefDoc = specRefDoc->NextSiblingElement("SpecRef")) {
 		// Todo Read Spec Ref
 	}
-
+	if (set.net == "NetIC6_B11") {
+		int x = 100;
+	}
 	for (auto featuresDoc = aSetDoc->FirstChildElement("Features"); featuresDoc; featuresDoc = featuresDoc->NextSiblingElement("Features")) {
 		Features features;
 		ReadFeatures(featuresDoc, features);
@@ -671,7 +675,7 @@ bool EcadSection::ReadFeatures(tinyxml2::XMLElement* aFeaturesDoc, Features& fea
 	if (locationDoc != nullptr)
 		ReadLocation(locationDoc, features.location);
 
-	for (auto shapeDoc = locationDoc->NextSiblingElement(); shapeDoc; shapeDoc = shapeDoc->NextSiblingElement()) {
+	for (auto shapeDoc = locationDoc ? locationDoc->NextSiblingElement() : (xformDoc ? xformDoc->NextSiblingElement() : aFeaturesDoc->FirstChildElement()); shapeDoc; shapeDoc = shapeDoc->NextSiblingElement()) {
 		features.featureShapes.emplace_back(m_standardShape->ReadFeature(shapeDoc));
 	}
 

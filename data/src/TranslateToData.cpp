@@ -3,32 +3,39 @@
 
 bool TranslateToData::Translate(KIGFX::VIEW* view)
 {
-	for (auto component : m_ecad->m_steps[0].components) {
-		VECTOR2D location = { component.location.x, component.location.y };
-		Package& package = m_ecad->m_steps[0].packages[component.packageRef];
-		TranslateShape(package.outline, location);
-	}
-	for (auto layerFeatures : m_ecad->m_steps[0].layerFeatures) {
-		for (auto set : layerFeatures.sets) {
-			for (auto pad : set.pads) {
-				VECTOR2D location = { pad.location.x, pad.location.y };
-				TranslateShape(pad.feature, location);
-			}
-		}
-	}
 
-	for (auto layerFeatures : m_ecad->m_steps[0].layerFeatures) {
-		for (auto set : layerFeatures.sets) {
-			for (auto feature : set.features) {
-				VECTOR2D location = { feature.location.x, feature.location.y };
-				for (auto shape : feature.featureShapes) {
-					TranslateShape(shape, location);
+	for (auto step : m_ecad->m_steps) {
+		for (auto component : step.components) {
+			VECTOR2D location = { component.location.x, component.location.y };
+			Package& package = step.packages[component.packageRef];
+			TranslateShape(package.outline, location);
+		}
+		for (auto layerFeatures : step.layerFeatures) {
+			for (auto set : layerFeatures.sets) {
+				if (set.geometryUsage == GeometryUsage::TEXT)
+					continue;
+				for (auto pad : set.pads) {
+					VECTOR2D location = { pad.location.x, pad.location.y };
+					TranslateShape(pad.feature, location);
+					auto padStackDef = step.padStackDefs[pad.padstackDefRef];
+					for (auto padStackPadDef : padStackDef.pads) {
+						if (padStackPadDef.layerRef != layerFeatures.layerRef)
+							continue;
+						VECTOR2D padLocation = { padStackPadDef.location.x, padStackPadDef.location.y };
+						TranslateShape(padStackPadDef.feature, location + padLocation);
+					}
+					
+				}
+
+				for (auto feature : set.features) {
+					VECTOR2D location = { feature.location.x, feature.location.y };
+					for (auto shape : feature.featureShapes) {
+						TranslateShape(shape, location);
+					}
 				}
 			}
-
 		}
 	}
-
 
 
 	return true;
