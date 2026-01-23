@@ -9,6 +9,13 @@ DATA_Triangle::DATA_Triangle(VECTOR2I aPoint1, VECTOR2I aPoint2, VECTOR2I aPoint
 	  m_point3(aPoint3),
 	  m_lineWidth(lineWidth) {}
 
+KIGFX::DATA_Triangle::DATA_Triangle(VECTOR2I aPoint1, VECTOR2I aPoint2, VECTOR2I aPoint3, PCB_LAYER_ID aLayer, double lineWidth)
+	: BOARD_ITEM(ITEM_TYPE::TRIANGLE, aLayer),
+	  m_point1(aPoint1),
+	  m_point2(aPoint2),
+	  m_point3(aPoint3),
+	m_lineWidth(lineWidth) {}
+
 const BOX2I DATA_Triangle::GetBoundingBox() const
 {
 	VECTOR2I startPoint = { std::min({m_point1.x, m_point2.x, m_point3.x}), std::min({m_point1.x, m_point2.x, m_point3.x}) };

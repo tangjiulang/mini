@@ -9,6 +9,7 @@
 
 #include <box2.hxx>
 #include <gal/include/definitions.hxx>
+#include <gal/include/opengl_gal.hxx>
 
 //#include <view/view_overlay.h>
 
@@ -618,6 +619,8 @@ namespace KIGFX
             //wxCHECK(aTarget < TARGETS_NUMBER, /* void */);
             if (aTarget >= TARGETS_NUMBER) return;
             m_dirtyTargets[aTarget] = true;
+            if (m_gal)
+                m_gal->SetTargetDirty(aTarget);
         }
 
         /// Return true if the layer is cached.
@@ -638,6 +641,8 @@ namespace KIGFX
         {
             for (int i = 0; i < TARGETS_NUMBER; ++i)
                 m_dirtyTargets[i] = true;
+            if (m_gal)
+                m_gal->SetDirty();
         }
 
         /**

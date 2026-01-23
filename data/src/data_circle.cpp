@@ -7,6 +7,11 @@ DATA_Circle::DATA_Circle(SHAPE_CIRCLE circle, double lineWidth)
 	  m_circle(circle),
 	  m_lineWidth(lineWidth) {}
 
+KIGFX::DATA_Circle::DATA_Circle(SHAPE_CIRCLE circle, PCB_LAYER_ID aLayer, double lineWidth)
+	: BOARD_ITEM(ITEM_TYPE::CIRCLE, aLayer),
+	  m_circle(circle),
+	  m_lineWidth(lineWidth) {}
+
 const BOX2I DATA_Circle::GetBoundingBox() const
 {
 	return m_circle.BBox();

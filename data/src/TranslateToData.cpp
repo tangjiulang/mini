@@ -5,6 +5,7 @@ bool TranslateToData::Translate(KIGFX::VIEW* view)
 {
 
 	for (auto step : m_ecad->m_steps) {
+		TranslateShape(step.profile);
 		for (auto component : step.components) {
 			VECTOR2D location = { component.location.x, component.location.y };
 			Package& package = step.packages[component.packageRef];
@@ -223,7 +224,11 @@ bool TranslateToData::TranslateCircle(Circle* circle, const VECTOR2D& location)
 
 bool TranslateToData::TranslateContour(Contour* contour, const VECTOR2D& location)
 {
-	return false;
+	TranslatePolygon(&contour->polygon, location);
+	for (auto cutout : contour->cutouts) {
+		TranslateCutout(&cutout, location);
+	}
+	return true;
 }
 
 bool TranslateToData::TranslateDiamond(Diamond* diamond, const VECTOR2D& location)
@@ -302,6 +307,76 @@ bool TranslateToData::TranslateUserSpecial(Shape shape, const VECTOR2D& location
 	for (auto shape : userSpecial->simpleShape) {
 		TranslateShape(shape, location);
 	}
+
+	return true;
+}
+
+bool TranslateToData::TranslatePolygon(Polygon* polygon, const VECTOR2D& location)
+{
+	VECTOR2D prePoint = { polygon->polyBegin.x, polygon->polyBegin.y };
+	prePoint += location;
+	std::vector<KIGFX::Segment> segments;
+
+	for (auto polyStep : polygon->polyStep) {
+		if (std::holds_alternative<PolyStepSegment>(polyStep)) {
+			auto& segment = std::get<PolyStepSegment>(polyStep);
+			VECTOR2D point = { segment.x, segment.y };
+			point += location;
+			SHAPE_SEGMENT shape_line{ m_view->ToWorld(prePoint), m_view->ToWorld(point) };
+			segments.push_back(shape_line);
+			prePoint = point;
+		}
+		else {
+			auto& curve = std::get<PolyStepCurve>(polyStep);
+			// Approximate the curve with a line for simplicity
+			SHAPE_ARC shape_arc;
+			VECTOR2D endPoint = { curve.x, curve.y };
+			endPoint += location;
+			VECTOR2D centerPoint = { curve.centerX, curve.centerY };
+			centerPoint += location;
+			shape_arc.ConstructFromStartEndCenter(prePoint, endPoint, centerPoint);
+			segments.push_back(shape_arc);
+			prePoint = endPoint;
+		}
+	}
+	double lineWidth = polygon->lineDesc ? polygon->lineDesc->lineWidth : 0;
+	KIGFX::DATA_Polygon poly(segments, m_view->ToWorld(lineWidth));
+	m_dataManager->m_polygons.push_back(poly);
+
+	return true;
+}
+
+bool TranslateToData::TranslateCutout(Cutout* cutout, const VECTOR2D& location)
+{
+	VECTOR2D prePoint = { cutout->polyBegin.x, cutout->polyBegin.y };
+	prePoint += location;
+	std::vector<KIGFX::Segment> segments;
+
+	for (auto polyStep : cutout->polyStep) {
+		if (std::holds_alternative<PolyStepSegment>(polyStep)) {
+			auto& segment = std::get<PolyStepSegment>(polyStep);
+			VECTOR2D point = { segment.x, segment.y };
+			point += location;
+			SHAPE_SEGMENT shape_line{ m_view->ToWorld(prePoint), m_view->ToWorld(point) };
+			segments.push_back(shape_line);
+			prePoint = point;
+		}
+		else {
+			auto& curve = std::get<PolyStepCurve>(polyStep);
+			// Approximate the curve with a line for simplicity
+			SHAPE_ARC shape_arc;
+			VECTOR2D endPoint = { curve.x, curve.y };
+			endPoint += location;
+			VECTOR2D centerPoint = { curve.centerX, curve.centerY };
+			centerPoint += location;
+			shape_arc.ConstructFromStartEndCenter(prePoint, endPoint, centerPoint);
+			segments.push_back(shape_arc);
+			prePoint = endPoint;
+		}
+	}
+	double lineWidth = cutout->lineDesc ? cutout->lineDesc->lineWidth : 0;
+	KIGFX::DATA_Polygon poly(segments, m_view->ToWorld(lineWidth));
+	m_dataManager->m_polygons.push_back(poly);
 
 	return true;
 }

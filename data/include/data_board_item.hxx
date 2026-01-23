@@ -23,12 +23,9 @@ using ITEM_FLAGS = uint32_t;
 
 class BOARD_ITEM : public VIEW_ITEM {
 public:
-	BOARD_ITEM(ITEM_TYPE type = ITEM_TYPE::NOT_USED) 
-		: VIEW_ITEM(false, true),  
-		m_structType(type), 
-		m_layer(F_Cu),
-        m_flags(0){}
-	BOARD_ITEM(ITEM_TYPE type, PCB_LAYER_ID layer) {
+	BOARD_ITEM(ITEM_TYPE type = ITEM_TYPE::NOT_USED, PCB_LAYER_ID layer = F_Cu)
+        : VIEW_ITEM(false, true)
+    {
 		m_structType = type;
 		m_layer = layer;
         m_flags = 0;

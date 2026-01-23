@@ -9,6 +9,7 @@ namespace KIGFX {
 	{
 	public:
 		DATA_Arc(SHAPE_ARC arc, double = 1);
+		DATA_Arc(SHAPE_ARC arc, PCB_LAYER_ID aLayer, double = 1);
 
 		virtual const BOX2I GetBoundingBox() const override;
 

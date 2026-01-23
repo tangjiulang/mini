@@ -5,6 +5,11 @@ KIGFX::DATA_Polygon::DATA_Polygon(std::vector<Segment> points, double lineWidth)
 	  m_segments(std::move(points)),
 	  m_lineWidth(lineWidth) {}
 
+KIGFX::DATA_Polygon::DATA_Polygon(std::vector<Segment> points, PCB_LAYER_ID aLayer, double lineWidth)
+	: BOARD_ITEM(ITEM_TYPE::POLYGON, aLayer),
+	  m_segments(std::move(points)),
+	  m_lineWidth(lineWidth) {}
+
 const BOX2I KIGFX::DATA_Polygon::GetBoundingBox() const
 {
 	BOX2I box;

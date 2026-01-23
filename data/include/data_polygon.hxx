@@ -15,6 +15,7 @@ namespace KIGFX {
 	{
 	public:
 		DATA_Polygon(std::vector<Segment> points, double = 1);
+		DATA_Polygon(std::vector<Segment> points, PCB_LAYER_ID aLayer, double = 1);
 
 		virtual const BOX2I GetBoundingBox() const override;
 

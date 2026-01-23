@@ -20,6 +20,11 @@ KIGFX::DATA_Polyline::DATA_Polyline(SHAPE_LINE_CHAIN polyline, double lineWidth)
 {
 }
 
+KIGFX::DATA_Polyline::DATA_Polyline(SHAPE_LINE_CHAIN polyline, PCB_LAYER_ID aLayer, double lineWidth)
+	: BOARD_ITEM(ITEM_TYPE::POLYLINE, aLayer), m_polyline(polyline), m_lineWidth(lineWidth)
+{
+}
+
 const BOX2I KIGFX::DATA_Polyline::GetBoundingBox() const
 {
 	return m_polyline.BBox();

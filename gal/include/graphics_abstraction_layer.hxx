@@ -81,6 +81,10 @@ public:
     // Drawing methods
     // ---------------
 
+    void SetDirty();
+    void SetTargetDirty(int aTarget);
+    void Clean();
+    void CleanTarget(int aTarget);
     /**
      * Draw a line.
      *
@@ -1113,6 +1117,7 @@ protected:
 
     KICURSOR             m_currentNativeCursor; ///< Current cursor
 
+    bool m_dirtyTargets[TARGETS_NUMBER] = { 0, 0, 0, 0 };
 private:
 
     inline double getLayerDepth() const

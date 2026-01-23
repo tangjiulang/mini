@@ -9,6 +9,7 @@ class DATA_Rectangle : public BOARD_ITEM
 public:
 	DATA_Rectangle() = default;
 	DATA_Rectangle(SHAPE_RECT, double = 1);
+	DATA_Rectangle(SHAPE_RECT, PCB_LAYER_ID aLayer, double = 1);
 
 	virtual const BOX2I GetBoundingBox() const override;
 	std::string GetClass() const override {

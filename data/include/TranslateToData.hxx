@@ -20,6 +20,8 @@ private:
 	bool TranslateStandard(Shape standard, const VECTOR2D& location = { 0, 0 });
 	bool TranslateButterfly(Butterfly* butterfly, const VECTOR2D& location = { 0, 0 });
 	bool TranslateCircle(Circle* circle, const VECTOR2D& location = { 0, 0 });
+	bool TranslatePolygon(Polygon* polygon, const VECTOR2D& location = { 0, 0 });
+	bool TranslateCutout(Cutout* cutout, const VECTOR2D& location = { 0, 0 });
 	bool TranslateContour(Contour* contour, const VECTOR2D& location = { 0, 0 });
 	bool TranslateDiamond(Diamond* diamond, const VECTOR2D& location = { 0, 0 });
 	bool TranslateDonut(Donut* donut, const VECTOR2D& location = { 0, 0 });

@@ -270,3 +270,26 @@ bool GAL::SetNativeCursorStyle( KICURSOR aCursor, bool aHiDPI )
 
     return true;
 }
+
+
+void GAL::SetDirty()
+{
+    for (int i = 0; i < TARGETS_NUMBER; i++)
+        SetTargetDirty(i);
+}
+
+void GAL::SetTargetDirty(int aTarget)
+{
+    m_dirtyTargets[aTarget] = true;
+}
+
+void GAL::Clean()
+{
+    for (int i = 0; i < TARGETS_NUMBER; i++)
+        CleanTarget(i);
+}
+
+void GAL::CleanTarget(int aTarget)
+{
+	m_dirtyTargets[aTarget] = false;
+}

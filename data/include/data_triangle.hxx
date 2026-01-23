@@ -7,6 +7,7 @@ class DATA_Triangle : public BOARD_ITEM
 {
 public:
 	DATA_Triangle(VECTOR2I, VECTOR2I, VECTOR2I, double = 1);
+	DATA_Triangle(VECTOR2I, VECTOR2I, VECTOR2I, PCB_LAYER_ID aLayer, double = 1);
 
 	virtual const BOX2I GetBoundingBox() const override;
 	std::string GetClass() const override {

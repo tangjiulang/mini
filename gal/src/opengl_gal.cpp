@@ -630,7 +630,11 @@ void OPENGL_GAL::EndDrawing()
 
     // Cached & non-cached containers are rendered to the same buffer
     m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_mainBuffer);
-
+    if (m_dirtyTargets[TARGET_NONCACHED] || m_dirtyTargets[TARGET_CACHED]) {
+        glClear((GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+        CleanTarget(TARGET_NONCACHED);
+        CleanTarget(TARGET_CACHED);
+    }
     if (m_nonCachedManager != nullptr) {
         cntEndNoncached.Start();
         m_nonCachedManager->EndDrawing();
@@ -647,12 +651,20 @@ void OPENGL_GAL::EndDrawing()
         // Overlay container is rendered to a different buffer
         if (m_overlayBuffer) 
             m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_overlayBuffer);
+        if (m_dirtyTargets[TARGET_OVERLAY]) {
+            glClear((GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+            CleanTarget(TARGET_OVERLAY);
+        }
         m_overlayManager->EndDrawing();
         cntEndOverlay.Stop();
     }
         
     cntComposite.Start();
     m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_tempBuffer);
+    if (m_dirtyTargets[TARGET_TEMP]) {
+        glClear((GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+        CleanTarget(TARGET_TEMP);
+    }
     blitCursor();
 
 
@@ -2590,6 +2602,7 @@ void OPENGL_GAL::blitCursor()
 
     this->glLineWidth( 1.0 );
     SetTarget(TARGET_TEMP);
+    SetLineWidth(1 / m_worldScale);
     DrawLine({ cursorCenter.x, cursorBegin.y }, { cursorCenter.x, cursorEnd.y });
     DrawLine({ cursorBegin.x, cursorCenter.y }, { cursorEnd.x, cursorCenter.y });
     m_tempManager->EndDrawing();
