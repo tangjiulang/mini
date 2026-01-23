@@ -24,6 +24,10 @@ MiniFrame::MiniFrame(QWidget* parent)
 	this->setCentralWidget(m_centralWidget);
 
 	m_dataManager = new DataManager();
+
+	setCursor(Qt::BlankCursor);
+	setMouseTracking(true);
+	setAttribute(Qt::WA_Hover);
 }
 
 MiniFrame::~MiniFrame()

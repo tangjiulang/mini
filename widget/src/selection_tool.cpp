@@ -32,6 +32,7 @@ void SELECTION_TOOL::ClearSelection(bool aQuietMode)
     while (m_selection.GetSize())
         unhighlight(m_selection.Front(), SELECTED, &m_selection);
 
+    m_view->MarkDirty();
     m_view->Update(&m_selection);
 }
 

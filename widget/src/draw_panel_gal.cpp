@@ -382,6 +382,13 @@ DrawPanelGal::~DrawPanelGal()
 	m_gal = nullptr;    // Ensure OnShow is not called
 }
 
+void DrawPanelGal::onWheel(QWheelEvent* event)
+{
+    m_selectionTool.ClearSelection();
+    m_control->onWheel(event);
+    m_selectionTool.SelectRectArea();
+}
+
 void DrawPanelGal::Paint(QPaintEvent* event)
 {
 	if (!m_gal->IsInitialized() || !m_gal->IsVisible() || m_gal->IsContextLocked())

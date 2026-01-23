@@ -29,13 +29,7 @@ public:
 
     void InitialViewData(DataManager* data);
 
-    void onWheel(QWheelEvent* event)
-    {
-        m_selectionTool.ClearSelection();
-        m_control->onWheel(event);
-        m_selectionTool.SelectRectArea();
-        m_view->MarkDirty();
-    }
+    void onWheel(QWheelEvent* event);
 
     void Paint(QPaintEvent*);
 
