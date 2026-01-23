@@ -1,9 +1,9 @@
+#include <magic_enum.hpp>
 #include "TranslateToData.hxx"
 #include "view.hxx"
 
 bool TranslateToData::Translate(KIGFX::VIEW* view)
 {
-
 	for (auto step : m_ecad->m_steps) {
 		TranslateShape(step.profile);
 		for (auto component : step.components) {

@@ -20,3 +20,4 @@ endif()
 
 set( ARGPARSE_INSTALL OFF )
 add_subdirectory( clipper2 )
+add_subdirectory(magic_enum)

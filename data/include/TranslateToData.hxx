@@ -42,4 +42,5 @@ private:
 	EcadSection* m_ecad;
 	DataManager* m_dataManager;
 	KIGFX::VIEW* m_view;
+	PCB_LAYER_ID m_currentLayer;
 };

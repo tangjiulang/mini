@@ -12,6 +12,7 @@ target_link_libraries(base PUBLIC
                         spdlog::spdlog
                         core
                         math
+                        magic_enum
 )
 
 include_directories(${Boost_INCLUDE_DIRS})
