@@ -12,6 +12,7 @@ class DATA_Circle;
 class DATA_Polyline;
 class DATA_Polygon;
 class DATA_Arc;
+class DATA_PolySet;
 
 class DATA_PAINTER : public PAINTER
 {
@@ -31,6 +32,7 @@ protected:
 	void draw(const DATA_Polyline* aPolygon, int aLayer);
 	void draw(const DATA_Polygon* aPolygon, int aLayer);
 	void draw(const DATA_Arc* aArc, int aLayer);
+	void draw(DATA_PolySet* aPolySet, int aLayer);
 protected:
 	DATA_RENDER_SETTINGS m_dataSettings;
 };

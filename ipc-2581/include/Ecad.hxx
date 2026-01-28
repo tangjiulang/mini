@@ -305,7 +305,7 @@ struct Set {
 	std::string geometry;
 	bool plate;
 	std::string componentRef;
-	GeometryUsage geometryUsage;
+	GeometryUsage geometryUsage = GeometryUsage::NONE;
 	std::vector<NonstandardAttribute> nonstandardAttributes;
 	std::vector<Pad> pads;
 	std::vector<Hole> holes;

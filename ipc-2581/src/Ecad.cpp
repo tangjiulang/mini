@@ -626,9 +626,7 @@ bool EcadSection::ReadSet(tinyxml2::XMLElement* aSetDoc, Set& set)
 	for (auto specRefDoc = aSetDoc->FirstChildElement("SpecRef"); specRefDoc; specRefDoc = specRefDoc->NextSiblingElement("SpecRef")) {
 		// Todo Read Spec Ref
 	}
-	if (set.net == "NetIC6_B11") {
-		int x = 100;
-	}
+
 	for (auto featuresDoc = aSetDoc->FirstChildElement("Features"); featuresDoc; featuresDoc = featuresDoc->NextSiblingElement("Features")) {
 		Features features;
 		ReadFeatures(featuresDoc, features);

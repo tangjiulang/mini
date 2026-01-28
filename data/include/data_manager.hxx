@@ -6,6 +6,7 @@
 #include "data_polyline.hxx"
 #include "data_arc.hxx"
 #include "data_polygon.hxx"
+#include "data_poly_set.hxx"
 
 class KIGFX::VIEW;
 
@@ -20,4 +21,5 @@ public:
 	std::vector<KIGFX::DATA_Polyline>	m_polylines;
 	std::vector<KIGFX::DATA_Polygon>	m_polygons;
 	std::vector<KIGFX::DATA_Arc>		m_arcs;
+	std::vector<KIGFX::DATA_PolySet>	m_polySet;
 };

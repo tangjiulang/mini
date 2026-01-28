@@ -229,7 +229,7 @@ Shape StandardShape::ReadButterfly(tinyxml2::XMLElement* aElement) {
 
 
 Shape StandardShape::ReadCircle(tinyxml2::XMLElement* aElement) {
-	m_circle.resize(m_butterfly.size() + 1);
+	m_circle.resize(m_circle.size() + 1);
 	Circle& circle = m_circle.back();
 	circle.diameter = aElement->FindAttribute("diameter")->DoubleValue();
 

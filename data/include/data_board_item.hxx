@@ -16,6 +16,7 @@ enum class ITEM_TYPE {
 	CIRCLE,
 	POLYGON,
     POLYLINE,
+    POLYSET,
 	GROUP
 };
 

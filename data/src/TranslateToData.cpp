@@ -4,14 +4,16 @@
 
 bool TranslateToData::Translate(KIGFX::VIEW* view)
 {
+	int count = 0;
 	for (auto step : m_ecad->m_steps) {
 		TranslateShape(step.profile);
 		for (auto component : step.components) {
 			VECTOR2D location = { component.location.x, component.location.y };
 			Package& package = step.packages[component.packageRef];
-			TranslateShape(package.outline, location);
+			//TranslateShape(package.outline, location);
 		}
 		for (auto layerFeatures : step.layerFeatures) {
+			m_currentLayer = PCB_LAYER_ID(count++);
 			for (auto set : layerFeatures.sets) {
 				if (set.geometryUsage == GeometryUsage::TEXT)
 					continue;
@@ -19,6 +21,11 @@ bool TranslateToData::Translate(KIGFX::VIEW* view)
 					VECTOR2D location = { pad.location.x, pad.location.y };
 					TranslateShape(pad.feature, location);
 					auto padStackDef = step.padStackDefs[pad.padstackDefRef];
+					for (auto holeStackPadDef : padStackDef.holes) {
+						Circle circle;
+						circle.diameter = holeStackPadDef.diameter;
+						TranslateCircle(&circle, location);
+					}
 					for (auto padStackPadDef : padStackDef.pads) {
 						if (padStackPadDef.layerRef != layerFeatures.layerRef)
 							continue;
@@ -81,7 +88,7 @@ bool TranslateToData::TranslateArc(Arc* aArc, const VECTOR2D& location)
 	SHAPE_ARC shape_arc;
 	shape_arc.ConstructFromStartEndCenter(m_view->ToWorld(startPoint), m_view->ToWorld(endPoint), m_view->ToWorld(centerPoint), 1, m_view->ToWorld(lineWidth));
 
-	m_dataManager->m_arcs.push_back(KIGFX::DATA_Arc{ shape_arc, m_view->ToWorld(lineWidth) });
+	m_dataManager->m_arcs.push_back(KIGFX::DATA_Arc{ shape_arc, m_currentLayer, m_view->ToWorld(lineWidth) });
 
 	return true;
 }
@@ -95,7 +102,7 @@ bool TranslateToData::TranslateLine(Line* line, const VECTOR2D& location)
 	double lineWidth = line->lineDesc ? line->lineDesc->lineWidth : 0;
 
 	SHAPE_SEGMENT shape_line{ m_view->ToWorld(startPoint), m_view->ToWorld(endPoint) };
-	m_dataManager->m_lines.push_back(KIGFX::DATA_Line{ shape_line, m_view->ToWorld(lineWidth) });
+	m_dataManager->m_lines.push_back(KIGFX::DATA_Line{ shape_line, m_currentLayer, m_view->ToWorld(lineWidth) });
 
 	return true;
 }
@@ -164,7 +171,7 @@ bool TranslateToData::TranslatePolyline(Polyline* polyline, const VECTOR2D& loca
 		}
 	}
 	double lineWidth = polyline->lineDesc ? polyline->lineDesc->lineWidth : 0;
-	KIGFX::DATA_Polygon polygon(segments, m_view->ToWorld(lineWidth));
+	KIGFX::DATA_Polygon polygon(segments, m_currentLayer, m_view->ToWorld(lineWidth));
 	m_dataManager->m_polygons.push_back(polygon);
 
 	return true;
@@ -216,8 +223,8 @@ bool TranslateToData::TranslateButterfly(Butterfly* butterfly, const VECTOR2D& l
 
 bool TranslateToData::TranslateCircle(Circle* circle, const VECTOR2D& location)
 {
-	SHAPE_CIRCLE shape_circle{ m_view->ToWorld(location), static_cast<int32_t>(m_view->ToWorld(circle->diameter / 2.0)) };
-	m_dataManager->m_circles.push_back(KIGFX::DATA_Circle(shape_circle));
+	SHAPE_CIRCLE shape_circle{ m_view->ToWorld(location), static_cast<int32_t>(m_view->ToWorld(circle->diameter / 2)) };
+	m_dataManager->m_circles.push_back(KIGFX::DATA_Circle(shape_circle, m_currentLayer));
 	
 	return true;
 }
@@ -233,11 +240,38 @@ bool TranslateToData::TranslateContour(Contour* contour, const VECTOR2D& locatio
 
 bool TranslateToData::TranslateDiamond(Diamond* diamond, const VECTOR2D& location)
 {
-	return false;
+	double width = diamond->width;
+	double height = diamond->height;
+	VECTOR2D point1 = { - width / 2, 0 }, point2 = { 0, height / 2 },
+		point3 = { width / 2, 0 }, point4 = { 0, -height / 2 };
+	SHAPE_LINE_CHAIN shape_diamond;
+	shape_diamond.Append(m_view->ToWorld(location + point1));
+	shape_diamond.Append(m_view->ToWorld(location + point2));
+	shape_diamond.Append(m_view->ToWorld(location + point3));
+	shape_diamond.Append(m_view->ToWorld(location + point4));
+	shape_diamond.Append(m_view->ToWorld(location + point1));
+	double lineWidth = diamond->lineDesc ? diamond->lineDesc->lineWidth : 0;
+	m_dataManager->m_polylines.push_back(KIGFX::DATA_Polyline{ shape_diamond, m_currentLayer, m_view->ToWorld(lineWidth) });
+	
+	return true;
 }
 
 bool TranslateToData::TranslateDonut(Donut* donut, const VECTOR2D& location)
 {
+	DonutShape shape = donut->shape;
+	double outDiameter = donut->outerDiameter, innerDiameter = donut->innerDiameter;
+	if (shape == DonutShape::ROUND) {
+
+	}
+	else if (shape == DonutShape::SQUARE) {
+
+	}
+	else if (shape == DonutShape::HECAGON) {
+
+	}
+	else {
+
+	}
 	return false;
 }
 
@@ -271,7 +305,7 @@ bool TranslateToData::TranslateRectCenter(RectCenter* rectCenter, const VECTOR2D
 	double lineWidth = rectCenter->lineDesc ? rectCenter->lineDesc->lineWidth : 0;
 	VECTOR2D startPoint = { location.x - rectCenter->width / 2.0, location.y - rectCenter->height / 2.0 };
 	VECTOR2D endPoint = { location.x + rectCenter->width / 2.0, location.y + rectCenter->height / 2.0 };
-	KIGFX::DATA_Rectangle data_rectangle(SHAPE_RECT{ m_view->ToWorld(startPoint), m_view->ToWorld(endPoint)}, m_view->ToWorld(lineWidth));
+	KIGFX::DATA_Rectangle data_rectangle(SHAPE_RECT{ m_view->ToWorld(startPoint), m_view->ToWorld(endPoint)}, m_currentLayer, m_view->ToWorld(lineWidth));
 	m_dataManager->m_rectangles.push_back(data_rectangle);
 	return true;
 }
@@ -288,7 +322,54 @@ bool TranslateToData::TranslateRectCorner(RectCorner* rectCorner, const VECTOR2D
 
 bool TranslateToData::TranslateRectRound(RectRound* rectRound, const VECTOR2D& location)
 {
-	return false;
+	//SHAPE_POLY_SET polySet;
+	//double width = rectRound->width;
+	//double height = rectRound->height;
+	//double radius = rectRound->radius;
+	//if (abs(width - radius * 2) < 0.0001) {
+	//	if (rectRound->lowerLeft == true) {
+	//		polySet.Append(-width / 2 + radius, -height / 2);
+	//		SHAPE_ARC arc;
+	//		arc.ConstructFromStartEndCenter({ -width / 2 + radius, -height / 2 }, { -width / 2, -height / 2 + radius }, { -width / 2, -height / 2 });
+	//		polySet.Append(arc);
+	//	}
+	//	else
+	//		polySet.Append(-width / 2, -height / 2);
+	//	if (rectRound->upperLeft) {
+	//		polySet.Append(-width / 2, height / 2 - radius);
+	//		SHAPE_ARC arc;
+	//		arc.ConstructFromStartEndCenter({ -width / 2, height / 2 - radius }, { -width / 2 + radius, height / 2 }, { -width / 2 + radius, -height / 2 + radius });
+	//		polySet.Append(arc);
+	//	}
+	//	else
+	//		polySet.Append(-width / 2, height / 2);
+
+	//	if (rectRound->upperRight) {
+	//		polySet.Append(width / 2 - radius, height / 2);
+	//		SHAPE_ARC arc;
+	//		arc.ConstructFromStartEndCenter({ width / 2 - radius, height / 2 }, { width / 2, height / 2 - radius }, { width / 2 - radius, height / 2 - radius });
+	//		polySet.Append(arc);
+	//	}
+	//	else
+	//		polySet.Append(width / 2, height / 2);
+
+	//	if (rectRound->lowerRight) {
+	//		polySet.Append(width / 2, -height / 2 + radius);
+	//		SHAPE_ARC arc;
+	//		arc.ConstructFromStartEndCenter({ width / 2, -height / 2 + radius }, { width / 2 - radius, -height / 2 }, { width / 2 - radius, -height / 2 + radius });
+	//		polySet.Append(arc);
+	//	}
+	//	else
+	//		polySet.Append(width / 2, -height / 2);
+
+	//	if (rectRound->lowerLeft)
+	//		polySet.Append(-width / 2 + radius, -height / 2);
+	//	else
+	//		polySet.Append(-width / 2, -height / 2);
+	//}
+
+
+	return true;
 }
 
 bool TranslateToData::TranslateThermal(Thermal* thermal, const VECTOR2D& location)
@@ -340,7 +421,7 @@ bool TranslateToData::TranslatePolygon(Polygon* polygon, const VECTOR2D& locatio
 		}
 	}
 	double lineWidth = polygon->lineDesc ? polygon->lineDesc->lineWidth : 0;
-	KIGFX::DATA_Polygon poly(segments, m_view->ToWorld(lineWidth));
+	KIGFX::DATA_Polygon poly(segments, m_currentLayer, m_view->ToWorld(lineWidth));
 	m_dataManager->m_polygons.push_back(poly);
 
 	return true;
@@ -375,7 +456,7 @@ bool TranslateToData::TranslateCutout(Cutout* cutout, const VECTOR2D& location)
 		}
 	}
 	double lineWidth = cutout->lineDesc ? cutout->lineDesc->lineWidth : 0;
-	KIGFX::DATA_Polygon poly(segments, m_view->ToWorld(lineWidth));
+	KIGFX::DATA_Polygon poly(segments, m_currentLayer, m_view->ToWorld(lineWidth));
 	m_dataManager->m_polygons.push_back(poly);
 
 	return true;

@@ -7,6 +7,7 @@
 #include "data_polyline.hxx"
 #include "data_arc.hxx"
 #include "data_polygon.hxx"
+#include "data_poly_set.hxx"
 
 KIGFX::DATA_PAINTER::DATA_PAINTER(GAL* aGal)
 	: PAINTER(aGal) { }
@@ -130,4 +131,19 @@ void KIGFX::DATA_PAINTER::draw(const DATA_Arc* aArc, int aLayer)
 	startAngle = aArc->m_arc.GetStartAngle();
 	endAngle = aArc->m_arc.GetEndAngle();
 	m_gal->DrawArc(aArc->m_arc.GetCenter(), aArc->m_arc.GetRadius(), startAngle, (endAngle - startAngle).Normalize());
+}
+
+void KIGFX::DATA_PAINTER::draw(DATA_PolySet* aPolySet, int aLayer)
+{
+	COLOR4D color = m_dataSettings.GetColor(aPolySet, aLayer);
+	m_gal->SetStrokeColor(color);
+	m_gal->SetFillColor(color);
+	m_gal->SetLineWidth(0);
+	m_gal->SetIsFill(true);
+	m_gal->SetIsStroke(false);
+
+	if (!aPolySet->m_polySet.IsTriangulationUpToDate())
+		aPolySet->m_polySet.CacheTriangulation(true, true);
+
+	m_gal->DrawPolygon(aPolySet->m_polySet, true);
 }
