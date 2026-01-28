@@ -11,7 +11,7 @@
 
 class DataManager;
 
-class DrawPanelGal : public QAbstractScrollArea {
+class DrawPanelGal : public QWidget {
 public:
     enum GAL_TYPE {
         GAL_TYPE_UNKNOWN = -1,  ///< not specified: a GAL engine must be set by the client

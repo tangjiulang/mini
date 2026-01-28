@@ -345,7 +345,7 @@ const int GAL_LAYER_ORDER[] =
 };
 
 DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
-	: QAbstractScrollArea(parent),
+	: QWidget(parent),
 	  m_gal(nullptr),
 	  m_view(nullptr),
 	  m_painter(nullptr),
