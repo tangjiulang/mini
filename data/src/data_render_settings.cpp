@@ -33,7 +33,18 @@ bool DATA_RENDER_SETTINGS::GetShowPageLimits() const { return false; }
 
 KIGFX::COLOR4D KIGFX::DATA_RENDER_SETTINGS::GetColor(const BOARD_ITEM* aItem, int aLayer) const
 {
+    COLOR4D color(0, 0, 0, 1);
+
+    if (aItem->Type() == ITEM_TYPE::CIRCLE)
+        color = COLOR4D(0.5, 0, 0.5, 0.7);
+    else if (aItem->Type() == ITEM_TYPE::LINE)
+        color = COLOR4D(0, 0.5, 0.5, 0.7);
+
+    else 
+        color = COLOR4D(1, 1, 1, 0.8);
+
     if (aItem->IsSelected())
-        return COLOR4D(1, 0, 0, 1);
-    return COLOR4D::WHITE;
+        color.a *= 0.8;
+
+    return color;
 }
