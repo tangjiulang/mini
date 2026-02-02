@@ -69,33 +69,45 @@ namespace
 {
 void draw_fullscreen_primitive()
 {
-    glMatrixMode( GL_MODELVIEW );
-    glPushMatrix();
-    glLoadIdentity();
-    glMatrixMode( GL_PROJECTION );
-    glPushMatrix();
-    glLoadIdentity();
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
+
+    // Enable texturing and bind the main texture
+
+    // Draw a full screen quad with the texture
+    GLuint vao, vbo;
+
+    float vertices[] = {
+        // pos        // tex
+        -1.0f,  1.0f,  0.0f, 1.0f,  // 左上
+        -1.0f, -1.0f,  0.0f, 0.0f,  // 左下
+         1.0f, -1.0f,  1.0f, 0.0f,  // 右下
+
+        -1.0f,  1.0f,  0.0f, 1.0f,  // 左上
+         1.0f, -1.0f,  1.0f, 0.0f,  // 右下
+         1.0f,  1.0f,  1.0f, 1.0f   // 右上
+    };
 
 
-    glBegin( GL_TRIANGLES );
-    glTexCoord2f( 0.0f, 1.0f );
-    glVertex2f( -1.0f, 1.0f );
-    glTexCoord2f( 0.0f, 0.0f );
-    glVertex2f( -1.0f, -1.0f );
-    glTexCoord2f( 1.0f, 1.0f );
-    glVertex2f( 1.0f, 1.0f );
+    function->glGenVertexArrays(1, &vao);
+    function->glGenBuffers(1, &vbo);
 
-    glTexCoord2f( 1.0f, 1.0f );
-    glVertex2f( 1.0f, 1.0f );
-    glTexCoord2f( 0.0f, 0.0f );
-    glVertex2f( -1.0f, -1.0f );
-    glTexCoord2f( 1.0f, 0.0f );
-    glVertex2f( 1.0f, -1.0f );
-    glEnd();
+    function->glBindVertexArray(vao);
+    function->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    function->glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glPopMatrix();
-    glMatrixMode( GL_MODELVIEW );
-    glPopMatrix();
+    // 顶点坐标
+    function->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    function->glEnableVertexAttribArray(0);
+
+    // 纹理坐标
+    function->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    function->glEnableVertexAttribArray(1);
+
+    function->glBindVertexArray(0);
+
+    function->glBindVertexArray(vao);
+    function->glDrawArrays(GL_TRIANGLES, 0, 6);
+    function->glBindVertexArray(0);
 }
 
 } // namespace
@@ -114,12 +126,12 @@ ANTIALIASING_SUPERSAMPLING::ANTIALIASING_SUPERSAMPLING( OPENGL_COMPOSITOR* aComp
 bool ANTIALIASING_SUPERSAMPLING::Init()
 {
     areShadersCreated = false;
-
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     if( !areBuffersCreated )
     {
         ssaaMainBuffer = compositor->CreateBuffer();
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        function->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        function->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 
         areBuffersCreated = true;
     }
@@ -136,30 +148,30 @@ VECTOR2I ANTIALIASING_SUPERSAMPLING::GetInternalBufferSize()
 
 void ANTIALIASING_SUPERSAMPLING::Begin()
 {
-    compositor->SetBuffer( ssaaMainBuffer );
+    compositor->SetBuffer( OPENGL_COMPOSITOR::DIRECT_RENDERING + ssaaMainBuffer);
     compositor->ClearBuffer( COLOR4D::BLACK );
 }
 
 
 void ANTIALIASING_SUPERSAMPLING::DrawBuffer( GLuint aBuffer )
 {
-    compositor->DrawBuffer( aBuffer, ssaaMainBuffer );
+    compositor->DrawBuffer( aBuffer, OPENGL_COMPOSITOR::DIRECT_RENDERING + ssaaMainBuffer );
 }
 
 
 void ANTIALIASING_SUPERSAMPLING::Present()
 {
+    compositor->DrawBuffer(ssaaMainBuffer, OPENGL_COMPOSITOR::DIRECT_RENDERING);
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     function->glDisable( GL_BLEND );
     function->glDisable( GL_DEPTH_TEST );
-    function->glActiveTexture( GL_TEXTURE0 );
-    function->glBindTexture( GL_TEXTURE_2D, compositor->GetBufferTexture( ssaaMainBuffer ) );
-    compositor->SetBuffer( OPENGL_COMPOSITOR::DIRECT_RENDERING );
+    //function->glActiveTexture( GL_TEXTURE0 );
+    //function->glBindTexture( GL_TEXTURE_2D, compositor->GetBufferTexture( ssaaMainBuffer ) );
+    //compositor->SetBuffer( OPENGL_COMPOSITOR::DIRECT_RENDERING );
+    //draw_fullscreen_primitive();
 
     function->glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE );
-
-    draw_fullscreen_primitive();
-
+    compositor->DrawBuffer(ssaaMainBuffer, OPENGL_COMPOSITOR::DIRECT_RENDERING);
     function->glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
 }
 
@@ -274,10 +286,11 @@ uniform vec4 SMAA_RT_METRICS;
     // Set up pass 1 Shader
     //
     pass_1_shader = std::make_unique<SHADER>();
-    QString str1 = pass_1_shader->LoadShaderSourceFromStrings("smaa_base.glsl");
-    QString str2 = pass_1_shader->LoadShaderSourceFromStrings("smaa_pass_1_vert.glsl");
+    pass_1_shader->InitProgram(nullptr);
+    QString str1 = pass_1_shader->LoadShaderSourceFromStrings("../shaders/smaa_base.glsl");
+    QString str2 = pass_1_shader->LoadShaderSourceFromStrings("../shaders/smaa_pass_1_vert.glsl");
     pass_1_shader->LoadShaderFromString( QOpenGLShader::Vertex, vert_preamble + quality_string + str1 + str2);
-    str2 = pass_1_shader->LoadShaderSourceFromStrings("smaa_pass_1_frag_luma.glsl");
+    str2 = pass_1_shader->LoadShaderSourceFromStrings("../shaders/smaa_pass_1_frag_luma.glsl");
     pass_1_shader->LoadShaderFromString(QOpenGLShader::Fragment, frag_preamble + quality_string + str1 + str2);
 
     pass_1_shader->Link();
@@ -299,6 +312,7 @@ uniform vec4 SMAA_RT_METRICS;
     // set up pass 2 shader
     //
     pass_2_shader = std::make_unique<SHADER>();
+    pass_2_shader->InitProgram(nullptr);
     str2 = pass_2_shader->LoadShaderSourceFromStrings("smaa_pass_2_vert.glsl");
     pass_2_shader->LoadShaderFromString(QOpenGLShader::Vertex, vert_preamble + quality_string + str1 + str2);
     str2 = pass_2_shader->LoadShaderSourceFromStrings("smaa_pass_2_frag.glsl");
@@ -331,6 +345,7 @@ uniform vec4 SMAA_RT_METRICS;
     // set up pass 3 shader
     //
     pass_3_shader = std::make_unique<SHADER>();
+    pass_3_shader->InitProgram(nullptr);
     str2 = pass_3_shader->LoadShaderSourceFromStrings("smaa_pass_3_vert.glsl");
     pass_3_shader->LoadShaderFromString(QOpenGLShader::Vertex, vert_preamble + quality_string + str1 + str2);
     str2 = pass_3_shader->LoadShaderSourceFromStrings("smaa_pass_3_frag.glsl");

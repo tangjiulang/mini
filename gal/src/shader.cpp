@@ -81,9 +81,10 @@ bool SHADER::LoadShaderFromFile(QOpenGLShader::ShaderType aShaderType, const std
 }
 
 QString SHADER::LoadShaderSourceFromStrings(const std::string& aShaderSourceName) {
-    QString filename = aShaderSourceName.data();
-    QFile file(filename);
-    file.open(QIODevice::ReadOnly);
+    QFileInfo thisFile(__FILE__);
+    QString shaderPath = QDir(thisFile.absolutePath()).filePath(aShaderSourceName.data());
+    QFile file(shaderPath);
+    bool isOpen = file.open(QIODevice::ReadOnly);
     QTextStream in(&file);
     return in.readAll();
 

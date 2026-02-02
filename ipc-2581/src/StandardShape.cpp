@@ -409,7 +409,7 @@ Shape StandardShape::ReadRectRound(tinyxml2::XMLElement* aElement)
 
 	rectRound.width = aElement->FindAttribute("width")->DoubleValue();
 	rectRound.height = aElement->FindAttribute("height")->DoubleValue();
-	rectRound.radius = aElement->FindAttribute("chamfer")->DoubleValue();
+	rectRound.radius = aElement->FindAttribute("radius")->DoubleValue();
 	rectRound.upperRight = aElement->FindAttribute("upperRight") ? aElement->FindAttribute("upperRight")->BoolValue() : false;
 	rectRound.upperLeft = aElement->FindAttribute("upperLeft") ? aElement->FindAttribute("upperLeft")->BoolValue() : false;
 	rectRound.lowerLeft = aElement->FindAttribute("lowerLeft") ? aElement->FindAttribute("lowerLeft")->BoolValue() : false;

@@ -500,7 +500,7 @@ void OPENGL_GAL::BeginDrawing()
         m_isFramebufferInitialized = true;
     }
 
-    m_compositor->Begin();
+    //m_compositor->Begin();
 
     // Disable 2D Textures
     this->glDisable( GL_TEXTURE_2D );
@@ -627,6 +627,9 @@ void OPENGL_GAL::EndDrawing()
     PROF_TIMER cntSwap( "gl-swap" );
 
     cntTotal.Start();
+
+    m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING);
+    glClear((GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 
     // Cached & non-cached containers are rendered to the same buffer
     m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_mainBuffer);
@@ -2939,6 +2942,9 @@ void OPENGL_GAL::paintGL() {
     //qDebug() << m_fpsCounter.value();
     this->glClearColor(0, 0, 0, 0);
     this->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    
+    m_compositor->Begin();
+
     if (m_isInitialized) {
         EndDrawing();
     }
