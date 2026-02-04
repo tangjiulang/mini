@@ -161,7 +161,6 @@ void ANTIALIASING_SUPERSAMPLING::DrawBuffer( GLuint aBuffer )
 
 void ANTIALIASING_SUPERSAMPLING::Present()
 {
-    compositor->DrawBuffer(ssaaMainBuffer, OPENGL_COMPOSITOR::DIRECT_RENDERING);
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     function->glDisable( GL_BLEND );
     function->glDisable( GL_DEPTH_TEST );
@@ -267,7 +266,7 @@ void ANTIALIASING_SMAA::loadShaders()
 
     // set up shaders
     QString vert_preamble( R"SHADER(
-#version 120
+#version 330 core
 #define SMAA_GLSL_2_1
 #define SMAA_INCLUDE_VS 1
 #define SMAA_INCLUDE_PS 0
@@ -275,7 +274,7 @@ uniform vec4 SMAA_RT_METRICS;
 )SHADER" );
 
     QString frag_preamble( R"SHADER(
-#version 120
+#version 330 core
 #define SMAA_GLSL_2_1
 #define SMAA_INCLUDE_VS 0
 #define SMAA_INCLUDE_PS 1
@@ -295,7 +294,7 @@ uniform vec4 SMAA_RT_METRICS;
 
     pass_1_shader->Link();
     checkGlError( "linking pass 1 shader", __FILE__, __LINE__ );
-
+    ufm_pass_1_shader_u_mvp =  pass_1_shader->AddParameter("u_mvp");
     GLint smaaColorTexParameter = pass_1_shader->AddParameter( "colorTex" );
     checkGlError( "pass1: getting colorTex uniform", __FILE__, __LINE__ );
     pass_1_metrics = pass_1_shader->AddParameter( "SMAA_RT_METRICS" );
@@ -313,9 +312,9 @@ uniform vec4 SMAA_RT_METRICS;
     //
     pass_2_shader = std::make_unique<SHADER>();
     pass_2_shader->InitProgram(nullptr);
-    str2 = pass_2_shader->LoadShaderSourceFromStrings("smaa_pass_2_vert.glsl");
+    str2 = pass_2_shader->LoadShaderSourceFromStrings("../shaders/smaa_pass_2_vert.glsl");
     pass_2_shader->LoadShaderFromString(QOpenGLShader::Vertex, vert_preamble + quality_string + str1 + str2);
-    str2 = pass_2_shader->LoadShaderSourceFromStrings("smaa_pass_2_frag.glsl");
+    str2 = pass_2_shader->LoadShaderSourceFromStrings("../shaders/smaa_pass_2_frag.glsl");
     pass_2_shader->LoadShaderFromString(QOpenGLShader::Fragment, frag_preamble + quality_string + str1 + str2);
 
     pass_2_shader->Link();
@@ -332,6 +331,7 @@ uniform vec4 SMAA_RT_METRICS;
 
     pass_2_shader->Use();
     checkGlError( "pass2: using shader", __FILE__, __LINE__ );
+    ufm_pass_2_shader_u_mvp = pass_2_shader->AddParameter("u_mvp");
     pass_2_shader->SetParameter( smaaEdgesTexParameter, 0 );
     checkGlError( "pass2: setting colorTex uniform", __FILE__, __LINE__ );
     pass_2_shader->SetParameter( smaaAreaTexParameter, 1 );
@@ -346,9 +346,9 @@ uniform vec4 SMAA_RT_METRICS;
     //
     pass_3_shader = std::make_unique<SHADER>();
     pass_3_shader->InitProgram(nullptr);
-    str2 = pass_3_shader->LoadShaderSourceFromStrings("smaa_pass_3_vert.glsl");
+    str2 = pass_3_shader->LoadShaderSourceFromStrings("../shaders/smaa_pass_3_vert.glsl");
     pass_3_shader->LoadShaderFromString(QOpenGLShader::Vertex, vert_preamble + quality_string + str1 + str2);
-    str2 = pass_3_shader->LoadShaderSourceFromStrings("smaa_pass_3_frag.glsl");
+    str2 = pass_3_shader->LoadShaderSourceFromStrings("../shaders/smaa_pass_3_frag.glsl");
     pass_3_shader->LoadShaderFromString(QOpenGLShader::Fragment, frag_preamble + quality_string + str1 + str2);
 
     pass_3_shader->Link();
@@ -405,22 +405,24 @@ void ANTIALIASING_SMAA::updateUniforms()
 
 bool ANTIALIASING_SMAA::Init()
 {
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
+
     if( !shadersLoaded )
         loadShaders();
 
     if( !areBuffersInitialized )
     {
         smaaBaseBuffer = compositor->CreateBuffer();
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        function->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        function->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 
         smaaEdgesBuffer = compositor->CreateBuffer();
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        function->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        function->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 
         smaaBlendBuffer = compositor->CreateBuffer();
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        function->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        function->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 
         updateUniforms();
         areBuffersInitialized = true;
@@ -446,13 +448,13 @@ unsigned int ANTIALIASING_SMAA::CreateBuffer()
 void ANTIALIASING_SMAA::DrawBuffer( GLuint buffer )
 {
     // draw to internal buffer
-    compositor->DrawBuffer( buffer, smaaBaseBuffer );
+    compositor->DrawBuffer( buffer, OPENGL_COMPOSITOR::DIRECT_RENDERING + smaaBaseBuffer );
 }
 
 
 void ANTIALIASING_SMAA::Begin()
 {
-    compositor->SetBuffer( smaaBaseBuffer );
+    compositor->SetBuffer( OPENGL_COMPOSITOR::DIRECT_RENDERING + smaaBaseBuffer );
     compositor->ClearBuffer( COLOR4D::BLACK );
 }
 
@@ -461,31 +463,65 @@ namespace
 {
 void draw_fullscreen_triangle()
 {
-    glMatrixMode( GL_MODELVIEW );
-    glPushMatrix();
-    glLoadIdentity();
-    glMatrixMode( GL_PROJECTION );
-    glPushMatrix();
-    glLoadIdentity();
+    static GLuint vao = 0;
+    static GLuint vbo = 0;
 
-    glBegin( GL_TRIANGLES );
-    glTexCoord2f( 0.0f, 1.0f );
-    glVertex2f( -1.0f, 1.0f );
-    glTexCoord2f( 0.0f, -1.0f );
-    glVertex2f( -1.0f, -3.0f );
-    glTexCoord2f( 2.0f, 1.0f );
-    glVertex2f( 3.0f, 1.0f );
-    glEnd();
+    QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
-    glPopMatrix();
-    glMatrixMode( GL_MODELVIEW );
-    glPopMatrix();
+    struct Vertex {
+        float pos[2];
+        float uv[2];
+    };
+
+    // fullscreen triangle（SMAA 官方用法）
+    const Vertex verts[3] = {
+        { {-1.f,  1.f}, {0.f, 1.f} },
+        { {-1.f, -3.f}, {0.f,-1.f} },
+        { { 3.f,  1.f}, {2.f, 1.f} }
+    };
+
+    function->glGenVertexArrays(1, &vao);
+    function->glBindVertexArray(vao);
+
+    function->glGenBuffers(1, &vbo);
+    function->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    function->glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+
+    // location = 0 : a_pos
+    function->glEnableVertexAttribArray(0);
+    function->glVertexAttribPointer(
+        0, 2, GL_FLOAT, GL_FALSE,
+        sizeof(Vertex),
+        (void*)0
+    );
+
+    // location = 1 : a_texcoord
+    function->glEnableVertexAttribArray(1);
+    function->glVertexAttribPointer(
+        1, 2, GL_FLOAT, GL_FALSE,
+        sizeof(Vertex),
+        (void*)(sizeof(float) * 2)
+    );
+
+    function->glBindVertexArray(0);
+
+    // ===== 绘制 =====
+
+    // fullscreen triangle 不需要任何矩阵
+    checkGlError("drawing", __FILE__, __LINE__);
+    function->glBindVertexArray(vao);
+    checkGlError("drawing", __FILE__, __LINE__);
+    function->glDrawArrays(GL_TRIANGLES, 0, 3);
+    function->glBindVertexArray(0);
+
 }
 } // namespace
 
 
 void ANTIALIASING_SMAA::Present()
 {
+    QMatrix4x4 mvp;
+    mvp.setToIdentity();
     auto sourceTexture = compositor->GetBufferTexture( smaaBaseBuffer );
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
     function->glDisable( GL_BLEND );
@@ -495,13 +531,14 @@ void ANTIALIASING_SMAA::Present()
     //
     // pass 1: main-buffer -> smaaEdgesBuffer
     //
-    compositor->SetBuffer( smaaEdgesBuffer );
+    compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + smaaEdgesBuffer );
     compositor->ClearBuffer( COLOR4D::BLACK );
 
     function->glActiveTexture( GL_TEXTURE0 );
     function->glBindTexture( GL_TEXTURE_2D, sourceTexture );
     checkGlError( "binding colorTex", __FILE__, __LINE__ );
     pass_1_shader->Use();
+    pass_1_shader->SetParameter(ufm_pass_1_shader_u_mvp, mvp);
     checkGlError( "using smaa pass 1 shader", __FILE__, __LINE__ );
     draw_fullscreen_triangle();
     pass_1_shader->Deactivate();
@@ -509,7 +546,7 @@ void ANTIALIASING_SMAA::Present()
     //
     // pass 2: smaaEdgesBuffer -> smaaBlendBuffer
     //
-    compositor->SetBuffer( smaaBlendBuffer );
+    compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + smaaBlendBuffer );
     compositor->ClearBuffer( COLOR4D::BLACK );
 
     auto edgesTex = compositor->GetBufferTexture( smaaEdgesBuffer );
@@ -522,6 +559,7 @@ void ANTIALIASING_SMAA::Present()
     function->glBindTexture( GL_TEXTURE_2D, smaaSearchTex );
 
     pass_2_shader->Use();
+    pass_2_shader->SetParameter(ufm_pass_2_shader_u_mvp, mvp);
     draw_fullscreen_triangle();
     pass_2_shader->Deactivate();
 

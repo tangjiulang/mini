@@ -113,6 +113,9 @@ private:
     GLint pass_3_metrics;
 
     OPENGL_COMPOSITOR* compositor;
+
+    GLint ufm_pass_1_shader_u_mvp;
+    GLint ufm_pass_2_shader_u_mvp;
 };
 
 }

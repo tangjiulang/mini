@@ -1,8 +1,8 @@
-varying vec2 texcoord;
-varying vec4 offset[3];
+in vec2 v_texcoord;
+in vec4 v_offset[3];
 uniform sampler2D colorTex;
 
 void main()
 {
-    gl_FragColor.xy = SMAAColorEdgeDetectionPS(texcoord, offset, colorTex).xy;
+    gl_FragColor.xy = SMAAColorEdgeDetectionPS(v_texcoord, v_offset, colorTex).xy;
 }

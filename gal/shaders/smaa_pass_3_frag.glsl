@@ -1,9 +1,9 @@
-varying vec2 texcoord;
-varying vec4 offset;
+in vec4 v_offset;
+in vec2 v_texcoord;
 uniform sampler2D colorTex;
 uniform sampler2D blendTex;
 
 void main()
 {
-    gl_FragColor = SMAANeighborhoodBlendingPS(texcoord, offset, colorTex, blendTex);
+    gl_FragColor = SMAANeighborhoodBlendingPS(v_texcoord, v_offset, colorTex, blendTex);
 }
