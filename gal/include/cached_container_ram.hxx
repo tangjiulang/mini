@@ -5,7 +5,7 @@
 #include <set>
 #include "gal/include/cached_container.hxx"
 
-namespace KIGFX
+namespace MINI
 {
 class VERTEX_ITEM;
 class SHADER;
@@ -60,6 +60,6 @@ protected:
     GLuint  m_verticesBuffer;
     QOpenGLBuffer m_buffer;
 };
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* CACHED_CONTAINER_RAM_H_ */

@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-using namespace KIGFX;
+using namespace MINI;
 
 
 GAL::GAL( GAL_DISPLAY_OPTIONS& aDisplayOptions ) :
@@ -222,7 +222,7 @@ VECTOR2D GAL::GetGridPoint( const VECTOR2D& aPoint ) const
 // MAX_DEPTH must be set to be VIEW::VIEW_MAX_LAYERS + abs(VIEW::TOP_LAYER_MODIFIER) -1
 // VIEW_MAX_LAYERS and TOP_LAYER_MODIFIER are defined in view.h.
 // TOP_LAYER_MODIFIER is set as -VIEW_MAX_LAYERS
-// Currently KIGFX::VIEW::VIEW_MAX_LAYERS = MAX_LAYERS_FOR_VIEW
+// Currently MINI::VIEW::VIEW_MAX_LAYERS = MAX_LAYERS_FOR_VIEW
 const int GAL::MIN_DEPTH = -2*MAX_LAYERS_FOR_VIEW;
 const int GAL::MAX_DEPTH = 2*MAX_LAYERS_FOR_VIEW - 1;
 const int GAL::GRID_DEPTH = MAX_DEPTH - 1;

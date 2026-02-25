@@ -7,7 +7,7 @@
 #include <QPen>
 #include <QPainter>
 
-using KIGFX::COLOR4D;
+using MINI::COLOR4D;
 
 
 /// Drawmode. Compositing mode plus a flag or two

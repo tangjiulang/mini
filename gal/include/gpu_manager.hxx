@@ -7,7 +7,7 @@
 #include "gal/include/vertex_common.hxx"
 #include <boost/scoped_array.hpp>
 
-namespace KIGFX
+namespace MINI
 {
 class SHADER;
 class VERTEX_CONTAINER;
@@ -162,6 +162,6 @@ public:
     virtual void EndDrawing() override;
 };
 
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* GPU_MANAGER_H_ */

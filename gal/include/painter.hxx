@@ -3,12 +3,12 @@
 #include "gal/include/opengl_gal.hxx"
 #include "render_settings.hxx"
 
-namespace KIGFX 
+namespace MINI 
 {
 class VIEW_ITEM;
 class PAINTER {
 public:
-    PAINTER(KIGFX::GAL* gal);
+    PAINTER(MINI::GAL* gal);
     virtual ~PAINTER();
     void DrawLine(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);
 
@@ -41,7 +41,7 @@ public:
     }
 
 protected:
-    KIGFX::GAL* m_gal;
+    MINI::GAL* m_gal;
 };
 }
 

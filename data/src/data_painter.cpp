@@ -9,10 +9,10 @@
 #include "data_polygon.hxx"
 #include "data_poly_set.hxx"
 
-KIGFX::DATA_PAINTER::DATA_PAINTER(GAL* aGal)
+MINI::DATA_PAINTER::DATA_PAINTER(GAL* aGal)
 	: PAINTER(aGal) { }
 
-bool KIGFX::DATA_PAINTER::Draw(const VIEW_ITEM* aItem, int aLayer) {
+bool MINI::DATA_PAINTER::Draw(const VIEW_ITEM* aItem, int aLayer) {
 	if (!aItem->IsBOARD_ITEM())
 		return false;
 
@@ -52,7 +52,7 @@ bool KIGFX::DATA_PAINTER::Draw(const VIEW_ITEM* aItem, int aLayer) {
 	}
 }
 
-void KIGFX::DATA_PAINTER::draw(const DATA_Triangle* aTriangle, int aLayer) {
+void MINI::DATA_PAINTER::draw(const DATA_Triangle* aTriangle, int aLayer) {
 	std::vector<VECTOR2D> drawData;
 	drawData.push_back(aTriangle->m_point1);
 	drawData.push_back(aTriangle->m_point2);
@@ -63,7 +63,7 @@ void KIGFX::DATA_PAINTER::draw(const DATA_Triangle* aTriangle, int aLayer) {
 
 	m_gal->DrawPolyline(drawData);
 }
-void KIGFX::DATA_PAINTER::draw(const DATA_Rectangle* a_Rectangle, int aLayer) {
+void MINI::DATA_PAINTER::draw(const DATA_Rectangle* a_Rectangle, int aLayer) {
 	COLOR4D color = m_dataSettings.GetColor(a_Rectangle, aLayer);
 	m_gal->SetStrokeColor(color);
 	m_gal->SetFillColor(color);
@@ -72,7 +72,7 @@ void KIGFX::DATA_PAINTER::draw(const DATA_Rectangle* a_Rectangle, int aLayer) {
 
 	m_gal->DrawRectangle(a_Rectangle->m_rect.GetPosition(), a_Rectangle->m_rect.GetPosition() + a_Rectangle->m_rect.GetSize());
 }
-void KIGFX::DATA_PAINTER::draw(const DATA_Line* aLine, int aLayer) {
+void MINI::DATA_PAINTER::draw(const DATA_Line* aLine, int aLayer) {
 	COLOR4D color = m_dataSettings.GetColor(aLine, aLayer);
 	m_gal->SetStrokeColor(color);
 	m_gal->SetFillColor(color);
@@ -81,7 +81,7 @@ void KIGFX::DATA_PAINTER::draw(const DATA_Line* aLine, int aLayer) {
 
 	m_gal->DrawLine(aLine->m_line.GetSeg().A, aLine->m_line.GetSeg().B);
 }
-void KIGFX::DATA_PAINTER::draw(const DATA_Circle* aCircle, int aLayer) {
+void MINI::DATA_PAINTER::draw(const DATA_Circle* aCircle, int aLayer) {
 	COLOR4D color = m_dataSettings.GetColor(aCircle, aLayer);
 	m_gal->SetStrokeColor(color);
 	m_gal->SetFillColor(color);
@@ -91,7 +91,7 @@ void KIGFX::DATA_PAINTER::draw(const DATA_Circle* aCircle, int aLayer) {
 	m_gal->DrawCircle(aCircle->m_circle.GetCenter(), aCircle->m_circle.GetRadius());
 }
 
-void KIGFX::DATA_PAINTER::draw(const DATA_Polyline* aPolygon, int aLayer)
+void MINI::DATA_PAINTER::draw(const DATA_Polyline* aPolygon, int aLayer)
 {	
 	COLOR4D color = m_dataSettings.GetColor(aPolygon, aLayer);
 	m_gal->SetStrokeColor(color);
@@ -101,7 +101,7 @@ void KIGFX::DATA_PAINTER::draw(const DATA_Polyline* aPolygon, int aLayer)
 	m_gal->DrawPolyline(aPolygon->m_polyline);
 }
 
-void KIGFX::DATA_PAINTER::draw(const DATA_Polygon* aPolygon, int aLayer) {
+void MINI::DATA_PAINTER::draw(const DATA_Polygon* aPolygon, int aLayer) {
 	COLOR4D color = m_dataSettings.GetColor(aPolygon, aLayer);
 	m_gal->SetStrokeColor(color);
 	m_gal->SetFillColor(color);
@@ -121,7 +121,7 @@ void KIGFX::DATA_PAINTER::draw(const DATA_Polygon* aPolygon, int aLayer) {
 	}
 }
 
-void KIGFX::DATA_PAINTER::draw(const DATA_Arc* aArc, int aLayer)
+void MINI::DATA_PAINTER::draw(const DATA_Arc* aArc, int aLayer)
 {
 	COLOR4D color = m_dataSettings.GetColor(aArc, aLayer);
 	m_gal->SetStrokeColor(color);
@@ -133,7 +133,7 @@ void KIGFX::DATA_PAINTER::draw(const DATA_Arc* aArc, int aLayer)
 	m_gal->DrawArc(aArc->m_arc.GetCenter(), aArc->m_arc.GetRadius(), startAngle, (endAngle - startAngle).Normalize());
 }
 
-void KIGFX::DATA_PAINTER::draw(DATA_PolySet* aPolySet, int aLayer)
+void MINI::DATA_PAINTER::draw(DATA_PolySet* aPolySet, int aLayer)
 {
 	COLOR4D color = m_dataSettings.GetColor(aPolySet, aLayer);
 	m_gal->SetStrokeColor(color);

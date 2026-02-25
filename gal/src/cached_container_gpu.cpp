@@ -10,7 +10,7 @@
 #include "profile.hxx"
 //#include "trace_helpers.hxx"
 
-using namespace KIGFX;
+using namespace MINI;
 
 /**
  * Flag to enable debug output of the GAL OpenGL GPU cached container.

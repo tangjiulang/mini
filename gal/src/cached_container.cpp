@@ -49,7 +49,7 @@
 #include <core/profile.h>
 #endif /* KICAD_GAL_PROFILE */
 
-using namespace KIGFX;
+using namespace MINI;
 
 CACHED_CONTAINER::CACHED_CONTAINER( unsigned int aSize ) :
         VERTEX_CONTAINER( aSize ),

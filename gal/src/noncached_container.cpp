@@ -34,7 +34,7 @@
 #include <cstring>
 #include <cstdlib>
 
-using namespace KIGFX;
+using namespace MINI;
 
 NONCACHED_CONTAINER::NONCACHED_CONTAINER( unsigned int aSize ) :
         VERTEX_CONTAINER( aSize ),

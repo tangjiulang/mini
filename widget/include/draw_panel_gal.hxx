@@ -50,13 +50,13 @@ protected:
 
 public:
     QWindow*                        m_parent;
-    KIGFX::OPENGL_GAL*              m_gal;
-    KIGFX::VIEW*                    m_view;
+    MINI::OPENGL_GAL*              m_gal;
+    MINI::VIEW*                    m_view;
     SELECTION_TOOL                  m_selectionTool;
-    std::unique_ptr<KIGFX::PAINTER> m_painter;
+    std::unique_ptr<MINI::PAINTER> m_painter;
     ViewControler*                  m_control;
     GAL_TYPE                        m_backend;
-    KIGFX::GAL_DISPLAY_OPTIONS      m_options;
+    MINI::GAL_DISPLAY_OPTIONS      m_options;
     VECTOR2D                        m_cursor;
     bool                            m_isSelect;
 };

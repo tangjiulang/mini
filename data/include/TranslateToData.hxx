@@ -5,11 +5,11 @@
 
 class TranslateToData {
 public:
-	TranslateToData(EcadSection* ecad, DataManager* dataManager, KIGFX::VIEW *view)
+	TranslateToData(EcadSection* ecad, DataManager* dataManager, MINI::VIEW *view)
 		: m_ecad(ecad), m_dataManager(dataManager), m_view(view) {
 	}
 
-	bool Translate(KIGFX::VIEW* view);
+	bool Translate(MINI::VIEW* view);
 private:
 	bool TranslateShape(Shape shape, const VECTOR2D& location = { 0, 0 });
 	bool TranslateSimple(Shape simple, const VECTOR2D& location = { 0, 0 });
@@ -41,6 +41,6 @@ private:
 private:
 	EcadSection* m_ecad;
 	DataManager* m_dataManager;
-	KIGFX::VIEW* m_view;
+	MINI::VIEW* m_view;
 	PCB_LAYER_ID m_currentLayer;
 };

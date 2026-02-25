@@ -1,6 +1,6 @@
 #include "data_triangle.hxx"
 
-using namespace KIGFX;
+using namespace MINI;
 
 DATA_Triangle::DATA_Triangle(VECTOR2I aPoint1, VECTOR2I aPoint2, VECTOR2I aPoint3, double lineWidth)
 	: BOARD_ITEM(ITEM_TYPE::TRIANGLE),
@@ -9,7 +9,7 @@ DATA_Triangle::DATA_Triangle(VECTOR2I aPoint1, VECTOR2I aPoint2, VECTOR2I aPoint
 	  m_point3(aPoint3),
 	  m_lineWidth(lineWidth) {}
 
-KIGFX::DATA_Triangle::DATA_Triangle(VECTOR2I aPoint1, VECTOR2I aPoint2, VECTOR2I aPoint3, PCB_LAYER_ID aLayer, double lineWidth)
+MINI::DATA_Triangle::DATA_Triangle(VECTOR2I aPoint1, VECTOR2I aPoint2, VECTOR2I aPoint3, PCB_LAYER_ID aLayer, double lineWidth)
 	: BOARD_ITEM(ITEM_TYPE::TRIANGLE, aLayer),
 	  m_point1(aPoint1),
 	  m_point2(aPoint2),

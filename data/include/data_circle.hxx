@@ -3,7 +3,7 @@
 #include "data_board_item.hxx"
 #include "shape_circle.hxx"
 
-namespace KIGFX {
+namespace MINI {
 class DATA_Circle : public BOARD_ITEM
 {
 public:

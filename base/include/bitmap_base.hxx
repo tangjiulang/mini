@@ -149,7 +149,7 @@ public:
     const BOX2I GetBoundingBox() const;
 
     void DrawBitmap( QPainter* aDC, const VECTOR2I& aPos,
-                     const KIGFX::COLOR4D& aBackgroundColor = KIGFX::COLOR4D::UNSPECIFIED ) const;
+                     const MINI::COLOR4D& aBackgroundColor = MINI::COLOR4D::UNSPECIFIED ) const;
 
     /**
      * Reads and stores in memory an image file.
@@ -247,7 +247,7 @@ public:
      * @param aDefaultPensize the pen size used to plot the rectangle when bitmap is not supported.
      */
     void PlotImage( PLOTTER* aPlotter, const VECTOR2I& aPos,
-                    const KIGFX::COLOR4D& aDefaultColor, int aDefaultPensize ) const;
+                    const MINI::COLOR4D& aDefaultColor, int aDefaultPensize ) const;
 
     /**
      * Return the bitmap type (png, jpeg, etc.)

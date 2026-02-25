@@ -3,7 +3,7 @@
 constexpr double defaultZoomScale = 0.005;
 
 
-ViewControler::ViewControler(KIGFX::OPENGL_GAL* aGal, KIGFX::VIEW* aView, KIGFX::PAINTER* aPainter)
+ViewControler::ViewControler(MINI::OPENGL_GAL* aGal, MINI::VIEW* aView, MINI::PAINTER* aPainter)
 	: m_gal(aGal),
 	  m_view(aView),
 	  m_painter(aPainter),

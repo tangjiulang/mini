@@ -3,7 +3,7 @@
 #include <gal/include/graphics_abstraction_layer.hxx>
 #include <view.hxx>
 
-using namespace KIGFX;
+using namespace MINI;
 
 
 SIMPLE_OVERLAY_ITEM::SIMPLE_OVERLAY_ITEM() :
@@ -15,9 +15,9 @@ SIMPLE_OVERLAY_ITEM::SIMPLE_OVERLAY_ITEM() :
 }
 
 
-void SIMPLE_OVERLAY_ITEM::ViewDraw(int aLayer, KIGFX::VIEW* aView) const
+void SIMPLE_OVERLAY_ITEM::ViewDraw(int aLayer, MINI::VIEW* aView) const
 {
-    KIGFX::GAL& gal = *aView->GetGAL();
+    MINI::GAL& gal = *aView->GetGAL();
 
     setupGal(gal);
     drawPreviewShape(aView);
@@ -31,7 +31,7 @@ std::vector<int> SIMPLE_OVERLAY_ITEM::ViewGetLayers() const
 }
 
 
-void SIMPLE_OVERLAY_ITEM::setupGal(KIGFX::GAL& aGal) const
+void SIMPLE_OVERLAY_ITEM::setupGal(MINI::GAL& aGal) const
 {
     // default impl: set up the GAL options we have - the
     // overriding class can add to this if needed

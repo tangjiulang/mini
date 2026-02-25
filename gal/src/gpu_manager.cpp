@@ -20,7 +20,7 @@
 #include <wx/log.h>
 #endif /* KICAD_GAL_PROFILE */
 
-using namespace KIGFX;
+using namespace MINI;
 
 GPU_MANAGER* GPU_MANAGER::MakeManager( VERTEX_CONTAINER* aContainer )
 {

@@ -16,7 +16,7 @@
 
 #include <profile.hxx>
 
-namespace KIGFX {
+namespace MINI {
 
     class VIEW;
 
@@ -82,7 +82,7 @@ namespace KIGFX {
 
         sortOrderedLayers();
 
-        //m_preview.reset(new KIGFX::VIEW_GROUP());
+        //m_preview.reset(new MINI::VIEW_GROUP());
         //Add(m_preview.get());
     }
 
@@ -132,7 +132,7 @@ namespace KIGFX {
         }
 
         SetVisible(aItem, true);
-        Update(aItem, KIGFX::INITIAL_ADD);
+        Update(aItem, MINI::INITIAL_ADD);
     }
 
 
@@ -1521,7 +1521,7 @@ namespace KIGFX {
 
     void VIEW::InitPreview()
     {
-        //m_preview.reset(new KIGFX::VIEW_GROUP());
+        //m_preview.reset(new MINI::VIEW_GROUP());
         //Add(m_preview.get());
     }
 
@@ -1546,4 +1546,4 @@ namespace KIGFX {
     }
 
 
-} // namespace KIGFX
+} // namespace MINI

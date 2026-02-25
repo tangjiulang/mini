@@ -4,8 +4,8 @@
 #include <gal/include/painter.hxx>
 #include <view.hxx>
 
-using namespace KIGFX;
-using KIGFX::COLOR4D;
+using namespace MINI;
+using MINI::COLOR4D;
 
 struct SELECTION_COLORS
 {
@@ -73,9 +73,9 @@ const BOX2I SELECTION_AREA::ViewBBox() const
 }
 
 
-void SELECTION_AREA::ViewDraw(int aLayer, KIGFX::VIEW* aView) const
+void SELECTION_AREA::ViewDraw(int aLayer, MINI::VIEW* aView) const
 {
-    KIGFX::GAL& gal = *aView->GetGAL();
+    MINI::GAL& gal = *aView->GetGAL();
     RENDER_SETTINGS* settings = aView->GetPainter()->GetSettings();
 
     const SELECTION_COLORS& scheme = settings->IsBackgroundDark() ? selectionColorScheme[0]
@@ -126,7 +126,7 @@ void SELECTION_AREA::ViewDraw(int aLayer, KIGFX::VIEW* aView) const
     drawSelectionShape();
 }
 
-const BOX2I KIGFX::SELECTION_AREA::GetBoundingBox() const
+const BOX2I MINI::SELECTION_AREA::GetBoundingBox() const
 {
     return BOX2I(m_origin, m_end - m_origin);
 }

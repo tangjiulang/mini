@@ -5,11 +5,11 @@
 #include "data_board_item.hxx"
 
 
-class SELECTION : public KIGFX::VIEW_GROUP
+class SELECTION : public MINI::VIEW_GROUP
 {
 public:
     SELECTION() :
-        KIGFX::VIEW_GROUP::VIEW_GROUP()
+        MINI::VIEW_GROUP::VIEW_GROUP()
     {
         m_isHover = false;
         m_lastAddedItem = nullptr;
@@ -17,7 +17,7 @@ public:
     }
 
     SELECTION(const SELECTION& aOther) :
-        KIGFX::VIEW_GROUP::VIEW_GROUP()
+        MINI::VIEW_GROUP::VIEW_GROUP()
     {
         m_items = aOther.m_items;
         m_itemsOrders = aOther.m_itemsOrders;
@@ -43,8 +43,8 @@ public:
 
     bool operator==(const SELECTION& aOther) const;
 
-    using ITER = std::deque<KIGFX::BOARD_ITEM*>::iterator;
-    using CITER = std::deque<KIGFX::BOARD_ITEM*>::const_iterator;
+    using ITER = std::deque<MINI::BOARD_ITEM*>::iterator;
+    using CITER = std::deque<MINI::BOARD_ITEM*>::const_iterator;
 
     ITER begin() { return m_items.begin(); }
     ITER end() { return m_items.end(); }
@@ -61,9 +61,9 @@ public:
         return m_isHover;
     }
 
-    virtual void Add(KIGFX::BOARD_ITEM* aItem);
+    virtual void Add(MINI::BOARD_ITEM* aItem);
 
-    virtual void Remove(KIGFX::BOARD_ITEM* aItem);
+    virtual void Remove(MINI::BOARD_ITEM* aItem);
 
     virtual void Clear() override
     {
@@ -77,9 +77,9 @@ public:
         return m_items.size();
     }
 
-    virtual KIGFX::VIEW_ITEM* GetItem(unsigned int aIdx) const override;
+    virtual MINI::VIEW_ITEM* GetItem(unsigned int aIdx) const override;
 
-    bool Contains(KIGFX::BOARD_ITEM* aItem) const;
+    bool Contains(MINI::BOARD_ITEM* aItem) const;
 
     /// Checks if there is anything selected
     bool Empty() const
@@ -93,17 +93,17 @@ public:
         return m_items.size();
     }
 
-    const std::deque<KIGFX::BOARD_ITEM*> GetItems() const
+    const std::deque<MINI::BOARD_ITEM*> GetItems() const
     {
         return m_items;
     }
 
-    KIGFX::BOARD_ITEM* GetLastAddedItem() const
+    MINI::BOARD_ITEM* GetLastAddedItem() const
     {
         return m_lastAddedItem;
     }
 
-    std::vector<KIGFX::BOARD_ITEM*> GetItemsSortedBySelectionOrder() const;
+    std::vector<MINI::BOARD_ITEM*> GetItemsSortedBySelectionOrder() const;
 
 
     virtual const BOX2I ViewBBox() const override
@@ -121,12 +121,12 @@ public:
 
     virtual BOX2I GetBoundingBox() const;
 
-    virtual KIGFX::BOARD_ITEM* GetTopLeftItem(bool onlyModules = false) const
+    virtual MINI::BOARD_ITEM* GetTopLeftItem(bool onlyModules = false) const
     {
         return nullptr;
     }
 
-    KIGFX::BOARD_ITEM* operator[](const size_t aIdx) const
+    MINI::BOARD_ITEM* operator[](const size_t aIdx) const
     {
         if (aIdx < m_items.size())
             return m_items[aIdx];
@@ -134,17 +134,17 @@ public:
         return nullptr;
     }
 
-    KIGFX::BOARD_ITEM* Front() const
+    MINI::BOARD_ITEM* Front() const
     {
         return m_items.size() ? m_items.front() : nullptr;
     }
 
-    std::deque<KIGFX::BOARD_ITEM*>& Items()
+    std::deque<MINI::BOARD_ITEM*>& Items()
     {
         return m_items;
     }
 
-    const std::deque<KIGFX::BOARD_ITEM*>& Items() const
+    const std::deque<MINI::BOARD_ITEM*>& Items() const
     {
         return m_items;
     }
@@ -154,7 +154,7 @@ public:
     {
         for (auto item : m_items)
         {
-            if (IsA<T, KIGFX::BOARD_ITEM>(item))
+            if (IsA<T, MINI::BOARD_ITEM>(item))
                 return static_cast<T*> (item);
         }
 
@@ -162,7 +162,7 @@ public:
     }
 
 
-    virtual const std::vector<KIGFX::VIEW_ITEM*> updateDrawList() const override;
+    virtual const std::vector<MINI::VIEW_ITEM*> updateDrawList() const override;
 
     bool HasReferencePoint() const
     {
@@ -183,10 +183,10 @@ public:
 
 protected:
     std::optional<VECTOR2I>         m_referencePoint;
-    std::deque<KIGFX::BOARD_ITEM*> m_items;
+    std::deque<MINI::BOARD_ITEM*> m_items;
     std::deque<int>       m_itemsOrders;
     int                   m_orderCounter;
-    KIGFX::BOARD_ITEM*    m_lastAddedItem;
+    MINI::BOARD_ITEM*    m_lastAddedItem;
     bool                  m_isHover;
 
     // mute hidden overloaded virtual function warnings

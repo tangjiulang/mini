@@ -13,7 +13,7 @@
 #include <stack>
 #include <memory>
 
-namespace KIGFX
+namespace MINI
 {
 class SHADER;
 class VERTEX_ITEM;
@@ -362,6 +362,6 @@ protected:
     unsigned int            m_reservedSpace;
 };
 
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* VERTEX_MANAGER_H_ */

@@ -352,17 +352,17 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
 	  m_backend(GAL_TYPE_NONE)
 {
 	SwitchBackend(aGalType);
-	m_view = new KIGFX::VIEW;
+	m_view = new MINI::VIEW;
 	m_view->SetGAL(m_gal);
 
-	m_painter = std::make_unique<KIGFX::DATA_PAINTER>(m_gal);
+	m_painter = std::make_unique<MINI::DATA_PAINTER>(m_gal);
 	m_view->SetPainter(m_painter.get());
 
 	// This fixes the zoom in and zoom out limits:
 	m_view->SetScaleLimits(ZOOM_MAX_LIMIT_DATA, ZOOM_MIN_LIMIT_DATA);
 
-	for (int i = 0; i < KIGFX::VIEW::VIEW_MAX_LAYERS; i++)
-		m_view->SetLayerTarget(i, KIGFX::TARGET_NONCACHED);
+	for (int i = 0; i < MINI::VIEW::VIEW_MAX_LAYERS; i++)
+		m_view->SetLayerTarget(i, MINI::TARGET_NONCACHED);
 
 	qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
 	m_gal->show();
@@ -394,14 +394,14 @@ void DrawPanelGal::Paint(QPaintEvent* event)
 	if (!m_gal->IsInitialized() || !m_gal->IsVisible() || m_gal->IsContextLocked())
 		return;
 
-	KIGFX::GAL_DRAWING_CONTEXT ctx(m_gal);
+	MINI::GAL_DRAWING_CONTEXT ctx(m_gal);
 
 
 	m_gal->SetCursorEnabled(true);
 	if (m_view->IsDirty()) {
 		m_view->Redraw();
 	}
-    m_gal->SetCursorColor(KIGFX::COLOR4D::WHITE);
+    m_gal->SetCursorColor(MINI::COLOR4D::WHITE);
 	m_gal->DrawCursor(m_cursor);
 }
 
@@ -434,15 +434,15 @@ void DrawPanelGal::DrawSelectRect()
 void DrawPanelGal::SetDefaultLayerDeps()
 {
 	// caching makes no sense for Cairo and other software renderers
-	auto target = KIGFX::TARGET_NONCACHED;
+	auto target = MINI::TARGET_NONCACHED;
 
-	for (int i = 0; i < KIGFX::VIEW::VIEW_MAX_LAYERS; i++)
+	for (int i = 0; i < MINI::VIEW::VIEW_MAX_LAYERS; i++)
 		m_view->SetLayerTarget(i, target);
 
 	for (int i = 0; (unsigned)i < sizeof(GAL_LAYER_ORDER) / sizeof(int); ++i)
 	{
 		int layer = GAL_LAYER_ORDER[i];
-		Q_ASSERT(layer < KIGFX::VIEW::VIEW_MAX_LAYERS);
+		Q_ASSERT(layer < MINI::VIEW::VIEW_MAX_LAYERS);
 
 		// Set layer display dependencies & targets
 		if (IsCopperLayer(layer))
@@ -454,14 +454,14 @@ void DrawPanelGal::SetDefaultLayerDeps()
 			m_view->SetRequired(POINT_LAYER_FOR(layer), layer);
 
 			m_view->SetRequired(BITMAP_LAYER_FOR(layer), layer);
-			m_view->SetLayerTarget(BITMAP_LAYER_FOR(layer), KIGFX::TARGET_NONCACHED);
+			m_view->SetLayerTarget(BITMAP_LAYER_FOR(layer), MINI::TARGET_NONCACHED);
 			m_view->SetRequired(GetNetnameLayer(layer), layer);
 		}
 		else if (IsNonCopperLayer(layer))
 		{
 			m_view->SetRequired(POINT_LAYER_FOR(layer), layer);
 			m_view->SetRequired(ZONE_LAYER_FOR(layer), layer);
-			m_view->SetLayerTarget(BITMAP_LAYER_FOR(layer), KIGFX::TARGET_NONCACHED);
+			m_view->SetLayerTarget(BITMAP_LAYER_FOR(layer), MINI::TARGET_NONCACHED);
 			m_view->SetRequired(BITMAP_LAYER_FOR(layer), layer);
 		}
 		else if (IsNetnameLayer(layer))
@@ -470,12 +470,12 @@ void DrawPanelGal::SetDefaultLayerDeps()
 		}
 	}
 
-	m_view->SetLayerTarget(LAYER_ANCHOR, KIGFX::TARGET_NONCACHED);
+	m_view->SetLayerTarget(LAYER_ANCHOR, MINI::TARGET_NONCACHED);
 	m_view->SetLayerDisplayOnly(LAYER_ANCHOR);
 
 	// Use TARGET_OVERLAY for LAYER_CONFLICTS_SHADOW, it is for items
 	// that may change while the view stays the same.
-	m_view->SetLayerTarget(LAYER_CONFLICTS_SHADOW, KIGFX::TARGET_OVERLAY);
+	m_view->SetLayerTarget(LAYER_CONFLICTS_SHADOW, MINI::TARGET_OVERLAY);
 
 	m_view->SetLayerDisplayOnly(LAYER_LOCKED_ITEM_SHADOW);
 	m_view->SetLayerDisplayOnly(LAYER_CONFLICTS_SHADOW);
@@ -498,31 +498,31 @@ void DrawPanelGal::SetDefaultLayerDeps()
 	m_view->SetRequired(LAYER_VIA_THROUGH, LAYER_VIAS);
 	m_view->SetRequired(LAYER_VIA_NETNAMES, LAYER_VIAS);
 
-	m_view->SetLayerTarget(LAYER_SELECT_OVERLAY, KIGFX::TARGET_OVERLAY);
+	m_view->SetLayerTarget(LAYER_SELECT_OVERLAY, MINI::TARGET_OVERLAY);
 	m_view->SetLayerDisplayOnly(LAYER_SELECT_OVERLAY);
-	m_view->SetLayerTarget(LAYER_GP_OVERLAY, KIGFX::TARGET_OVERLAY);
+	m_view->SetLayerTarget(LAYER_GP_OVERLAY, MINI::TARGET_OVERLAY);
 	m_view->SetLayerDisplayOnly(LAYER_GP_OVERLAY);
-	m_view->SetLayerTarget(LAYER_RATSNEST, KIGFX::TARGET_OVERLAY);
+	m_view->SetLayerTarget(LAYER_RATSNEST, MINI::TARGET_OVERLAY);
 	m_view->SetLayerDisplayOnly(LAYER_RATSNEST);
 
-	m_view->SetLayerTarget(LAYER_DRC_ERROR, KIGFX::TARGET_OVERLAY);
+	m_view->SetLayerTarget(LAYER_DRC_ERROR, MINI::TARGET_OVERLAY);
 	//m_view->SetLayerDisplayOnly( LAYER_DRC_ERROR );
-	m_view->SetLayerTarget(LAYER_DRC_WARNING, KIGFX::TARGET_OVERLAY);
+	m_view->SetLayerTarget(LAYER_DRC_WARNING, MINI::TARGET_OVERLAY);
 	//m_view->SetLayerDisplayOnly( LAYER_DRC_WARNING );
-	m_view->SetLayerTarget(LAYER_DRC_EXCLUSION, KIGFX::TARGET_OVERLAY);
+	m_view->SetLayerTarget(LAYER_DRC_EXCLUSION, MINI::TARGET_OVERLAY);
 	//m_view->SetLayerDisplayOnly( LAYER_DRC_EXCLUSION );
-	m_view->SetLayerTarget(LAYER_MARKER_SHADOWS, KIGFX::TARGET_OVERLAY);
+	m_view->SetLayerTarget(LAYER_MARKER_SHADOWS, MINI::TARGET_OVERLAY);
 	m_view->SetLayerDisplayOnly(LAYER_MARKER_SHADOWS);
-	m_view->SetLayerTarget(LAYER_DRC_SHAPES, KIGFX::TARGET_OVERLAY);
+	m_view->SetLayerTarget(LAYER_DRC_SHAPES, MINI::TARGET_OVERLAY);
 	m_view->SetLayerDisplayOnly(LAYER_DRC_SHAPES);
 
-	m_view->SetLayerTarget(LAYER_DRAWINGSHEET, KIGFX::TARGET_NONCACHED);
+	m_view->SetLayerTarget(LAYER_DRAWINGSHEET, MINI::TARGET_NONCACHED);
 	m_view->SetLayerDisplayOnly(LAYER_DRAWINGSHEET);
 	m_view->SetLayerDisplayOnly(LAYER_GRID);
 
 	for (int i = LAYER_UI_START; i < LAYER_UI_END; ++i)
 	{
-		m_view->SetLayerTarget(i, KIGFX::TARGET_OVERLAY);
+		m_view->SetLayerTarget(i, MINI::TARGET_OVERLAY);
 		m_view->SetLayerDisplayOnly(i);
 	}
 }
@@ -539,9 +539,9 @@ void DrawPanelGal::resizeEvent(QResizeEvent* event)
 	m_gal->ComputeWorldScreenMatrix();
 
 	if (m_view) {
-		m_view->MarkTargetDirty(KIGFX::TARGET_CACHED);
-		m_view->MarkTargetDirty(KIGFX::TARGET_NONCACHED);
-        m_view->MarkTargetDirty(KIGFX::TARGET_OVERLAY);
+		m_view->MarkTargetDirty(MINI::TARGET_CACHED);
+		m_view->MarkTargetDirty(MINI::TARGET_NONCACHED);
+        m_view->MarkTargetDirty(MINI::TARGET_OVERLAY);
 	}
 
 }
@@ -557,10 +557,10 @@ bool DrawPanelGal::SwitchBackend(GAL_TYPE aGalType)
 	bool     result = true; // assume everything will be fine
 
 
-	KIGFX::OPENGL_GAL* new_gal = nullptr;
+	MINI::OPENGL_GAL* new_gal = nullptr;
 	if (aGalType == GAL_TYPE::GAL_TYPE_OPENGL) {
-		KIGFX::OPENGL_GAL::CheckFeatures(m_options);
-		new_gal = new KIGFX::OPENGL_GAL(m_options, this);
+		MINI::OPENGL_GAL::CheckFeatures(m_options);
+		new_gal = new MINI::OPENGL_GAL(m_options, this);
 	}
 
 	if (m_gal)
@@ -585,11 +585,11 @@ bool DrawPanelGal::SwitchBackend(GAL_TYPE aGalType)
 
 void DrawPanelGal::InitialViewData(DataManager* data)
 {
-	KIGFX::GAL_UPDATE_CONTEXT ctx(m_gal);
+	MINI::GAL_UPDATE_CONTEXT ctx(m_gal);
 
 	m_gal->SetLineWidth(m_view->ToWorld(1));
 	//m_gal->SetIsFill(true);
-	//m_gal->SetFillColor(KIGFX::COLOR4D(1, 1, 1, 1));
+	//m_gal->SetFillColor(MINI::COLOR4D(1, 1, 1, 1));
 	for (auto &circle : data->m_circles) {
 		m_view->Add(&circle);
 	}

@@ -9,7 +9,7 @@
 
 class ViewControler {
 public:
-	ViewControler(KIGFX::OPENGL_GAL* aGal, KIGFX::VIEW* aView, KIGFX::PAINTER* aPainter);
+	ViewControler(MINI::OPENGL_GAL* aGal, MINI::VIEW* aView, MINI::PAINTER* aPainter);
 
 	/// Handler functions
 	void onWheel(QWheelEvent* aEvent);
@@ -21,9 +21,9 @@ private:
 
 	double GetScaleFroRotation(int aRotation);
 
-	KIGFX::OPENGL_GAL*	m_gal;
-	KIGFX::VIEW*		m_view;
-	KIGFX::PAINTER*		m_painter;
+	MINI::OPENGL_GAL*	m_gal;
+	MINI::VIEW*		m_view;
+	MINI::PAINTER*		m_painter;
 
 	/// Ratio used for scaling world coordinates to scrollbar position.
 	VECTOR2D m_scrollScale;

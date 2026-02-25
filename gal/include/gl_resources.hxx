@@ -3,7 +3,7 @@
 
 #define BITMAP_FONT_USE_SPANS
 
-namespace KIGFX {
+namespace MINI {
 
     namespace BUILTIN_FONT {
 

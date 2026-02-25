@@ -3,7 +3,7 @@
 #include "gal/include/painter.hxx"
 #include "data_render_settings.hxx"
 
-namespace KIGFX {
+namespace MINI {
 
 class DATA_Triangle;
 class DATA_Rectangle;

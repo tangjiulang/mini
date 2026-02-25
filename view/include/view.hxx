@@ -13,7 +13,7 @@
 
 //#include <view/view_overlay.h>
 
-namespace KIGFX
+namespace MINI
 {
     class PAINTER;
     class GAL;
@@ -662,14 +662,14 @@ namespace KIGFX
         /**
          * Update all items in the view according to the given flags.
          *
-         * @param aUpdateFlags is is according to KIGFX::VIEW_UPDATE_FLAGS
+         * @param aUpdateFlags is is according to MINI::VIEW_UPDATE_FLAGS
          */
         void UpdateAllItems(int aUpdateFlags);
 
         /**
          * Update items in the view according to the given flags and condition.
          *
-         * @param aUpdateFlags is is according to KIGFX::VIEW_UPDATE_FLAGS.
+         * @param aUpdateFlags is is according to MINI::VIEW_UPDATE_FLAGS.
          * @param aCondition is a function returning true if the item should be updated.
          */
         void UpdateAllItemsConditionally(int aUpdateFlags,
@@ -677,7 +677,7 @@ namespace KIGFX
 
         /**
          * Update items in the view according to the flags returned by the callback.
-         * @param aItemFlagsProvider is a function returning any KIGFX::VIEW_UPDATE_FLAGS that should
+         * @param aItemFlagsProvider is a function returning any MINI::VIEW_UPDATE_FLAGS that should
          *                           be set on the VIEW_ITEM.
          */
         void UpdateAllItemsConditionally(std::function<int(VIEW_ITEM*)> aItemFlagsProvider);
@@ -840,7 +840,7 @@ namespace KIGFX
         struct UPDATE_COLOR_VISITOR;
         struct UPDATE_DEPTH_VISITOR;
 
-        //std::unique_ptr<KIGFX::VIEW_GROUP> m_preview;
+        //std::unique_ptr<MINI::VIEW_GROUP> m_preview;
         std::vector<VIEW_ITEM*>            m_ownedItems;
 
         /// Whether to use rendering order modifier or not.
@@ -887,5 +887,5 @@ namespace KIGFX
         /// Flag to reverse the draw order when using draw priority.
         bool m_reverseDrawOrder;
     };
-} // namespace KIGFX
+} // namespace MINI
 

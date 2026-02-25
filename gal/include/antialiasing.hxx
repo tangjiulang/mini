@@ -5,7 +5,7 @@
 #include <gal/include/shader.hxx>
 #include <vector2d.hxx>
 
-namespace KIGFX {
+namespace MINI {
 
 class OPENGL_COMPOSITOR;
 

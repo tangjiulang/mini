@@ -10,7 +10,7 @@
 #include <string>
 #include <deque>
 
-namespace KIGFX
+namespace MINI
 {
 class OPENGL_GAL;
 
@@ -213,6 +213,6 @@ private:
     std::deque<GLint>   parameterLocation;  ///< Location of the parameter
 
 };
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* SHADER_H_ */

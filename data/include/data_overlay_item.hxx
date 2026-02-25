@@ -6,7 +6,7 @@
 #include <layer_ids.hxx>
 #include <color4d.hxx>
 
-namespace KIGFX
+namespace MINI
 {
 
 class VIEW;
@@ -43,7 +43,7 @@ class GAL;
             * or direct access to the VIEW, you probably should make a new
             *.
             */
-        void ViewDraw(int aLayer, KIGFX::VIEW* aView) const override;
+        void ViewDraw(int aLayer, MINI::VIEW* aView) const override;
 
 
 #if defined(DEBUG)
@@ -89,7 +89,7 @@ class GAL;
             * updatePreviewShape(), but you might find that defining a new
             * EDA_ITEM derivative is easier for heavily customized cases.
             */
-        void setupGal(KIGFX::GAL& aGal) const;
+        void setupGal(MINI::GAL& aGal) const;
 
         /**
             * Draw the preview onto the given GAL. setupGal() will be called before this function.
@@ -97,7 +97,7 @@ class GAL;
             * Subclasses should implement this in terms of their own graphical
             * data.
             */
-        virtual void drawPreviewShape(KIGFX::VIEW* aView) const {};
+        virtual void drawPreviewShape(MINI::VIEW* aView) const {};
 
 
         COLOR4D m_fillColor;
@@ -105,6 +105,6 @@ class GAL;
         double  m_lineWidth;
     };
 
-} // KIGFX
+} // MINI
 
 #endif  // PREVIEW_SIMPLE_OUTLINE_ITEM__H_

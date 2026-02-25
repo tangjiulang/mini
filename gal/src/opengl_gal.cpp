@@ -22,12 +22,12 @@
 #include <memory>
 #include <list>
 using namespace std::placeholders;
-using namespace KIGFX;
+using namespace MINI;
 
 //#define DISABLE_BITMAP_CACHE
 
 #include "gal/include/gl_resources.hxx"
-using namespace KIGFX::BUILTIN_FONT;
+using namespace MINI::BUILTIN_FONT;
 
 //static void InitTesselatorCallbacks( GLUtesselator* aTesselator );
 
@@ -44,7 +44,7 @@ int          OPENGL_GAL::m_instanceCounter = 0;
 GLuint       OPENGL_GAL::g_fontTexture = 0;
 bool         OPENGL_GAL::m_isBitmapFontLoaded = false;
 
-namespace KIGFX
+namespace MINI
 {
 class GL_BITMAP_CACHE
 {
@@ -77,7 +77,7 @@ private:
     std::list<GLuint>                   m_freedTextureIds;
 };
 
-}; // namespace KIGFX
+}; // namespace MINI
 
 
 GL_BITMAP_CACHE::~GL_BITMAP_CACHE()
@@ -383,11 +383,11 @@ std::string OPENGL_GAL::CheckFeatures( GAL_DISPLAY_OPTIONS& aOptions )
     testFrame->resize(1, 1);
     testFrame->setWindowTitle("");
 
-    KIGFX::OPENGL_GAL* opengl_gal = nullptr;
+    MINI::OPENGL_GAL* opengl_gal = nullptr;
 
     try
     {
-        opengl_gal = new KIGFX::OPENGL_GAL(aOptions, testFrame );
+        opengl_gal = new MINI::OPENGL_GAL(aOptions, testFrame );
 
         testFrame->raise();
         testFrame->show();

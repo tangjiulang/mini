@@ -1,6 +1,6 @@
 #include <render_settings.hxx>
 
-using namespace KIGFX;
+using namespace MINI;
 
 
 RENDER_SETTINGS::RENDER_SETTINGS() :

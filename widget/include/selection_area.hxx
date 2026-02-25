@@ -12,7 +12,7 @@ enum class SELECTION_MODE
     TOUCHING_LASSO
 };
 
-namespace KIGFX
+namespace MINI
 {
     class GAL;
 
@@ -67,7 +67,7 @@ namespace KIGFX
         void              SetPoly(SHAPE_LINE_CHAIN& aPoly) { m_shape_poly = aPoly; }
         SHAPE_LINE_CHAIN& GetPoly() { return m_shape_poly; }
 
-        void ViewDraw(int aLayer, KIGFX::VIEW* aView) const override final;
+        void ViewDraw(int aLayer, MINI::VIEW* aView) const override final;
 
         virtual const BOX2I GetBoundingBox() const override;
     private:
@@ -82,5 +82,5 @@ namespace KIGFX
         SHAPE_LINE_CHAIN m_shape_poly;    // Used for lasso selection
     };
         
-} // KIGFX
+} // MINI
 

@@ -1,7 +1,7 @@
 #ifndef DEFINITIONS_H_
 #define DEFINITIONS_H_
 
-namespace KIGFX
+namespace MINI
 {
 /**
  * RENDER_TARGET: Possible rendering targets
@@ -17,6 +17,6 @@ enum RENDER_TARGET
 
 // Used in view.h to initialize VIEW_MAX_LAYERS and graphic_abstraction_layer.cpp
 #define MAX_LAYERS_FOR_VIEW 2048
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* DEFINITIONS_H_ */

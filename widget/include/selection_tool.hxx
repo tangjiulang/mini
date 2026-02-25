@@ -19,7 +19,7 @@ public:
 
 	int SelectRectArea();
 
-    void SetView(KIGFX::VIEW *aView);
+    void SetView(MINI::VIEW *aView);
 
     /**
      * Select an item pointed by the parameter \a aWhere.
@@ -48,18 +48,18 @@ public:
      */
     bool selectCursor(bool aForceSelect = false);
 
-    void select(KIGFX::BOARD_ITEM* aItem);
-    void unselect(KIGFX::BOARD_ITEM* aItem);
-    void highlight(KIGFX::BOARD_ITEM* aItem, int aHighlightMode, SELECTION* aGroup = nullptr);
-    void unhighlight(KIGFX::BOARD_ITEM* aItem, int aHighlightMode, SELECTION* aGroup = nullptr);
+    void select(MINI::BOARD_ITEM* aItem);
+    void unselect(MINI::BOARD_ITEM* aItem);
+    void highlight(MINI::BOARD_ITEM* aItem, int aHighlightMode, SELECTION* aGroup = nullptr);
+    void unhighlight(MINI::BOARD_ITEM* aItem, int aHighlightMode, SELECTION* aGroup = nullptr);
 
 private:
-    void highlightInternal(KIGFX::BOARD_ITEM* aItem, int aHighlightMode, bool aUsingOverlay);
+    void highlightInternal(MINI::BOARD_ITEM* aItem, int aHighlightMode, bool aUsingOverlay);
 
-    void unhighlightInternal(KIGFX::BOARD_ITEM* aItem, int aHighlightMode, bool aUsingOverlay);
+    void unhighlightInternal(MINI::BOARD_ITEM* aItem, int aHighlightMode, bool aUsingOverlay);
 
 private:
     SELECTION            m_selection;            // Current state of selection
-    KIGFX::VIEW*         m_view;
-    KIGFX::SELECTION_AREA *m_area;
+    MINI::VIEW*         m_view;
+    MINI::SELECTION_AREA *m_area;
 };

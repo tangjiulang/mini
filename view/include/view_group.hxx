@@ -4,7 +4,7 @@
 #include <view_item.hxx>
 #include <deque>
 
-namespace KIGFX
+namespace MINI
 {
     /**
      * Extend #VIEW_ITEM by possibility of grouping items into a single object.
@@ -84,4 +84,4 @@ namespace KIGFX
         std::vector<VIEW_ITEM*> m_groupItems;       // No ownership.
     };
 
-} // namespace KIGFX
+} // namespace MINI

@@ -154,7 +154,7 @@ extern const std::string const traceDisplayLocation;
 
 /**
  * Flag to enable debug output of zoom-scrolling calculations in
- * #KIGFX::ZOOM_CONTROLLER and derivatives.
+ * #MINI::ZOOM_CONTROLLER and derivatives.
  *
  * Use "KICAD_ZOOM_SCROLL" to enable.
  */

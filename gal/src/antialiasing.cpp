@@ -10,7 +10,7 @@
 #include "gal/include/SmaaAreaTex.hxx"
 #include "gal/include/SmaaSearchTex.hxx"
 
-using namespace KIGFX;
+using namespace MINI;
 
 // =========================
 // ANTIALIASING_NONE

@@ -4,7 +4,7 @@
 
 #include <box2.hxx>
 
-namespace KIGFX
+namespace MINI
 {
     namespace bg = boost::geometry;
     namespace bgi = boost::geometry::index;
@@ -99,5 +99,5 @@ namespace KIGFX
     private:
         bgi::rtree<Value, bgi::quadratic<16>> rtree;
     };
-} // namespace KIGFX
+} // namespace MINI
 

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace KIGFX {
+namespace MINI {
 /**
     * Define the how severely the appearance of the item has been changed.
     */

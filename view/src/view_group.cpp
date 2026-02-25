@@ -8,7 +8,7 @@
 #include <gal/include/graphics_abstraction_layer.hxx>
 #include <layer_ids.hxx>
 
-using namespace KIGFX;
+using namespace MINI;
 
 VIEW_GROUP::VIEW_GROUP(VIEW* aView) :
     VIEW_ITEM(),
@@ -81,7 +81,7 @@ const BOX2I VIEW_GROUP::ViewBBox() const
 
 void VIEW_GROUP::ViewDraw(int aLayer, VIEW* aView) const
 {
-    KIGFX::GAL* gal = aView->GetGAL();
+    MINI::GAL* gal = aView->GetGAL();
     PAINTER* painter = aView->GetPainter();
     bool        isSelection = m_layer == LAYER_SELECT_OVERLAY;
 

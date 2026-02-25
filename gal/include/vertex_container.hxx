@@ -10,7 +10,7 @@
 
 #include "vertex_common.hxx"
 
-namespace KIGFX
+namespace MINI
 {
 class VERTEX_ITEM;
 class SHADER;
@@ -162,6 +162,6 @@ protected:
     ///< Default initial size of a container (expressed in vertices)
     static constexpr unsigned int DEFAULT_SIZE = 1048576;
 };
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* VERTEX_CONTAINER_H_ */

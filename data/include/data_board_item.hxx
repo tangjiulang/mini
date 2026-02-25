@@ -4,7 +4,7 @@
 #include "data_item_flags.hxx"
 #include "layer_ids.hxx"
 
-namespace KIGFX {
+namespace MINI {
 
 enum class ITEM_TYPE {
 	NOT_USED = -1,

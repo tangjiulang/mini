@@ -6,7 +6,7 @@
 #include "view_def.hxx"
 #include "box2.hxx"
 
-namespace KIGFX {
+namespace MINI {
 
 class VIEW;
 
@@ -15,8 +15,8 @@ class VIEW_ITEM_DATA
 public:
     VIEW_ITEM_DATA() :
         m_view(nullptr),
-        m_flags(KIGFX::VISIBLE),
-        m_requiredUpdate(KIGFX::NONE),
+        m_flags(MINI::VISIBLE),
+        m_requiredUpdate(MINI::NONE),
         m_drawPriority(0),
         m_cachedIndex(-1),
         m_groups(nullptr),

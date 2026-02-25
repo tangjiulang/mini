@@ -1,7 +1,7 @@
 #include "view_item.hxx"
 #include "view.hxx"
 
-using namespace KIGFX;
+using namespace MINI;
 
 VIEW_ITEM::~VIEW_ITEM()
 {

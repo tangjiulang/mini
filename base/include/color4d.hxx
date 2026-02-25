@@ -67,7 +67,7 @@ struct StructColors
 const StructColors* colorRefs();
 
 
-namespace KIGFX
+namespace MINI
 {
 /**
  * A color representation with 4 components: red, green, blue, alpha.
@@ -392,12 +392,12 @@ std::ostream& operator<<( std::ostream& aStream, COLOR4D const& aColor );
 // To allow json::get<COLOR4D>()
 //void from_json( const nlohmann::json& aJson, COLOR4D& aColor );
 
-} // namespace KIGFX
+} // namespace MINI
 
 template<>
-struct std::hash<KIGFX::COLOR4D>
+struct std::hash<MINI::COLOR4D>
 {
-    std::size_t operator()( const KIGFX::COLOR4D& aColor ) const
+    std::size_t operator()( const MINI::COLOR4D& aColor ) const
     {
         return hash_val( aColor.r, aColor.b, aColor.g, aColor.a );
     }

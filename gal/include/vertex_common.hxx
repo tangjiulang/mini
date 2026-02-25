@@ -12,7 +12,7 @@
 
 #include <cstddef>
 
-namespace KIGFX
+namespace MINI
 {
 ///< Possible types of shaders (keep consistent with the actual shader source in
 ///< kicad_vert.glsl and kicad_frag.glsl).
@@ -58,6 +58,6 @@ static constexpr size_t SHADER_STRIDE = SHADER_SIZE / sizeof( GLfloat );
 
 static constexpr size_t INDEX_SIZE = sizeof( GLuint );
 
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* VERTEX_COMMON_H_ */

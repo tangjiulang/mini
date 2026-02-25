@@ -7,7 +7,7 @@
 
 
 
-namespace KIGFX {
+namespace MINI {
 
 	using Segment = std::variant<SHAPE_ARC, SHAPE_SEGMENT>;
 

@@ -4,7 +4,7 @@
 #include <data_board_item.hxx>
 #include <unordered_set>
 
-namespace KIGFX
+namespace MINI
 {
     class VIEW;
 }
@@ -17,18 +17,18 @@ namespace KIGFX
  * containing a group implicitly contains its members. However other operations on sets of
  * items, like committing, updating the view, etc the set is explicit.
  */
-class GROUP : public KIGFX::BOARD_ITEM
+class GROUP : public MINI::BOARD_ITEM
 {
 public:
     GROUP();
-    GROUP(KIGFX::ITEM_TYPE idtype, PCB_LAYER_ID aLayer);
+    GROUP(MINI::ITEM_TYPE idtype, PCB_LAYER_ID aLayer);
 
 
     BOARD_ITEM* AsEdaItem() { return this; }
 
     static inline bool ClassOf(const BOARD_ITEM* aItem)
     {
-        return aItem && KIGFX::ITEM_TYPE::GROUP == aItem->Type();
+        return aItem && MINI::ITEM_TYPE::GROUP == aItem->Type();
     }
 
     std::string GetClass() const override

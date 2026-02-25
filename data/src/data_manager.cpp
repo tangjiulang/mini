@@ -3,7 +3,7 @@
 #include "data_manager.hxx"
 #include "view.hxx"
 
-void DataManager::GenerateData(KIGFX::VIEW* view)
+void DataManager::GenerateData(MINI::VIEW* view)
 {
     constexpr int N = 1000000; // 数量
     constexpr double WIDTH = 10000.0;

@@ -6,7 +6,7 @@
 #include "shape_line_chain.hxx"
 #include "shape_poly_set.hxx"
 
-namespace KIGFX {
+namespace MINI {
 	class DATA_PolySet : public BOARD_ITEM
 	{
 	public:

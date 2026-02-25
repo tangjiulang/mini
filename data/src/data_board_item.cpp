@@ -1,6 +1,6 @@
 #include "data_board_item.hxx"
 
-using namespace KIGFX;
+using namespace MINI;
 
 const BOX2I BOARD_ITEM::ViewBBox() const
 {

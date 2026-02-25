@@ -3,7 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <dpi_scaling.hxx>
 
-using namespace KIGFX;
+using namespace MINI;
 
 
 /**

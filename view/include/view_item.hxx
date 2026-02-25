@@ -9,7 +9,7 @@
 #include <box2.hxx>
 #include "view_data.hxx"
 
-namespace KIGFX
+namespace MINI
 {
     // Forward declarations
     class VIEW;
@@ -144,7 +144,7 @@ namespace KIGFX
          * Because even at zoom 1.0, 1mm in KiCad may not be exactly 1mm on a physical
          * screen, the threshold may not be exact in practice.
          */
-        static double lodScaleForThreshold(const KIGFX::VIEW* aView, int aWhatIu, int aThresholdIu);
+        static double lodScaleForThreshold(const MINI::VIEW* aView, int aWhatIu, int aThresholdIu);
 
     private:
         friend class VIEW;
@@ -155,5 +155,5 @@ namespace KIGFX
         double          m_forcedTransparency;  ///< Additional transparency for diff'ing items.
     };
 
-} // namespace KIGFX
+} // namespace MINI
 

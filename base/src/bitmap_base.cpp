@@ -246,7 +246,7 @@ const BOX2I BITMAP_BASE::GetBoundingBox() const
 
 
 void BITMAP_BASE::DrawBitmap( QPainter* aPainter, const VECTOR2I& aPos,
-                              const KIGFX::COLOR4D& aBackgroundColor ) const
+                              const MINI::COLOR4D& aBackgroundColor ) const
 {
 //    if( m_bitmap == nullptr )
 //        return;

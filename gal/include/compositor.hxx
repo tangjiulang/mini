@@ -1,7 +1,7 @@
 #ifndef COMPOSITOR_H_
 #define COMPOSITOR_H_
 
-namespace KIGFX
+namespace MINI
 {
 class COLOR4D;
 
@@ -81,6 +81,6 @@ protected:
     unsigned int m_height;          ///< Height of the buffer (in pixels)
 };
 
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* COMPOSITOR_H_ */

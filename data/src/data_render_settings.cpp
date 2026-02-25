@@ -1,6 +1,6 @@
 #include "data_render_settings.hxx"
 
-using namespace KIGFX;
+using namespace MINI;
 
 DATA_RENDER_SETTINGS::DATA_RENDER_SETTINGS() {
     m_backgroundColor = COLOR4D(0.0, 0.0, 0.0, 1.0);
@@ -31,7 +31,7 @@ void DATA_RENDER_SETTINGS::LoadColors(const COLOR_SETTINGS* aSettings) {}
 
 bool DATA_RENDER_SETTINGS::GetShowPageLimits() const { return false; }
 
-KIGFX::COLOR4D KIGFX::DATA_RENDER_SETTINGS::GetColor(const BOARD_ITEM* aItem, int aLayer) const
+MINI::COLOR4D MINI::DATA_RENDER_SETTINGS::GetColor(const BOARD_ITEM* aItem, int aLayer) const
 {
     COLOR4D color(0, 0, 0, 1);
 

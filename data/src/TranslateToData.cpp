@@ -2,7 +2,7 @@
 #include "TranslateToData.hxx"
 #include "view.hxx"
 
-bool TranslateToData::Translate(KIGFX::VIEW* view)
+bool TranslateToData::Translate(MINI::VIEW* view)
 {
 	int count = 0;
 	for (auto step : m_ecad->m_steps) {
@@ -88,7 +88,7 @@ bool TranslateToData::TranslateArc(Arc* aArc, const VECTOR2D& location)
 	SHAPE_ARC shape_arc;
 	shape_arc.ConstructFromStartEndCenter(m_view->ToWorld(startPoint), m_view->ToWorld(endPoint), m_view->ToWorld(centerPoint), 1, m_view->ToWorld(lineWidth));
 
-	m_dataManager->m_arcs.push_back(KIGFX::DATA_Arc{ shape_arc, m_currentLayer, m_view->ToWorld(lineWidth) });
+	m_dataManager->m_arcs.push_back(MINI::DATA_Arc{ shape_arc, m_currentLayer, m_view->ToWorld(lineWidth) });
 
 	return true;
 }
@@ -102,7 +102,7 @@ bool TranslateToData::TranslateLine(Line* line, const VECTOR2D& location)
 	double lineWidth = line->lineDesc ? line->lineDesc->lineWidth : 0;
 
 	SHAPE_SEGMENT shape_line{ m_view->ToWorld(startPoint), m_view->ToWorld(endPoint) };
-	m_dataManager->m_lines.push_back(KIGFX::DATA_Line{ shape_line, m_currentLayer, m_view->ToWorld(lineWidth) });
+	m_dataManager->m_lines.push_back(MINI::DATA_Line{ shape_line, m_currentLayer, m_view->ToWorld(lineWidth) });
 
 	return true;
 }
@@ -111,7 +111,7 @@ bool TranslateToData::TranslateOutline(Outline* outline, const VECTOR2D& locatio
 {
 	VECTOR2D prePoint = { outline->polygon.polyBegin.x, outline->polygon.polyBegin.y };
 	prePoint += location;
-	std::vector<KIGFX::Segment> segments;
+	std::vector<MINI::Segment> segments;
 	
 	for (auto polyStep : outline->polygon.polyStep) {
 		if (std::holds_alternative<PolyStepSegment>(polyStep)) {
@@ -136,7 +136,7 @@ bool TranslateToData::TranslateOutline(Outline* outline, const VECTOR2D& locatio
 		}
 	}
 	double lineWidth = outline->polygon.lineDesc ? outline->polygon.lineDesc->lineWidth : 0;
-	KIGFX::DATA_Polygon polygon(segments, m_view->ToWorld(lineWidth));
+	MINI::DATA_Polygon polygon(segments, m_view->ToWorld(lineWidth));
 	m_dataManager->m_polygons.push_back(polygon);
 
 	return true;
@@ -146,7 +146,7 @@ bool TranslateToData::TranslatePolyline(Polyline* polyline, const VECTOR2D& loca
 {
 	VECTOR2D prePoint = { polyline->polyBegin.x, polyline->polyBegin.y };
 	prePoint += location;
-	std::vector<KIGFX::Segment> segments;
+	std::vector<MINI::Segment> segments;
 
 	for (auto polyStep : polyline->polyStep) {
 		if (std::holds_alternative<PolyStepSegment>(polyStep)) {
@@ -171,7 +171,7 @@ bool TranslateToData::TranslatePolyline(Polyline* polyline, const VECTOR2D& loca
 		}
 	}
 	double lineWidth = polyline->lineDesc ? polyline->lineDesc->lineWidth : 0;
-	KIGFX::DATA_Polygon polygon(segments, m_currentLayer, m_view->ToWorld(lineWidth));
+	MINI::DATA_Polygon polygon(segments, m_currentLayer, m_view->ToWorld(lineWidth));
 	m_dataManager->m_polygons.push_back(polygon);
 
 	return true;
@@ -224,7 +224,7 @@ bool TranslateToData::TranslateButterfly(Butterfly* butterfly, const VECTOR2D& l
 bool TranslateToData::TranslateCircle(Circle* circle, const VECTOR2D& location)
 {
 	SHAPE_CIRCLE shape_circle{ m_view->ToWorld(location), static_cast<int32_t>(m_view->ToWorld(circle->diameter / 2)) };
-	m_dataManager->m_circles.push_back(KIGFX::DATA_Circle(shape_circle, m_currentLayer));
+	m_dataManager->m_circles.push_back(MINI::DATA_Circle(shape_circle, m_currentLayer));
 	
 	return true;
 }
@@ -251,7 +251,7 @@ bool TranslateToData::TranslateDiamond(Diamond* diamond, const VECTOR2D& locatio
 	shape_diamond.Append(m_view->ToWorld(location + point4));
 	shape_diamond.Append(m_view->ToWorld(location + point1));
 	double lineWidth = diamond->lineDesc ? diamond->lineDesc->lineWidth : 0;
-	m_dataManager->m_polylines.push_back(KIGFX::DATA_Polyline{ shape_diamond, m_currentLayer, m_view->ToWorld(lineWidth) });
+	m_dataManager->m_polylines.push_back(MINI::DATA_Polyline{ shape_diamond, m_currentLayer, m_view->ToWorld(lineWidth) });
 	
 	return true;
 }
@@ -305,7 +305,7 @@ bool TranslateToData::TranslateRectCenter(RectCenter* rectCenter, const VECTOR2D
 	double lineWidth = rectCenter->lineDesc ? rectCenter->lineDesc->lineWidth : 0;
 	VECTOR2D startPoint = { location.x - rectCenter->width / 2.0, location.y - rectCenter->height / 2.0 };
 	VECTOR2D endPoint = { location.x + rectCenter->width / 2.0, location.y + rectCenter->height / 2.0 };
-	KIGFX::DATA_Rectangle data_rectangle(SHAPE_RECT{ m_view->ToWorld(startPoint), m_view->ToWorld(endPoint)}, m_currentLayer, m_view->ToWorld(lineWidth));
+	MINI::DATA_Rectangle data_rectangle(SHAPE_RECT{ m_view->ToWorld(startPoint), m_view->ToWorld(endPoint)}, m_currentLayer, m_view->ToWorld(lineWidth));
 	m_dataManager->m_rectangles.push_back(data_rectangle);
 	return true;
 }
@@ -396,7 +396,7 @@ bool TranslateToData::TranslatePolygon(Polygon* polygon, const VECTOR2D& locatio
 {
 	VECTOR2D prePoint = { polygon->polyBegin.x, polygon->polyBegin.y };
 	prePoint += location;
-	std::vector<KIGFX::Segment> segments;
+	std::vector<MINI::Segment> segments;
 
 	for (auto polyStep : polygon->polyStep) {
 		if (std::holds_alternative<PolyStepSegment>(polyStep)) {
@@ -421,7 +421,7 @@ bool TranslateToData::TranslatePolygon(Polygon* polygon, const VECTOR2D& locatio
 		}
 	}
 	double lineWidth = polygon->lineDesc ? polygon->lineDesc->lineWidth : 0;
-	KIGFX::DATA_Polygon poly(segments, m_currentLayer, m_view->ToWorld(lineWidth));
+	MINI::DATA_Polygon poly(segments, m_currentLayer, m_view->ToWorld(lineWidth));
 	m_dataManager->m_polygons.push_back(poly);
 
 	return true;
@@ -431,7 +431,7 @@ bool TranslateToData::TranslateCutout(Cutout* cutout, const VECTOR2D& location)
 {
 	VECTOR2D prePoint = { cutout->polyBegin.x, cutout->polyBegin.y };
 	prePoint += location;
-	std::vector<KIGFX::Segment> segments;
+	std::vector<MINI::Segment> segments;
 
 	for (auto polyStep : cutout->polyStep) {
 		if (std::holds_alternative<PolyStepSegment>(polyStep)) {
@@ -456,7 +456,7 @@ bool TranslateToData::TranslateCutout(Cutout* cutout, const VECTOR2D& location)
 		}
 	}
 	double lineWidth = cutout->lineDesc ? cutout->lineDesc->lineWidth : 0;
-	KIGFX::DATA_Polygon poly(segments, m_currentLayer, m_view->ToWorld(lineWidth));
+	MINI::DATA_Polygon poly(segments, m_currentLayer, m_view->ToWorld(lineWidth));
 	m_dataManager->m_polygons.push_back(poly);
 
 	return true;

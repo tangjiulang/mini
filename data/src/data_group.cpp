@@ -6,17 +6,17 @@
 
 
 GROUP::GROUP() :
-    BOARD_ITEM(KIGFX::ITEM_TYPE::GROUP)
+    BOARD_ITEM(MINI::ITEM_TYPE::GROUP)
 {
 }
 
 
-GROUP::GROUP(KIGFX::ITEM_TYPE idtype, PCB_LAYER_ID aLayer) :
+GROUP::GROUP(MINI::ITEM_TYPE idtype, PCB_LAYER_ID aLayer) :
     BOARD_ITEM(idtype, aLayer)
 {
 }
 
-std::unordered_set<KIGFX::BOARD_ITEM*> GROUP::GetBoardItems() const
+std::unordered_set<MINI::BOARD_ITEM*> GROUP::GetBoardItems() const
 {
     std::unordered_set<BOARD_ITEM*> items;
 

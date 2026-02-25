@@ -40,7 +40,7 @@ enum GR_TEXT_V_ALIGN_T
 };
 
 
-namespace KIGFX
+namespace MINI
 {
 /**
  * Abstract interface for drawing on a 2D-surface.
@@ -758,8 +758,8 @@ public:
 
     bool GetGridSnapping() const
     {
-        return m_options.m_gridSnapping == KIGFX::GRID_SNAPPING::ALWAYS ||
-                 ( m_gridVisibility && m_options.m_gridSnapping == KIGFX::GRID_SNAPPING::WITH_GRID );
+        return m_options.m_gridSnapping == MINI::GRID_SNAPPING::ALWAYS ||
+                 ( m_gridVisibility && m_options.m_gridSnapping == MINI::GRID_SNAPPING::WITH_GRID );
     }
 
     /**
@@ -1052,16 +1052,6 @@ protected:
     /**
      * Ensure that the first element is smaller than the second.
      */
-    template <typename T>
-    void normalize( T &a, T &b )
-    {
-        if( a > b )
-        {
-            T tmp = a;
-            a = b;
-            b = tmp;
-        }
-    }
 
     GAL_DISPLAY_OPTIONS& m_options;
     UTIL::LINK           m_observerLink;
@@ -1218,7 +1208,7 @@ public:
      *
      * Specify the flags to save/restore in aFlags.
      */
-    GAL_SCOPED_ATTRS( KIGFX::GAL& aGal, int aFlags )
+    GAL_SCOPED_ATTRS( MINI::GAL& aGal, int aFlags )
         : m_gal( aGal ), m_flags( aFlags )
     {
         // Save what we need to restore later.
@@ -1269,7 +1259,18 @@ private:
     double m_layerDepth;
 };
 
+template <typename T>
+void normalize(T& a, T& b)
+{
+    if (a > b)
+    {
+        T tmp = a;
+        a = b;
+        b = tmp;
+    }
+}
 
-};    // namespace KIGFX
+
+};    // namespace MINI
 
 #endif /* GRAPHICSABSTRACTIONLAYER_H_ */

@@ -37,7 +37,7 @@
 
 #include <cstring>
 
-using namespace KIGFX;
+using namespace MINI;
 
 VERTEX_CONTAINER* VERTEX_CONTAINER::MakeContainer( bool aCached )
 {

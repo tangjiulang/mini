@@ -1,8 +1,8 @@
 #include "gal/include/painter.hxx"
 
-using namespace KIGFX;
+using namespace MINI;
 
-PAINTER::PAINTER(KIGFX::GAL* gal) :
+PAINTER::PAINTER(MINI::GAL* gal) :
 	m_gal(gal) 
 {}
 

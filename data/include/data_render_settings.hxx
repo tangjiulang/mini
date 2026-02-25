@@ -4,7 +4,7 @@
 #include "data_board_item.hxx"
 
 
-namespace KIGFX {
+namespace MINI {
     class DATA_PAINTER;
     /**
     * PCB specific render settings.
@@ -70,7 +70,7 @@ namespace KIGFX {
         //NET_COLOR_MODE GetNetColorMode() const { return m_netColorMode; }
         //void SetNetColorMode(NET_COLOR_MODE aMode) { m_netColorMode = aMode; }
 
-        std::map<int, KIGFX::COLOR4D>& GetNetColorMap() { return m_netColors; }
+        std::map<int, MINI::COLOR4D>& GetNetColorMap() { return m_netColors; }
 
         std::set<int>& GetHiddenNets() { return m_hiddenNets; }
         const std::set<int>& GetHiddenNets() const { return m_hiddenNets; }
@@ -92,10 +92,10 @@ namespace KIGFX {
         //NET_COLOR_MODE     m_netColorMode;
 
         ///< Overrides for specific netclass colors
-        std::map<std::string, KIGFX::COLOR4D> m_netclassColors;
+        std::map<std::string, MINI::COLOR4D> m_netclassColors;
 
         ///< Overrides for specific net colors, stored as netcodes for the ratsnest to access easily
-        std::map<int, KIGFX::COLOR4D> m_netColors;
+        std::map<int, MINI::COLOR4D> m_netColors;
 
         ///< Set of net codes that should not have their ratsnest displayed
         std::set<int> m_hiddenNets;

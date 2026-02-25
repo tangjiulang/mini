@@ -7,7 +7,7 @@
 #include "color4d.hxx"
 #include "util.hxx"
 
-using namespace KIGFX;
+using namespace MINI;
 
 #define TS( str ) std::string( str )
 
@@ -212,7 +212,7 @@ COLOR4D COLOR4D::LegacyMix( const COLOR4D& aColor ) const
 }
 
 
-namespace KIGFX {
+namespace MINI {
 
 bool operator==( const COLOR4D& lhs, const COLOR4D& rhs )
 {

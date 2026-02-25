@@ -15,7 +15,7 @@
 static const std::string traceVertexManager = "KICAD_VERTEX_MANAGER";
 
 
-using namespace KIGFX;
+using namespace MINI;
 
 VERTEX_MANAGER::VERTEX_MANAGER( bool aCached ) :
         m_noTransform( true ),

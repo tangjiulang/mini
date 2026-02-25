@@ -12,7 +12,7 @@
 #include <gal/include/antialiasing.hxx>
 #include <deque>
 
-namespace KIGFX
+namespace MINI
 {
 
 class OPENGL_COMPOSITOR : public COMPOSITOR
@@ -109,6 +109,6 @@ protected:
     GAL_ANTIALIASING_MODE m_currentAntialiasingMode;
     std::unique_ptr<OPENGL_PRESENTOR> m_antialiasing;
 };
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* COMPOSITOR_H_ */

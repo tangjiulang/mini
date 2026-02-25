@@ -10,7 +10,7 @@ bool SELECTION::operator==(const SELECTION& aOther) const
 }
 
 
-void SELECTION::Add(KIGFX::BOARD_ITEM* aItem)
+void SELECTION::Add(MINI::BOARD_ITEM* aItem)
 {
     // We're not sorting here; this is just a time-optimized way to do an
     // inclusion check.  std::lower_bound will return the first i >= aItem
@@ -28,7 +28,7 @@ void SELECTION::Add(KIGFX::BOARD_ITEM* aItem)
 }
 
 
-void SELECTION::Remove(KIGFX::BOARD_ITEM* aItem)
+void SELECTION::Remove(MINI::BOARD_ITEM* aItem)
 {
     ITER i = std::lower_bound(m_items.begin(), m_items.end(), aItem);
 
@@ -43,7 +43,7 @@ void SELECTION::Remove(KIGFX::BOARD_ITEM* aItem)
 }
 
 
-KIGFX::VIEW_ITEM* SELECTION::GetItem(unsigned int aIdx) const
+MINI::VIEW_ITEM* SELECTION::GetItem(unsigned int aIdx) const
 {
     if (aIdx < m_items.size())
         return m_items[aIdx];
@@ -52,7 +52,7 @@ KIGFX::VIEW_ITEM* SELECTION::GetItem(unsigned int aIdx) const
 }
 
 
-bool SELECTION::Contains(KIGFX::BOARD_ITEM* aItem) const
+bool SELECTION::Contains(MINI::BOARD_ITEM* aItem) const
 {
     CITER i = std::lower_bound(m_items.begin(), m_items.end(), aItem);
 
@@ -65,7 +65,7 @@ BOX2I SELECTION::GetBoundingBox() const
 {
     BOX2I bbox;
 
-    for (KIGFX::BOARD_ITEM* item : m_items)
+    for (MINI::BOARD_ITEM* item : m_items)
         bbox.Merge(item->GetBoundingBox());
 
     return bbox;
@@ -95,11 +95,11 @@ void SELECTION::ClearReferencePoint()
 }
 
 
-const std::vector<KIGFX::VIEW_ITEM*> SELECTION::updateDrawList() const
+const std::vector<MINI::VIEW_ITEM*> SELECTION::updateDrawList() const
 {
     std::vector<VIEW_ITEM*> items;
 
-    for (KIGFX::BOARD_ITEM* item : m_items)
+    for (MINI::BOARD_ITEM* item : m_items)
         items.push_back(item);
 
     return items;
@@ -109,14 +109,14 @@ const std::vector<KIGFX::VIEW_ITEM*> SELECTION::updateDrawList() const
 bool SELECTION::AreAllItemsIdentical() const
 {
     return std::all_of(m_items.begin() + 1, m_items.end(),
-                       [&](const KIGFX::BOARD_ITEM* r)
+                       [&](const MINI::BOARD_ITEM* r)
                        {
                            return r->Type() == m_items.front()->Type();
                        });
 }
 
 
-std::vector<KIGFX::BOARD_ITEM*> SELECTION::GetItemsSortedBySelectionOrder() const
+std::vector<MINI::BOARD_ITEM*> SELECTION::GetItemsSortedBySelectionOrder() const
 {
     using pairedIterators = std::pair<decltype(m_items.begin()),
         decltype(m_itemsOrders.begin())>;
@@ -137,7 +137,7 @@ std::vector<KIGFX::BOARD_ITEM*> SELECTION::GetItemsSortedBySelectionOrder() cons
               });
 
     // Make a vector of just the sortedItems
-    std::vector<KIGFX::BOARD_ITEM*> sortedItems;
+    std::vector<MINI::BOARD_ITEM*> sortedItems;
 
     for (pairedIterators sortedItem : pairs)
         sortedItems.emplace_back(*sortedItem.first);

@@ -10,7 +10,7 @@
 #include "color4d.hxx"
 #include <cstddef>
 
-namespace KIGFX
+namespace MINI
 {
 class VERTEX_MANAGER;
 
@@ -74,6 +74,6 @@ private:
     unsigned int            m_offset;
     unsigned int            m_size;
 };
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* VERTEX_ITEM_H_ */

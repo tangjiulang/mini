@@ -33,7 +33,7 @@
 #include "gal/include/vertex_manager.hxx"
 #include <cstring>
 
-using namespace KIGFX;
+using namespace MINI;
 
 VERTEX_ITEM::VERTEX_ITEM( const VERTEX_MANAGER& aManager ) :
         m_manager( aManager ),

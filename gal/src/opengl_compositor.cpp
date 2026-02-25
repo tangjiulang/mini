@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <spdlog/spdlog.h>
 
-using namespace KIGFX;
+using namespace MINI;
 
 OPENGL_COMPOSITOR::OPENGL_COMPOSITOR() :
         m_initialized( false ),
@@ -425,7 +425,7 @@ VECTOR2D OPENGL_COMPOSITOR::GetAntialiasRenderingOffset() const
     }
 }
 
-void KIGFX::OPENGL_COMPOSITOR::InitShader(QObject* parent)
+void MINI::OPENGL_COMPOSITOR::InitShader(QObject* parent)
 {
     m_shader->InitProgram(parent);
 

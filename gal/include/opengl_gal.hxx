@@ -31,7 +31,7 @@
 
 struct bitmap_glyph;
 
-namespace KIGFX
+namespace MINI
 {
 class SHADER;
 class GL_BITMAP_CACHE;
@@ -573,6 +573,6 @@ private:
      */
     void init();
 };
-} // namespace KIGFX
+} // namespace MINI
 
 #endif  // OPENGLGAL_H_

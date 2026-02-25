@@ -9,7 +9,7 @@
 
 #include "gal/include/vertex_container.hxx"
 
-namespace KIGFX
+namespace MINI
 {
 class VERTEX_ITEM;
 class SHADER;
@@ -55,6 +55,6 @@ protected:
     ///< Index of the free first space where a vertex can be stored
     unsigned int m_freePtr;
 };
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* NONCACHED_CONTAINER_H_ */

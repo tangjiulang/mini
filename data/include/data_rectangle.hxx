@@ -3,7 +3,7 @@
 #include "data_board_item.hxx"
 #include "shape_rect.hxx"
 
-namespace KIGFX {
+namespace MINI {
 class DATA_Rectangle : public BOARD_ITEM
 {
 public:

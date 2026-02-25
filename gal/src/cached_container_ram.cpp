@@ -39,7 +39,7 @@
 #include <core/profile.h>
 #endif /* KICAD_GAL_PROFILE */
 
-using namespace KIGFX;
+using namespace MINI;
 
 
 /**

@@ -2,7 +2,7 @@
 
 #include "data_board_item.hxx"
 
-namespace KIGFX {
+namespace MINI {
 class DATA_Triangle : public BOARD_ITEM
 {
 public:

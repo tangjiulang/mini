@@ -7,7 +7,7 @@
 
 #include "vertex_container.hxx"
 
-namespace KIGFX
+namespace MINI
 {
 class VERTEX_ITEM;
 class SHADER;
@@ -163,6 +163,6 @@ private:
     void showUsedChunks();
     void test();
 };
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* CACHED_CONTAINER_H_ */

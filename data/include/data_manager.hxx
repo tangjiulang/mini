@@ -8,18 +8,18 @@
 #include "data_polygon.hxx"
 #include "data_poly_set.hxx"
 
-class KIGFX::VIEW;
+class MINI::VIEW;
 
 class DataManager {
 public:
 	DataManager() = default;
-	void GenerateData(KIGFX::VIEW* view);
-	std::vector<KIGFX::DATA_Circle>		m_circles;
-	std::vector<KIGFX::DATA_Line>		m_lines;
-	std::vector<KIGFX::DATA_Rectangle>	m_rectangles;
-	std::vector<KIGFX::DATA_Triangle>	m_triangles;
-	std::vector<KIGFX::DATA_Polyline>	m_polylines;
-	std::vector<KIGFX::DATA_Polygon>	m_polygons;
-	std::vector<KIGFX::DATA_Arc>		m_arcs;
-	std::vector<KIGFX::DATA_PolySet>	m_polySet;
+	void GenerateData(MINI::VIEW* view);
+	std::vector<MINI::DATA_Circle>		m_circles;
+	std::vector<MINI::DATA_Line>		m_lines;
+	std::vector<MINI::DATA_Rectangle>	m_rectangles;
+	std::vector<MINI::DATA_Triangle>	m_triangles;
+	std::vector<MINI::DATA_Polyline>	m_polylines;
+	std::vector<MINI::DATA_Polygon>	m_polygons;
+	std::vector<MINI::DATA_Arc>		m_arcs;
+	std::vector<MINI::DATA_PolySet>	m_polySet;
 };

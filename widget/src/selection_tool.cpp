@@ -2,7 +2,7 @@
 #include "selection_tool.hxx"
 #include "selection_area.hxx"
 
-using namespace KIGFX;
+using namespace MINI;
 
 constexpr int MIN_INT = std::numeric_limits<int>::min();
 
@@ -71,7 +71,7 @@ int SELECTION_TOOL::SelectRectArea() {
     return 0;
 }
 
-void SELECTION_TOOL::SetView(KIGFX::VIEW *aView)
+void SELECTION_TOOL::SetView(MINI::VIEW *aView)
 {
     m_view = aView;
 }
@@ -91,37 +91,37 @@ bool SELECTION_TOOL::selectPoint(const VECTOR2I& aWhere, bool aOnDrag, bool* aSe
     return false;
 }
 
-void SELECTION_TOOL::select(KIGFX::BOARD_ITEM* aItem)
+void SELECTION_TOOL::select(MINI::BOARD_ITEM* aItem)
 {
 	highlight(aItem, SELECTED, &m_selection);
 }
 
-void SELECTION_TOOL::unselect(KIGFX::BOARD_ITEM* aItem)
+void SELECTION_TOOL::unselect(MINI::BOARD_ITEM* aItem)
 {
     unhighlight(aItem, SELECTED, &m_selection);
 }
 
-void SELECTION_TOOL::highlight(KIGFX::BOARD_ITEM* aItem, int aHighlightMode, SELECTION* aGroup)
+void SELECTION_TOOL::highlight(MINI::BOARD_ITEM* aItem, int aHighlightMode, SELECTION* aGroup)
 {
     if (aGroup)
         aGroup->Add(aItem);
 
 	highlightInternal(aItem, aHighlightMode, aGroup != nullptr);
 
-    m_view->Update(aItem, KIGFX::REPAINT);
+    m_view->Update(aItem, MINI::REPAINT);
 }
 
-void SELECTION_TOOL::unhighlight(KIGFX::BOARD_ITEM* aItem, int aHighlightMode, SELECTION* aGroup)
+void SELECTION_TOOL::unhighlight(MINI::BOARD_ITEM* aItem, int aHighlightMode, SELECTION* aGroup)
 {
     if (aGroup)
 		aGroup->Remove(aItem);
 
 	unhighlightInternal(aItem, aHighlightMode, aGroup != nullptr);
 
-    m_view->Update(aItem, KIGFX::REPAINT);
+    m_view->Update(aItem, MINI::REPAINT);
 }
 
-void SELECTION_TOOL::highlightInternal(KIGFX::BOARD_ITEM* aItem, int aHighlightMode, bool aUsingOverlay)
+void SELECTION_TOOL::highlightInternal(MINI::BOARD_ITEM* aItem, int aHighlightMode, bool aUsingOverlay)
 {
     if (aHighlightMode == SELECTED)
         aItem->SetSelected();
@@ -132,7 +132,7 @@ void SELECTION_TOOL::highlightInternal(KIGFX::BOARD_ITEM* aItem, int aHighlightM
         m_view->Hide(aItem, true);    // Hide the original item, so it is shown only on overlay
 }
 
-void SELECTION_TOOL::unhighlightInternal(KIGFX::BOARD_ITEM* aItem, int aHighlightMode, bool aUsingOverlay)
+void SELECTION_TOOL::unhighlightInternal(MINI::BOARD_ITEM* aItem, int aHighlightMode, bool aUsingOverlay)
 {
     if (aHighlightMode == SELECTED)
         aItem->ClearSelected();

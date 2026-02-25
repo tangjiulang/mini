@@ -11,7 +11,7 @@
 
 class COLOR_SETTINGS;
 
-namespace KIGFX
+namespace MINI
 {
 class VIEW_ITEM;
 

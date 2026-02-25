@@ -4,7 +4,7 @@
 #include "data_board_item.hxx"
 #include "shape_arc.hxx"
 
-namespace KIGFX {
+namespace MINI {
 	class DATA_Arc : public BOARD_ITEM
 	{
 	public:

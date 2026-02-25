@@ -8,7 +8,7 @@
 #include "view.hxx"
 #include "gal/include/opengl_gal.hxx"
 
-using namespace KIGFX;
+using namespace MINI;
 
 int main(int argc, char* argv[]) {
 	QApplication app(argc, argv);
@@ -19,8 +19,8 @@ int main(int argc, char* argv[]) {
 
 	VIEW* view = new VIEW();
 
-	for (int i = 0; i < KIGFX::VIEW::VIEW_MAX_LAYERS; i++)
-		view->SetLayerTarget(i, KIGFX::TARGET_NONCACHED);
+	for (int i = 0; i < MINI::VIEW::VIEW_MAX_LAYERS; i++)
+		view->SetLayerTarget(i, MINI::TARGET_NONCACHED);
 
 
 	GAL_DISPLAY_OPTIONS option;
@@ -35,14 +35,14 @@ int main(int argc, char* argv[]) {
 	gal.SetScreenDPI(dpi);
 	gal.ResizeScreen(1600, 1000);
 	gal.BeginDrawing();
-	gal.SetTarget(KIGFX::RENDER_TARGET::TARGET_NONCACHED);
+	gal.SetTarget(MINI::RENDER_TARGET::TARGET_NONCACHED);
 	gal.SetLineWidth(1 / gal.GetWorldScale());
 	
 	//DATA_Rectangle rec = { gal.GetScreenWorldMatrix() * VECTOR2D(300, 300), gal.GetScreenWorldMatrix() * VECTOR2D(600, 600) };
 	//rectangles.push_back(rec);
-	DATA_Line line = { gal.GetScreenWorldMatrix() * VECTOR2D(300, 300), gal.GetScreenWorldMatrix() * VECTOR2D(600, 600) };
+	//DATA_Line line = { gal.GetScreenWorldMatrix() * VECTOR2D(300, 300), gal.GetScreenWorldMatrix() * VECTOR2D(600, 600) };
 
-	DATA_Circle cir = { gal.GetScreenWorldMatrix() * VECTOR2D(500, 500), 100 / gal.GetWorldScale() };
+	//DATA_Circle cir = { gal.GetScreenWorldMatrix() * VECTOR2D(500, 500), 100 / gal.GetWorldScale() };
 	circles.push_back(cir);
 
 	view->Add(&line);

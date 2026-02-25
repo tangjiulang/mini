@@ -10,7 +10,7 @@
 #include "gal/include/utils.hxx"
 #include <vector>
 
-using namespace KIGFX;
+using namespace MINI;
 
 SHADER::SHADER() :
         isProgramCreated( false ),
@@ -264,7 +264,7 @@ std::string SHADER::ReadSource( const std::string& aShaderSourceName )
 }
 
 
-void KIGFX::SHADER::InitProgram(QObject* parent)
+void MINI::SHADER::InitProgram(QObject* parent)
 {
     program = new QOpenGLShaderProgram(parent);
     programNumber = program->programId();

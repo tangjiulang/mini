@@ -3,7 +3,7 @@
 
 #include "gal/include/cached_container.hxx"
 
-namespace KIGFX
+namespace MINI
 {
 
 /**
@@ -61,6 +61,6 @@ protected:
     ///< Flag saying whether it is safe to use glCopyBufferSubData
     bool m_useCopyBuffer;
 };
-} // namespace KIGFX
+} // namespace MINI
 
 #endif /* CACHED_CONTAINER_GPU_H_ */

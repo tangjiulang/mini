@@ -14,7 +14,7 @@ struct WINDOW_SETTINGS;
 #pragma warning( disable : 4275 )
 #endif
 
-namespace KIGFX
+namespace MINI
 {
     /**
      * Type definition of the grid style.
@@ -63,7 +63,7 @@ namespace KIGFX
         GAL_ANTIALIASING_MODE antialiasing_mode;
 
         ///< The grid style to draw the grid in
-        KIGFX::GRID_STYLE m_gridStyle;
+        MINI::GRID_STYLE m_gridStyle;
 
         ///< Snapping options for the grid
         GRID_SNAPPING m_gridSnapping;
@@ -89,7 +89,7 @@ namespace KIGFX
         void NotifyChanged();
     };
 
-} // namespace KIGFX
+} // namespace MINI
 
 #if defined( _MSC_VER )
 #pragma warning( pop )
