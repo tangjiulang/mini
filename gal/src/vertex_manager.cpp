@@ -148,6 +148,12 @@ bool VERTEX_MANAGER::Vertices( const VERTEX aVertices[], unsigned int aSize )
 }
 
 
+bool VERTEX_MANAGER::DirectPushVertices(const VERTEX aVertices[], unsigned int aSize) {
+    VERTEX* newVertex = m_container->Allocate(aSize);
+    std::memcpy(newVertex, aVertices, sizeof(VERTEX) * aSize);
+    return true;
+}
+
 void VERTEX_MANAGER::SetItem( VERTEX_ITEM& aItem ) const
 {
     m_container->SetItem( &aItem );

@@ -43,7 +43,8 @@ namespace MINI {
         m_gal(nullptr),
         m_useDrawPriority(false),
         m_nextDrawPriority(0),
-        m_reverseDrawOrder(false)
+        m_reverseDrawOrder(false),
+        m_threadAccelerate(false)
     {
         // Set m_boundary to define the max area size. The default area size
         // is defined here as the max value of a int.
@@ -765,10 +766,18 @@ namespace MINI {
             if (!drawCondition)
                 return true;
 
-            if (useDrawPriority)
-                drawItems.push_back(aItem);
-            else
-                view->draw(aItem, layer);
+            if (view->GetThreadAccelerate()) {
+                auto id = std::this_thread::get_id();
+                if (view->m_threadPool->m_threadToPainter.count(id))
+                    view->draw(aItem, layer, view->m_threadPool->m_painters[view->m_threadPool->m_threadToPainter[id]]);
+
+            }
+            else {
+                if (useDrawPriority)
+                    drawItems.push_back(aItem);
+                else
+                    view->draw(aItem, layer);
+            }
 
             return true;
         }
@@ -809,6 +818,7 @@ namespace MINI {
 
     void VIEW::redrawRect(const BOX2I& aRect)
     {
+        auto t0 = std::chrono::high_resolution_clock::now();
         for (VIEW_LAYER* l : m_orderedLayers)
         {
             if (l->visible && IsTargetDirty(l->target) && areRequiredLayersEnabled(l->id))
@@ -847,8 +857,101 @@ namespace MINI {
                 }
             }
         }
+        auto t1 = std::chrono::high_resolution_clock::now();
+
+        double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+        std::cout << "Time: " << ms << " ms\n";
     }
 
+    void VIEW::RedrawRect(const BOX2I& aRect)
+    {
+        auto t0 = std::chrono::high_resolution_clock::now();
+        std::vector<std::future<void>> returns;
+        for (VIEW_LAYER* l : m_orderedLayers)
+        {
+            if (l->visible && IsTargetDirty(l->target) && areRequiredLayersEnabled(l->id))
+            {
+                returns.emplace_back(m_threadPool->m_threadPool->submit_task([&, l]() {
+
+                    DRAW_ITEM_VISITOR drawFunc(this, l->id, m_useDrawPriority, m_reverseDrawOrder);
+
+                    auto id = std::this_thread::get_id();
+                    if (m_threadPool->m_threadToPainter.count(id)) {
+						OPENGL_GAL* gal = dynamic_cast<OPENGL_GAL*>(m_gal);
+                        auto painter = m_threadPool->m_painters[m_threadPool->m_threadToPainter[id]];
+                        painter->m_insertVertex->SetMergeManager(gal->GetVertexManagerByTarget(l->target));
+                        painter->m_insertVertex->SetLayerDepth(l->renderingOrder);
+                        painter->m_insertVertex->SetMergeManager(gal->GetVertexManagerByTarget(l->target));
+                        painter->m_insertVertex->SetTransformation(gal->GetVertexManagerByTarget(l->target)->GetTransformation());
+                    }
+
+                    // Differential layer also work for the negatives, since both special layer types
+                    // will composite on separate layers (at least in Cairo)
+                    //if (l->diffLayer)
+                    //    m_gal->StartDiffLayer();
+                    //else if (l->hasNegatives)
+                    //    m_gal->StartNegativesLayer();
+
+                    l->items->Query(aRect, drawFunc);
+
+                    if (m_useDrawPriority)
+                        drawFunc.deferredDraw();
+
+                    //if (l->diffLayer)
+                    //    m_gal->EndDiffLayer();
+                    //else if (l->hasNegatives)
+                    //    m_gal->EndNegativesLayer();
+
+                    //if (drawFunc.foundForcedTransparent)
+                    //{
+                    //    drawFunc.drawForcedTransparent = true;
+
+                    //    m_gal->SetTarget(TARGET_NONCACHED);
+                    //    m_gal->EnableDepthTest(true);
+                    //    m_gal->SetLayerDepth(l->renderingOrder);
+
+                    //    l->items->Query(aRect, drawFunc);
+                    //}
+                                          }));
+
+
+            }
+        }
+        for (auto& ret : returns)
+            ret.get();
+        for (auto painter : m_threadPool->m_painters)
+            painter->m_insertVertex->MergeToManager();
+
+        auto t1 = std::chrono::high_resolution_clock::now();
+
+        double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+        std::cout << "Time: " << ms << " ms\n";
+    }
+
+    void VIEW::draw(VIEW_ITEM* aItem, int aLayer, PAINTER* aPainter, bool aImmediate)
+    {
+        VIEW_ITEM_DATA* viewData = aItem->viewPrivData();
+
+        if (!viewData)
+            return;
+
+        if (IsCached(aLayer) && !aImmediate)
+        {
+            // Draw using cached information or create one
+            int group = viewData->getGroup(aLayer);
+
+            if (group >= 0)
+                m_gal->DrawGroup(group);
+            else
+                Update(aItem);
+        }
+        else
+        {
+            // Immediate mode
+            if (!aPainter->Draw(aItem, aLayer))
+                aItem->ViewDraw(aLayer, this);  // Alternative drawing method
+        }
+    }
 
     void VIEW::draw(VIEW_ITEM* aItem, int aLayer, bool aImmediate)
     {
@@ -987,7 +1090,10 @@ namespace MINI {
         rect.Normalize();
         BOX2I recti = BOX2ISafe(rect);
 
-        redrawRect(recti);
+        if (GetThreadAccelerate())
+            RedrawRect(recti);
+        else 
+            redrawRect(recti);
 
         // All targets were redrawn, so nothing is dirty
         MarkClean();

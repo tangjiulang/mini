@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <memory>
 #include <map>
+#include "gal/include/vertex_thread_pool.hxx"
 
 #include <box2.hxx>
 #include <gal/include/definitions.hxx>
@@ -733,6 +734,18 @@ namespace MINI
         /// Redraw contents within rectangle \a aRect.
         void redrawRect(const BOX2I& aRect);
 
+        void RedrawRect(const BOX2I& aRect);
+
+        std::unique_ptr<VertexThreadPool> m_threadPool;
+
+        void SetThreadAccelerate(bool aEnalble) {
+			m_threadAccelerate = aEnalble;
+        }
+
+        bool GetThreadAccelerate() const {
+			return m_threadAccelerate;
+        }
+
     protected:
         struct VIEW_LAYER
         {
@@ -765,6 +778,8 @@ namespace MINI
             if (aTarget >= TARGETS_NUMBER) return;
             m_dirtyTargets[aTarget] = false;
         }
+
+        void draw(VIEW_ITEM* aItem, int aLayer, PAINTER* aPainter, bool aImmediate = false);
 
         /**
          * Draw an item, but on a specified layers.
@@ -886,6 +901,8 @@ namespace MINI
 
         /// Flag to reverse the draw order when using draw priority.
         bool m_reverseDrawOrder;
+
+        bool m_threadAccelerate;
     };
 } // namespace MINI
 

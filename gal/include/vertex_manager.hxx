@@ -106,6 +106,8 @@ public:
      */
     bool Vertices( const VERTEX aVertices[], unsigned int aSize );
 
+    bool DirectPushVertices(const VERTEX aVertices[], unsigned int aSize);
+
     /**
      * Change currently used color that will be applied to newly added vertices.
      *

@@ -67,7 +67,7 @@ void NONCACHED_CONTAINER::SetItem( VERTEX_ITEM* aItem )
 
 VERTEX* NONCACHED_CONTAINER::Allocate( unsigned int aSize )
 {
-    if( m_freeSpace < aSize )
+    while( m_freeSpace < aSize )
     {
         // Double the space
         VERTEX* newVertices =

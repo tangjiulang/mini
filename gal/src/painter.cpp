@@ -2,12 +2,11 @@
 
 using namespace MINI;
 
-PAINTER::PAINTER(MINI::GAL* gal) :
+PAINTER::PAINTER(MINI::GAL* gal, bool isCached) :
 	m_gal(gal) 
-{}
+{
+	OPENGL_GAL* openglGal = dynamic_cast<OPENGL_GAL*>(m_gal);
+	m_insertVertex = new INSERT_VERTEX(openglGal->GetCurrentManager(), isCached);
+}
 
 PAINTER::~PAINTER() {}
-
-void PAINTER::DrawLine(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint) {
-	m_gal->DrawLine(aStartPoint, aEndPoint);
-}

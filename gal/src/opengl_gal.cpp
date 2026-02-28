@@ -2950,3 +2950,15 @@ void OPENGL_GAL::paintGL() {
     }
     update();
 }
+
+VERTEX_MANAGER* MINI::OPENGL_GAL::GetVertexManagerByTarget(RENDER_TARGET aTarget)
+{
+    switch (aTarget)
+    {
+    default:
+    case TARGET_CACHED:    return m_cachedManager;
+    case TARGET_NONCACHED: return m_nonCachedManager; 
+    case TARGET_OVERLAY:   return m_overlayManager;   
+    case TARGET_TEMP:      return m_tempManager;      
+    }
+}

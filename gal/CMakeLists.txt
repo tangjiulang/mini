@@ -13,6 +13,7 @@ target_link_libraries(gal PUBLIC
 						spdlog::spdlog 
                         GLEW::GLEW
                         unofficial::libtess2::libtess2
+                        thread-pool
                         core
 						math
                         base

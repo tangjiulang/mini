@@ -2,7 +2,8 @@
 #include "geometry_utils.hxx"
 #include "data_painter.hxx"
 #include "data_manager.hxx"
-#include "gal/include/utils.hxx"
+#include "gal/include/vertex_thread_pool.hxx"
+#include "data_thread_painter.hxx"
 
 // Scale limits for zoom (especially mouse wheel) for Data
 #define ZOOM_MAX_LIMIT_DATA 50000
@@ -372,6 +373,19 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
 	setMouseTracking(true);
 
     m_selectionTool.SetView(m_view);
+
+    m_view->SetThreadAccelerate(true);
+
+    if (m_view->GetThreadAccelerate()) {
+        m_view->m_threadPool = std::make_unique<MINI::VertexThreadPool>();
+
+        auto ids = m_view->m_threadPool->m_threadPool->get_thread_ids();
+
+        for (int i = 0; i < m_view->m_threadPool->m_threadCount; i++) {
+            m_view->m_threadPool->m_painters.push_back(new MINI::DATA_THREAD_PAINTER(m_gal));
+            m_view->m_threadPool->m_threadToPainter[ids[i]] = i;
+        }
+    }
 }
 
 DrawPanelGal::~DrawPanelGal()

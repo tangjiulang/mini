@@ -19,5 +19,6 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU")
 endif()
 
 set( ARGPARSE_INSTALL OFF )
+add_subdirectory(thread-pool)
 add_subdirectory( clipper2 )
 add_subdirectory(magic_enum)

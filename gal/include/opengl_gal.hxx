@@ -74,6 +74,12 @@ public:
      */
     static std::string CheckFeatures( GAL_DISPLAY_OPTIONS& aOptions );
 
+    VERTEX_MANAGER* GetCurrentManager() {
+        return m_currentManager;
+    }
+
+    VERTEX_MANAGER* GetVertexManagerByTarget(RENDER_TARGET aTarget);
+
     bool IsOpenGlEngine() override { return true; }
 
     /// @copydoc GAL::IsInitialized()

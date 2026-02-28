@@ -1,6 +1,7 @@
 #pragma once
 
 #include "gal/include/opengl_gal.hxx"
+#include "gal/include/insert_vertex.hxx"
 #include "render_settings.hxx"
 
 namespace MINI 
@@ -8,9 +9,8 @@ namespace MINI
 class VIEW_ITEM;
 class PAINTER {
 public:
-    PAINTER(MINI::GAL* gal);
+    PAINTER(MINI::GAL* gal, bool isCached = false);
     virtual ~PAINTER();
-    void DrawLine(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);
 
     /**
         * Return a pointer to current settings that are going to be used when drawing items.
@@ -41,7 +41,9 @@ public:
     }
 
 protected:
-    MINI::GAL* m_gal;
+    GAL* m_gal;
+public:
+	INSERT_VERTEX* m_insertVertex;
 };
 }
 

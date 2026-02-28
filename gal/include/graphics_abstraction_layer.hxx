@@ -42,6 +42,7 @@ enum GR_TEXT_V_ALIGN_T
 
 namespace MINI
 {
+class VERTEX_MANAGER;
 /**
  * Abstract interface for drawing on a 2D-surface.
  *
@@ -680,6 +681,8 @@ public:
      * @return The current rendering target.
      */
     virtual RENDER_TARGET GetTarget() const { return TARGET_CACHED; };
+
+    virtual VERTEX_MANAGER* GetVertexManagerByTarget(RENDER_TARGET aTarget) { return nullptr; }
 
     /**
      * Clear the target for rendering.
