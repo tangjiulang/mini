@@ -41,7 +41,6 @@ add_subdirectory(gal)
 add_subdirectory(view)
 add_subdirectory(data)
 add_subdirectory(widget)
-add_subdirectory(resources)
 add_subdirectory(ipc-2581)
 
 add_subdirectory(TimeTest)

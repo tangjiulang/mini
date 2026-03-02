@@ -22,6 +22,4 @@ target_link_libraries(gal PUBLIC
 
 include_directories(${Boost_INCLUDE_DIRS})
 target_include_directories(gal PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../)
-target_include_directories(gal PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../resources)
 target_include_directories(gal PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../performanceTestHelper)
-message(${CMAKE_CURRENT_SOURCE_DIR}/../resources)
