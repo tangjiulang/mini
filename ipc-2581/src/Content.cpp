@@ -26,7 +26,7 @@ WrongType ContentSection::Read()
 	// Read DictionaryColor in Content
 	auto dictionaryColor = m_content->FirstChildElement("DictionaryColor");
 	for (auto color = dictionaryColor->FirstChildElement(); color; color = color->NextSiblingElement()) {
-		m_colorRefs.push_back(color->FindAttribute("name")->Value());
+		//m_colorRefs.push_back(color->FindAttribute("name")->Value());
 	}
 
 	// Read DictionaryLineDesc in Content

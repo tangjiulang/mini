@@ -94,7 +94,7 @@ void MINI::DATA_THREAD_PAINTER::draw(const DATA_Polygon* aPolygon, int aLayer) {
 			EDA_ANGLE startAngle, endAngle;
 			startAngle = shape_arc.GetStartAngle();
 			endAngle = shape_arc.GetEndAngle();
-			m_insertVertex->DrawArcSegment(shape_arc.GetCenter(), shape_arc.GetRadius(), startAngle, endAngle - startAngle, false, true, color, color, aPolygon->m_lineWidth, aPolygon->m_lineWidth, 0);
+			m_insertVertex->DrawArcSegment(shape_arc.GetCenter(), shape_arc.GetRadius(), startAngle, (endAngle - startAngle).Normalize(), false, true, color, color, aPolygon->m_lineWidth, aPolygon->m_lineWidth, 0);
 		}
 	}
 }

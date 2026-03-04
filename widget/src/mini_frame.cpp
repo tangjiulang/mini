@@ -38,7 +38,7 @@ MiniFrame::~MiniFrame()
 
 void MiniFrame::GeneratorData()
 {
-	std::string filePath = "C:\\Users\\Administrator\\Downloads\\立创·庐山派K230-CanMV开发板\\立创·庐山派K230-CanMV开发板\\PCB1.xml";
+	std::string filePath = "C:\\Users\\Administrator\\Documents\\preview.xml";
 	IPC2581Document doc(filePath);
 	doc.DocumentReader();
 	doc.ContentReader();

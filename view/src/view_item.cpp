@@ -12,12 +12,11 @@ VIEW_ITEM::~VIEW_ITEM()
 
 double VIEW_ITEM::lodScaleForThreshold(const VIEW* aView, int aWhatIu, int aThresholdIu)
 {
-    //if (aView->GetPainter()->GetSettings()->IsPrinting())
-    //    return LOD_SHOW;
+    if (aView->GetPainter()->GetSettings()->IsPrinting())
+        return LOD_SHOW;
 
-    //if (aWhatIu == 0)
-    //    return LOD_HIDE;
+    if (aWhatIu == 0)
+        return LOD_HIDE;
 
-    //return double(aThresholdIu) / aWhatIu;
-    return LOD_SHOW;
+    return double(aThresholdIu) / aWhatIu;
 }

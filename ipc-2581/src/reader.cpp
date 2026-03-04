@@ -32,7 +32,7 @@ WrongType IPC2581Document::DocumentReader() {
 	if (!m_header.revision.empty() && m_header.revision != "C" && m_header.revision != "c")
 		return WrongType::UnsupportedRevision;
 
-	if (!m_content.IsValid() || !!m_ecad.IsValid())
+	if (!m_content.IsValid() || !m_ecad.IsValid())
 		return WrongType::UnSuccessfulReadSection;
 
 	return WrongType::Success;

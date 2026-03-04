@@ -172,6 +172,10 @@ void VIEW_GROUP::ViewDraw(int aLayer, VIEW* aView) const
                 if (item->ViewGetLOD(layer, aView) == LOD_HIDE)
                     continue;
 
+                auto id = std::this_thread::get_id();
+                if (aView->m_threadPool->m_threadToPainter.count(id))
+					painter = aView->m_threadPool->m_painters[aView->m_threadPool->m_threadToPainter[id]];
+
                 if (!painter->Draw(item, layer))
                     item->ViewDraw(layer, aView); // Alternative drawing method
             }

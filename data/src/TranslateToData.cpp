@@ -297,7 +297,40 @@ bool TranslateToData::TranslateOctagon(Octagon* octagon, const VECTOR2D& locatio
 
 bool TranslateToData::TranslateOval(Oval* oval, const VECTOR2D& location)
 {
-	return false;
+	VECTOR2D loc = location - VECTOR2D{ oval->width / 2, 0};
+	double r = oval->height / 2;
+	double w = oval->width - oval->height;
+
+	std::vector<MINI::Segment> segments;
+	double lineWidth = oval->lineDesc ? oval->lineDesc->lineWidth : 0;
+
+	VECTOR2D prePoint = m_view->ToWorld(VECTOR2D{ r, 0 } + loc);
+	VECTOR2D endPoint = m_view->ToWorld(VECTOR2D{ oval->width - r, 0 } + loc);
+	SHAPE_SEGMENT segment = { prePoint, endPoint };
+	segments.push_back(segment);
+	prePoint = endPoint;
+
+	endPoint = m_view->ToWorld(VECTOR2D{ oval->width - r, oval->height } + loc);
+	VECTOR2D centerPoint = m_view->ToWorld(VECTOR2D{ oval->width, r } + loc);
+	SHAPE_ARC arc = SHAPE_ARC(prePoint, centerPoint, endPoint, lineWidth);
+	segments.push_back(arc);
+	prePoint = endPoint;
+
+	endPoint = m_view->ToWorld(VECTOR2D{ r, oval->height } + loc);
+	segment = { prePoint, endPoint };
+	segments.push_back(segment);
+	prePoint = endPoint;
+
+	endPoint = m_view->ToWorld(VECTOR2D{ r, 0 } + loc);
+	centerPoint = m_view->ToWorld(VECTOR2D{ 0, r } + loc);
+	arc = SHAPE_ARC(prePoint, centerPoint, endPoint, lineWidth);
+	segments.push_back(arc);
+	prePoint = endPoint;
+
+	MINI::DATA_Polygon poly(segments, m_currentLayer, m_view->ToWorld(lineWidth));
+	m_dataManager->m_polygons.push_back(poly);
+
+	return true;
 }
 
 bool TranslateToData::TranslateRectCenter(RectCenter* rectCenter, const VECTOR2D& location)
