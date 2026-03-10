@@ -32,7 +32,7 @@ bool TranslateToData::Translate(MINI::VIEW* view)
 						VECTOR2D padLocation = { padStackPadDef.location.x, padStackPadDef.location.y };
 						TranslateShape(padStackPadDef.feature, location + padLocation);
 					}
-					
+
 				}
 
 				for (auto feature : set.features) {
@@ -57,7 +57,7 @@ bool TranslateToData::TranslateShape(Shape shape, const VECTOR2D& location)
 		return TranslateStandard(shape, location);
 	else if (shape.type == ShapeType::UserSpecial)
 		return TranslateUserSpecial(shape, location);
-	else 
+	else
 		return false;
 }
 
@@ -71,7 +71,7 @@ bool TranslateToData::TranslateSimple(Shape shape, const VECTOR2D& location)
 		return TranslateOutline(&m_ecad->m_standardShape->m_outline[shape.index], location);
 	else if (std::get<SimpleType>(shape.shape_type) == SimpleType::Polyline)
 		return TranslatePolyline(&m_ecad->m_standardShape->m_polyline[shape.index], location);
-	else 
+	else
 		return false;
 }
 
@@ -112,7 +112,7 @@ bool TranslateToData::TranslateOutline(Outline* outline, const VECTOR2D& locatio
 	VECTOR2D prePoint = { outline->polygon.polyBegin.x, outline->polygon.polyBegin.y };
 	prePoint += location;
 	std::vector<MINI::Segment> segments;
-	
+
 	for (auto polyStep : outline->polygon.polyStep) {
 		if (std::holds_alternative<PolyStepSegment>(polyStep)) {
 			auto& segment = std::get<PolyStepSegment>(polyStep);
@@ -225,7 +225,7 @@ bool TranslateToData::TranslateCircle(Circle* circle, const VECTOR2D& location)
 {
 	SHAPE_CIRCLE shape_circle{ m_view->ToWorld(location), static_cast<int32_t>(m_view->ToWorld(circle->diameter / 2)) };
 	m_dataManager->m_circles.push_back(MINI::DATA_Circle(shape_circle, m_currentLayer));
-	
+
 	return true;
 }
 
@@ -242,7 +242,7 @@ bool TranslateToData::TranslateDiamond(Diamond* diamond, const VECTOR2D& locatio
 {
 	double width = diamond->width;
 	double height = diamond->height;
-	VECTOR2D point1 = { - width / 2, 0 }, point2 = { 0, height / 2 },
+	VECTOR2D point1 = { -width / 2, 0 }, point2 = { 0, height / 2 },
 		point3 = { width / 2, 0 }, point4 = { 0, -height / 2 };
 	SHAPE_LINE_CHAIN shape_diamond;
 	shape_diamond.Append(m_view->ToWorld(location + point1));
@@ -252,7 +252,7 @@ bool TranslateToData::TranslateDiamond(Diamond* diamond, const VECTOR2D& locatio
 	shape_diamond.Append(m_view->ToWorld(location + point1));
 	double lineWidth = diamond->lineDesc ? diamond->lineDesc->lineWidth : 0;
 	m_dataManager->m_polylines.push_back(MINI::DATA_Polyline{ shape_diamond, m_currentLayer, m_view->ToWorld(lineWidth) });
-	
+
 	return true;
 }
 
@@ -297,7 +297,7 @@ bool TranslateToData::TranslateOctagon(Octagon* octagon, const VECTOR2D& locatio
 
 bool TranslateToData::TranslateOval(Oval* oval, const VECTOR2D& location)
 {
-	VECTOR2D loc = location - VECTOR2D{ oval->width / 2, 0};
+	VECTOR2D loc = location - VECTOR2D{ oval->width / 2, 0 };
 	double r = oval->height / 2;
 	double w = oval->width - oval->height;
 
@@ -338,7 +338,7 @@ bool TranslateToData::TranslateRectCenter(RectCenter* rectCenter, const VECTOR2D
 	double lineWidth = rectCenter->lineDesc ? rectCenter->lineDesc->lineWidth : 0;
 	VECTOR2D startPoint = { location.x - rectCenter->width / 2.0, location.y - rectCenter->height / 2.0 };
 	VECTOR2D endPoint = { location.x + rectCenter->width / 2.0, location.y + rectCenter->height / 2.0 };
-	MINI::DATA_Rectangle data_rectangle(SHAPE_RECT{ m_view->ToWorld(startPoint), m_view->ToWorld(endPoint)}, m_currentLayer, m_view->ToWorld(lineWidth));
+	MINI::DATA_Rectangle data_rectangle(SHAPE_RECT{ m_view->ToWorld(startPoint), m_view->ToWorld(endPoint) }, m_currentLayer, m_view->ToWorld(lineWidth));
 	m_dataManager->m_rectangles.push_back(data_rectangle);
 	return true;
 }

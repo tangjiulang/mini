@@ -8,7 +8,10 @@
 #include "data_polygon.hxx"
 #include "data_poly_set.hxx"
 
-class MINI::VIEW;
+namespace MINI
+{
+class VIEW;
+}
 
 class DataManager {
 public:

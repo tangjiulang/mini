@@ -15,13 +15,7 @@ MiniFrame::MiniFrame(QWidget* parent)
 
 	m_drawPanelGal->SetDefaultLayerDeps();
 
-	layout->addWidget(m_drawPanelGal->m_gal);
-
-	m_centralWidget = new QWidget(this);
-	m_centralWidget->setLayout(layout);
-	m_centralWidget->setMouseTracking(true);
-
-	this->setCentralWidget(m_centralWidget);
+	this->setCentralWidget(m_drawPanelGal);
 
 	m_dataManager = new DataManager();
 

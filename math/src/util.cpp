@@ -6,6 +6,7 @@
 
 #ifdef _MSC_VER
 #include <windows.h>
+#include <immintrin.h>
 #include <intrin.h>
 #endif
 
@@ -69,7 +70,8 @@ int64_t rescale( int64_t aNumerator, int64_t aValue, int64_t aDenominator )
     __try
     {
         int64_t remainder;
-        int64_t result = _div128( productHi, productLo, aDenominator, &remainder );
+        int64_t result = 0;
+        //= _div128(productHi, productLo, aDenominator, &remainder); 
 
         return result;
     }

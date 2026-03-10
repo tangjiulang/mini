@@ -24,6 +24,7 @@
 #include <vector>
 #include <map>
 #include <format>
+#include <QtGlobal>
 
 #include "gal/include/cursors.hxx"
 //#include <kiplatform/ui.h>
@@ -39,21 +40,6 @@ CURSOR_STORE::CURSOR_STORE()
     {
         /*wxCHECK2( !defs.empty(), continue );*/
 
-#if wxCHECK_VERSION( 3, 3, 0 )
-        // For wx 3.3+, create cursor bundles from the cursor definitions
-        std::vector<wxBitmap> bitmaps;
-            
-        for( const auto& [xpm, hotspot_def] : defs )
-        {
-            wxCHECK2( xpm, continue );
-            bitmaps.push_back( wxBitmap( xpm ) );
-        }
-
-        wxBitmapBundle bitmapBundle = wxBitmapBundle::FromBitmaps( bitmaps );
-
-        wxPoint hotspot = defs[0].m_hotspot; // Use hotspot from standard cursor
-        m_bundleMap[cursorId] = wxCursorBundle( bitmapBundle, hotspot );
-#else
         auto constructCursor = []( const CURSOR_STORE::CURSOR_DEF& aDef ) -> QCursor
         {
             //wxCHECK( aDef.m_xpm, wxNullCursor );
@@ -70,26 +56,9 @@ CURSOR_STORE::CURSOR_STORE()
             m_hidpiCursorMap[cursorId] = constructCursor( defs[1] );
         else
             m_hidpiCursorMap[cursorId] = m_standardCursorMap[cursorId];
-#endif
     }
 }
 
-#if wxCHECK_VERSION( 3, 3, 0 )
-const wxCursorBundle& CURSOR_STORE::storeGetBundle( KICURSOR aIdKey ) const
-{
-    const auto find_iter = m_bundleMap.find( aIdKey );
-
-    if( find_iter != m_bundleMap.end() )
-        return find_iter->second;
-
-    wxASSERT_MSG( false, wxString::Format( "Could not find cursor bundle with ID %d",
-                                           static_cast<int>( aIdKey ) ) );
-
-    static const wxCursorBundle invalid;
-
-    return invalid;
-}
-#else
 const QCursor& CURSOR_STORE::storeGetCursor( KICURSOR aIdKey, bool aHiDPI ) const
 {
     const auto& store = aHiDPI ? m_hidpiCursorMap : m_standardCursorMap;
@@ -98,11 +67,10 @@ const QCursor& CURSOR_STORE::storeGetCursor( KICURSOR aIdKey, bool aHiDPI ) cons
     if( find_iter != store.end() )
         return find_iter->second;
 
-    assert( false, std::format( "Could not find cursor with ID %d", static_cast<int>( aIdKey ) ) );
+    //Q_ASSERT( false, std::format( "Could not find cursor with ID %d", static_cast<int>( aIdKey ) ) ); // NOLINT
 
     return QCursor(Qt::BlankCursor);
 }
-#endif
 
 /* static */
 const QCURSOR_TYPE CURSOR_STORE::GetCursor( KICURSOR aCursorType, bool aHiDPI )
@@ -115,12 +83,7 @@ const QCURSOR_TYPE CURSOR_STORE::GetCursor( KICURSOR aCursorType, bool aHiDPI )
     if( stock != Qt::ArrowCursor)
         return QCURSOR_TYPE( stock );
 
-#if wxCHECK_VERSION( 3, 3, 0 )
-    // For wx 3.3+, return the pre-built cursor bundle (aHiDPI is ignored as bundles contain both)
-    return store.storeGetBundle( aCursorType );
-#else
     return store.storeGetCursor( aCursorType, aHiDPI );
-#endif
 }
 
 /* static */

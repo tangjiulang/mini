@@ -33,6 +33,7 @@
 #include <convert_basic_shapes_to_polygon.hxx>
 #include <trigo.hxx>
 
+#include <assert.h>
 
 std::ostream& operator<<( std::ostream& aStream, const SHAPE_ARC& aArc )
 {
@@ -125,7 +126,7 @@ SHAPE_ARC::SHAPE_ARC( const SEG& aSegmentA, const SEG& aSegmentB, int aRadius, i
     if( !p || aSegmentA.Length() == 0 || aSegmentB.Length() == 0 )
     {
         // Catch bugs in debug
-        Q_ASSERT( false, "The input segments do not intersect or one is zero length." );
+        //assert(false, "The input segments do not intersect or one is zero length.");
 
         // Make a 180 degree arc around aSegmentA in case we end up here in release
         m_start = aSegmentA.A;

@@ -9,11 +9,7 @@
  * Represents either a wxCursorBundle for wx 3.3+ or a wxCursor for older versions.
  * This allows consistent cursor handling across different wxWidgets versions.
  */
-#if wxCHECK_VERSION( 3, 3, 0 )
-typedef wxCursorBundle WX_CURSOR_TYPE;
-#else
 typedef QCursor QCURSOR_TYPE;
-#endif
 
 
 enum class KICURSOR
@@ -115,14 +111,6 @@ private:
      */
     CURSOR_STORE();
 
-#if wxCHECK_VERSION( 3, 3, 0 )
-    /**
-     * Get a cursor bundle by its ID (wx 3.3+ only)
-     * @param  aIdKey the ID key to look up
-     * @return        the cursor bundle, if found, else an invalid bundle
-     */
-    const wxCursorBundle& storeGetBundle( KICURSOR aIdKey ) const;
-#else
     /**
      * Get a cursor by its ID, automatically selecting the appropriate resolution
      * @param  aIdKey the ID key to look up
@@ -130,15 +118,9 @@ private:
      * @return        the cursor, if found, else wxNullCursor
      */
     const QCursor& storeGetCursor( KICURSOR aIdKey, bool aHiDPI = false ) const;
-#endif
 
-#if wxCHECK_VERSION( 3, 3, 0 )
-    ///< Internal store of cursor bundles for wx 3.3+
-    std::map<KICURSOR, wxCursorBundle> m_bundleMap;
-#else
     std::map<KICURSOR, QCursor> m_standardCursorMap;
     std::map<KICURSOR, QCursor> m_hidpiCursorMap;
-#endif
 
 };
 

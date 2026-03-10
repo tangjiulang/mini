@@ -1,0 +1,57 @@
+Checks: >
+  -*,
+  readability-identifier-naming
+
+WarningsAsErrors: ''
+
+ExtraArgs:
+  - -fexceptions
+  - -fcxx-exceptions
+  - /EHsc
+
+CheckOptions:
+  # 类名
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+
+  # 结构体
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+
+  # 函数
+  - key: readability-identifier-naming.FunctionCase
+    value: CamelCase
+
+  # 变量
+  - key: readability-identifier-naming.VariableCase
+    value: camelBack
+
+  # 成员变量
+  - key: readability-identifier-naming.MemberCase
+    value: camelBack
+
+  # 私有成员
+  - key: readability-identifier-naming.PrivateMemberPrefix
+    value: m_
+
+  # 全局变量
+  - key: readability-identifier-naming.GlobalVariablePrefix
+    value: g_
+
+  # 常量
+  - key: readability-identifier-naming.ConstantPrefix
+    value: k
+  - key: readability-identifier-naming.ConstantCase
+    value: camelCase
+
+  # 枚举
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+
+  # 枚举值
+  - key: readability-identifier-naming.EnumConstantCase
+    value: CamelCase
+
+  # 宏
+  - key: readability-identifier-naming.MacroDefinitionCase
+    value: UPPER_CASE

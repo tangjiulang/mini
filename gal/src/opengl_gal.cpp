@@ -20,6 +20,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <cassert>
 #include <list>
 using namespace std::placeholders;
 using namespace MINI;
@@ -2082,11 +2083,7 @@ bool OPENGL_GAL::SetNativeCursorStyle( KICURSOR aCursor, bool aHiDPI )
 
     m_currentwxCursor = CURSOR_STORE::GetCursor( m_currentNativeCursor, aHiDPI );
 
-#if wxCHECK_VERSION( 3, 3, 0 )
-    wxWindow::SetCursorBundle( m_currentwxCursor );
-#else
     this->setCursor(m_currentwxCursor);
-#endif
 
     return true;
 }
@@ -2618,8 +2615,7 @@ void OPENGL_GAL::blitCursor()
 
 unsigned int OPENGL_GAL::getNewGroupNumber()
 {
-    assert( m_groups.size() < std::numeric_limits<int>::max(),
-                  "There are no free slots to store a group");
+    assert( m_groups.size() < std::numeric_limits<int>::max());
 
     while( m_groups.find( m_groupCounter ) != m_groups.end() )
         m_groupCounter++;
