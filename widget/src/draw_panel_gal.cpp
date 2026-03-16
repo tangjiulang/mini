@@ -374,7 +374,7 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
 
     m_selectionTool.SetView(m_view);
 
-    m_view->SetThreadAccelerate(true);
+    m_view->SetThreadAccelerate(false);
 
     if (m_view->GetThreadAccelerate()) {
         m_view->m_threadPool = std::make_unique<MINI::VertexThreadPool>();
@@ -636,6 +636,9 @@ void DrawPanelGal::InitialViewData(DataManager* data)
 
     for (auto& line : data->m_lines)
         m_view->Add(&line);
+
+    for(auto& text : data->m_texts)
+        m_view->Add(&text);
 
 	m_view->MarkDirty();
 }

@@ -14,6 +14,7 @@
 #include "gal/include/definitions.hxx"
 #include <gal/include/gal_display_options.hxx>
 #include "gal/include/utils.hxx"
+#include <glyph.hxx>
 //#include <font/stroke_font.h>
 #include "eda_angle.hxx"
 
@@ -193,16 +194,16 @@ public:
     /**
      * Draw a polygon representing a font glyph.
      */
-    //virtual void DrawGlyph( const KIFONT::GLYPH& aGlyph, int aNth = 0, int aTotal = 1 ) {};
+    virtual void DrawGlyph( const KIFONT::GLYPH& aGlyph, int aNth = 0, int aTotal = 1 ) {};
 
     /**
      * Draw polygons representing font glyphs.
      */
-    //virtual void DrawGlyphs( const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs )
-    //{
-    //    for( size_t i = 0; i < aGlyphs.size(); i++ )
-    //        DrawGlyph( *aGlyphs[i], i, aGlyphs.size() );
-    //}
+    virtual void DrawGlyphs( const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs )
+    {
+        for( size_t i = 0; i < aGlyphs.size(); i++ )
+            DrawGlyph( *aGlyphs[i], i, aGlyphs.size() );
+    }
 
 
     /**

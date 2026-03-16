@@ -2,16 +2,15 @@
 #include <mutex>
 #include <unordered_map>
 
-#include <string_utils.h>
-#include <gal/graphics_abstraction_layer.h>
-#include <stroke_font.h>
-#include <font/outline_font.h>
-#include <trigo.h>
-#include <markup_parser.h>
+#include <string_utils.hxx>
+#include <gal/include/graphics_abstraction_layer.hxx>
+#include <stroke_font.hxx>
+#include <outline_font.hxx>
+#include <trigo.hxx>
+#include <markup_parser.hxx>
 
-// The "official" name of the Kicad stroke font (always existing)
-#include <font/kicad_font_name.h>
-#include <wx/tokenzr.h>
+// The "official" name of the Mini stroke font (always existing)
+#include <mini_font_name.hxx>
 
 // markup_parser.h includes pegtl.hpp which includes windows.h... which leaks #define DrawText
 #undef DrawText
@@ -30,7 +29,7 @@ const METRICS& METRICS::Default()
 
 FONT* FONT::s_defaultFont = nullptr;
 
-std::map< std::tuple<wxString, bool, bool, bool>, FONT*> FONT::s_fontMap;
+std::map< std::tuple<std::string, bool, bool, bool>, FONT*> FONT::s_fontMap;
 
 class MARKUP_CACHE
 {
@@ -46,7 +45,7 @@ public:
     {
     }
 
-    ENTRY& Put( const wxString& aQuery, ENTRY&& aResult )
+    ENTRY& Put( const std::string& aQuery, ENTRY&& aResult )
     {
         auto it = m_cache.find( aQuery );
 
@@ -71,7 +70,7 @@ public:
         return m_cacheMru.begin()->second;
     }
 
-    ENTRY* Get( const wxString& aQuery )
+    ENTRY* Get( const std::string& aQuery )
     {
         auto it = m_cache.find( aQuery );
 
@@ -91,8 +90,8 @@ public:
 
 private:
     size_t                                                                        m_maxSize;
-    std::list<std::pair<wxString, ENTRY>>                                         m_cacheMru;
-    std::unordered_map<wxString, std::list<std::pair<wxString, ENTRY>>::iterator> m_cache;
+    std::list<std::pair<std::string, ENTRY>>                                         m_cacheMru;
+    std::unordered_map<std::string, std::list<std::pair<std::string, ENTRY>>::iterator> m_cache;
 };
 
 
@@ -111,19 +110,19 @@ FONT* FONT::getDefaultFont()
     std::lock_guard lock( s_defaultFontMutex );
 
     if( !s_defaultFont )
-        s_defaultFont = STROKE_FONT::LoadFont( wxEmptyString );
+        s_defaultFont = STROKE_FONT::LoadFont("");
 
     return s_defaultFont;
 }
 
 
-FONT* FONT::GetFont( const wxString& aFontName, bool aBold, bool aItalic,
-                     const std::vector<wxString>* aEmbeddedFiles, bool aForDrawingSheet )
+FONT* FONT::GetFont(const std::string& aFontName, bool aBold, bool aItalic,
+                    const std::vector<std::string>* aEmbeddedFiles, bool aForDrawingSheet)
 {
-    if( aFontName.empty() || aFontName.StartsWith( KICAD_FONT_NAME ) )
+    if( aFontName.empty() || aFontName.starts_with( MINI_FONT_NAME ) )
         return getDefaultFont();
 
-    std::tuple<wxString, bool, bool, bool> key = { aFontName, aBold, aItalic, aForDrawingSheet };
+    std::tuple<std::string, bool, bool, bool> key = { aFontName, aBold, aItalic, aForDrawingSheet };
 
     FONT* font = nullptr;
 
@@ -143,21 +142,21 @@ FONT* FONT::GetFont( const wxString& aFontName, bool aBold, bool aItalic,
 }
 
 
-bool FONT::IsStroke( const wxString& aFontName )
+bool FONT::IsStroke(const std::string& aFontName)
 {
     // This would need a more complex implementation if we ever support more stroke fonts
     // than the KiCad Font.
-    return aFontName == _( "Default Font" ) || aFontName == KICAD_FONT_NAME;
+    return aFontName == ( "Default Font" ) || aFontName == MINI_FONT_NAME;
 }
 
 
-void FONT::getLinePositions( const wxString& aText, const VECTOR2I& aPosition,
-                             wxArrayString& aTextLines, std::vector<VECTOR2I>& aPositions,
+void FONT::getLinePositions(const std::string& aText, const VECTOR2I& aPosition, std::vector<std::string>& aTextLines,
+                            std::vector<VECTOR2I>& aPositions,
                              std::vector<VECTOR2I>& aExtents, const TEXT_ATTRIBUTES& aAttrs,
                              const METRICS& aFontMetrics ) const
 {
-    wxStringSplit( aText, aTextLines, '\n' );
-    int lineCount = aTextLines.Count();
+    StringSplit( aText, aTextLines, '\n' );
+    int lineCount = aTextLines.size();
     aPositions.reserve( lineCount );
 
     int interline = GetInterline( aAttrs.m_Size.y, aFontMetrics ) * aAttrs.m_LineSpacing;
@@ -194,7 +193,7 @@ void FONT::getLinePositions( const wxString& aText, const VECTOR2I& aPosition,
     case GR_TEXT_V_ALIGN_CENTER: offset.y -= height / 2; break;
     case GR_TEXT_V_ALIGN_BOTTOM: offset.y -= height;     break;
     case GR_TEXT_V_ALIGN_INDETERMINATE:
-        wxFAIL_MSG( wxT( "Indeterminate state legal only in dialogs." ) );
+        ( "Indeterminate state legal only in dialogs." );
         break;
     }
 
@@ -211,7 +210,7 @@ void FONT::getLinePositions( const wxString& aText, const VECTOR2I& aPosition,
         case GR_TEXT_H_ALIGN_CENTER: lineOffset.x = -lineSize.x / 2;            break;
         case GR_TEXT_H_ALIGN_RIGHT:  lineOffset.x = -( lineSize.x + offset.x ); break;
         case GR_TEXT_H_ALIGN_INDETERMINATE:
-            wxFAIL_MSG( wxT( "Indeterminate state legal only in dialogs." ) );
+            ( ( "Indeterminate state legal only in dialogs." ) );
             break;
         }
 
@@ -220,9 +219,9 @@ void FONT::getLinePositions( const wxString& aText, const VECTOR2I& aPosition,
 }
 
 
-void FONT::Draw( KIGFX::GAL* aGal, const wxString& aText, const VECTOR2I& aPosition, const VECTOR2I& aCursor,
+void FONT::Draw( MINI::GAL* aGal, const std::string& aText, const VECTOR2I& aPosition, const VECTOR2I& aCursor,
                  const TEXT_ATTRIBUTES& aAttrs, const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos,
-                 wxString* aActiveUrl ) const
+                std::string* aActiveUrl) const
 {
     if( !aGal || aText.empty() )
         return;
@@ -230,15 +229,15 @@ void FONT::Draw( KIGFX::GAL* aGal, const wxString& aText, const VECTOR2I& aPosit
     VECTOR2I  position( aPosition - aCursor );
 
     // Split multiline strings into separate ones and draw them line by line
-    wxArrayString         strings_list;
+    std::vector<std::string>         strings_list;
     std::vector<VECTOR2I> positions;
     std::vector<VECTOR2I> extents;
 
     getLinePositions( aText, position, strings_list, positions, extents, aAttrs, aFontMetrics );
 
-    aGal->SetLineWidth( aAttrs.m_StrokeWidth );
+    aGal->SetLineWidth( (float)aAttrs.m_StrokeWidth );
 
-    for( size_t i = 0; i < strings_list.GetCount(); i++ )
+    for( size_t i = 0; i < strings_list.size(); i++ )
     {
         drawSingleLineText( aGal, nullptr, strings_list[i], positions[i], aAttrs.m_Size, aAttrs.m_Angle,
                             aAttrs.m_Mirrored, aPosition, aAttrs.m_Italic, aAttrs.m_Underlined, aAttrs.m_Hover,
@@ -253,7 +252,7 @@ void FONT::Draw( KIGFX::GAL* aGal, const wxString& aText, const VECTOR2I& aPosit
 VECTOR2I drawMarkup( BOX2I* aBoundingBox, std::vector<std::unique_ptr<GLYPH>>* aGlyphs, const MARKUP::NODE* aNode,
                      const VECTOR2I& aPosition, const KIFONT::FONT* aFont, const VECTOR2I& aSize,
                      const EDA_ANGLE& aAngle, bool aMirror, const VECTOR2I& aOrigin, TEXT_STYLE_FLAGS aTextStyle,
-                     const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos, wxString* aActiveUrl )
+                     const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos, std::string* aActiveUrl )
 {
     VECTOR2I nextPosition = aPosition;
     bool     drawUnderline = false;
@@ -354,7 +353,7 @@ VECTOR2I drawMarkup( BOX2I* aBoundingBox, std::vector<std::unique_ptr<GLYPH>>* a
         for( int ii = start; ii < (int) aGlyphs->size(); ++ii )
             (*aGlyphs)[ii]->SetIsHover( true );
 
-        if( aActiveUrl && aActiveUrl->IsEmpty() )
+        if( aActiveUrl && aActiveUrl->empty() )
             *aActiveUrl = aNode->asWxString();
     }
 
@@ -363,10 +362,10 @@ VECTOR2I drawMarkup( BOX2I* aBoundingBox, std::vector<std::unique_ptr<GLYPH>>* a
 
 
 VECTOR2I FONT::drawMarkup( BOX2I* aBoundingBox, std::vector<std::unique_ptr<GLYPH>>* aGlyphs,
-                           const wxString& aText, const VECTOR2I& aPosition, const VECTOR2I& aSize,
+                           const std::string& aText, const VECTOR2I& aPosition, const VECTOR2I& aSize,
                            const EDA_ANGLE& aAngle, bool aMirror, const VECTOR2I& aOrigin,
                            TEXT_STYLE_FLAGS aTextStyle, const METRICS& aFontMetrics,
-                           std::optional<VECTOR2I> aMousePos, wxString* aActiveUrl ) const
+                          std::optional<VECTOR2I> aMousePos, std::string* aActiveUrl) const
 {
     std::lock_guard<std::mutex> lock( s_markupCacheMutex );
 
@@ -382,18 +381,18 @@ VECTOR2I FONT::drawMarkup( BOX2I* aBoundingBox, std::vector<std::unique_ptr<GLYP
         markup = &cached;
     }
 
-    wxASSERT( markup && markup->root );
+    assert( markup && markup->root );
 
     return ::drawMarkup( aBoundingBox, aGlyphs, markup->root.get(), aPosition, this, aSize, aAngle,
                          aMirror, aOrigin, aTextStyle, aFontMetrics, aMousePos, aActiveUrl );
 }
 
 
-void FONT::drawSingleLineText( KIGFX::GAL* aGal, BOX2I* aBoundingBox, const wxString& aText,
+void FONT::drawSingleLineText(MINI::GAL* aGal, BOX2I* aBoundingBox, const std::string& aText,
                                const VECTOR2I& aPosition, const VECTOR2I& aSize, const EDA_ANGLE& aAngle,
                                bool aMirror, const VECTOR2I& aOrigin, bool aItalic, bool aUnderline,
                                bool aHover, const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos,
-                               wxString* aActiveUrl ) const
+                              std::string* aActiveUrl) const
 {
     if( !aGal )
         return;
@@ -421,7 +420,7 @@ void FONT::drawSingleLineText( KIGFX::GAL* aGal, BOX2I* aBoundingBox, const wxSt
 }
 
 
-VECTOR2I FONT::StringBoundaryLimits( const wxString& aText, const VECTOR2I& aSize, int aThickness,
+VECTOR2I FONT::StringBoundaryLimits(const std::string& aText, const VECTOR2I& aSize, int aThickness,
                                      bool aBold, bool aItalic, const METRICS& aFontMetrics ) const
 {
     // TODO do we need to parse every time - have we already parsed?
@@ -451,7 +450,7 @@ VECTOR2I FONT::StringBoundaryLimits( const wxString& aText, const VECTOR2I& aSiz
 }
 
 
-VECTOR2I FONT::boundingBoxSingleLine( BOX2I* aBBox, const wxString& aText,
+VECTOR2I FONT::boundingBoxSingleLine(BOX2I* aBBox, const std::string& aText,
                                       const VECTOR2I& aPosition, const VECTOR2I& aSize,
                                       bool aItalic, const METRICS& aFontMetrics ) const
 {
@@ -467,13 +466,47 @@ VECTOR2I FONT::boundingBoxSingleLine( BOX2I* aBBox, const wxString& aText,
 }
 
 
+static std::string trim(const std::string& s)
+{
+    size_t start = 0;
+    while(start < s.size() && std::isspace(static_cast<unsigned char>(s[start])))
+        ++start;
+    size_t end = s.size();
+    while(end > start && std::isspace(static_cast<unsigned char>(s[end - 1])))
+        --end;
+    return s.substr(start, end - start);
+}
+
+// 按空格分词，可选择保留分隔符
+static std::vector<std::string> tokenize(const std::string& text, bool keepDelims = false)
+{
+    std::vector<std::string> tokens;
+    size_t                   start = 0;
+    while(start < text.size())
+    {
+        size_t pos = text.find(' ', start);
+        if(pos == std::string::npos)
+        {
+            tokens.push_back(text.substr(start));
+            break;
+        }
+        if(pos > start)
+            tokens.push_back(text.substr(start, pos - start));
+        if(keepDelims)
+            tokens.push_back(" ");
+        start = pos + 1;
+    }
+    return tokens;
+}
+
+
 /**
  * Break marked-up text into "words".
  *
  * In this context, a "word" is EITHER a run of marked-up text (subscript, superscript or
  * overbar), OR a run of non-marked-up text separated by spaces.
  */
-void wordbreakMarkup( std::vector<std::pair<wxString, int>>* aWords,
+void wordbreakMarkup(std::vector<std::pair<std::string, int>>* aWords,
                       const std::unique_ptr<MARKUP::NODE>& aNode, const KIFONT::FONT* aFont,
                       const VECTOR2I& aSize, TEXT_STYLE_FLAGS aTextStyle,
                       bool aInsideMarkup = false )
@@ -482,7 +515,7 @@ void wordbreakMarkup( std::vector<std::pair<wxString, int>>* aWords,
 
     if( !aNode->is_root() )
     {
-        wxChar escapeChar = 0;
+        char escapeChar = 0;
 
         if( aNode->isSubscript() )
         {
@@ -503,7 +536,7 @@ void wordbreakMarkup( std::vector<std::pair<wxString, int>>* aWords,
 
         if( escapeChar )
         {
-            wxString word = wxString::Format( wxT( "%c{" ), escapeChar );
+            std::string word = std::format("{}{{", escapeChar);
             int      width = 0;
 
             if( aNode->has_content() )
@@ -515,18 +548,18 @@ void wordbreakMarkup( std::vector<std::pair<wxString, int>>* aWords,
                 width += next.x;
             }
 
-            std::vector<std::pair<wxString, int>> childWords;
+            std::vector<std::pair<std::string, int>> childWords;
 
             for( const std::unique_ptr<MARKUP::NODE>& child : aNode->children )
                 wordbreakMarkup( &childWords, child, aFont, aSize, textStyle, true );
 
-            for( const std::pair<wxString, int>& childWord : childWords )
+            for(const std::pair<std::string, int>& childWord : childWords)
             {
                 word += childWord.first;
                 width += childWord.second;
             }
 
-            word += wxT( "}" );
+            word += "}";
             aWords->emplace_back( std::make_pair( word, width ) );
             return;
         }
@@ -535,7 +568,7 @@ void wordbreakMarkup( std::vector<std::pair<wxString, int>>* aWords,
             // Inside a markup node, preserve the content verbatim (no tokenization).
             // wxStringTokenizer collapses consecutive spaces, which corrupts content
             // like ~{     } where spaces are intentional.
-            wxString content = aNode->asWxString();
+            std::string content = aNode->asWxString();
             int      w = aFont->GetTextAsGlyphs( nullptr, nullptr, content, aSize, { 0, 0 },
                                                   ANGLE_0, false, { 0, 0 }, textStyle ).x;
 
@@ -543,19 +576,15 @@ void wordbreakMarkup( std::vector<std::pair<wxString, int>>* aWords,
         }
         else
         {
-            wxString              textRun = aNode->asWxString();
-            wxStringTokenizer     tokenizer( textRun, " ", wxTOKEN_RET_DELIMS );
-            std::vector<wxString> words;
+            std::string           textRun = aNode->asWxString();
+            std::vector<std::string> words = tokenize(textRun, true);
 
-            while( tokenizer.HasMoreTokens() )
-                words.emplace_back( tokenizer.GetNextToken() );
 
-            for( const wxString& word : words )
+            for(const std::string& word : words)
             {
-                wxString chars = word;
-                chars.Trim();
+                std::string chars = trim(word);
 
-                int w = aFont->GetTextAsGlyphs( nullptr, nullptr, chars.IsEmpty() ? word : chars,
+                int w = aFont->GetTextAsGlyphs( nullptr, nullptr, chars.empty() ? word : chars,
                                                 aSize, { 0, 0 }, ANGLE_0, false, { 0, 0 },
                                                 textStyle ).x;
 
@@ -569,7 +598,7 @@ void wordbreakMarkup( std::vector<std::pair<wxString, int>>* aWords,
 }
 
 
-void FONT::wordbreakMarkup( std::vector<std::pair<wxString, int>>* aWords, const wxString& aText,
+void FONT::wordbreakMarkup(std::vector<std::pair<std::string, int>>* aWords, const std::string& aText,
                             const VECTOR2I& aSize, TEXT_STYLE_FLAGS aTextStyle ) const
 {
     MARKUP::MARKUP_PARSER         markupParser( TO_UTF8( aText ) );
@@ -579,7 +608,7 @@ void FONT::wordbreakMarkup( std::vector<std::pair<wxString, int>>* aWords, const
 }
 
 
-void FONT::LinebreakText( wxString& aText, int aColumnWidth, const VECTOR2I& aSize, int aThickness,
+void FONT::LinebreakText(std::string& aText, int aColumnWidth, const VECTOR2I& aSize, int aThickness,
                           bool aBold, bool aItalic ) const
 {
     TEXT_STYLE_FLAGS textStyle = 0;
@@ -590,24 +619,24 @@ void FONT::LinebreakText( wxString& aText, int aColumnWidth, const VECTOR2I& aSi
     if( aItalic )
         textStyle |= TEXT_STYLE::ITALIC;
 
-    int spaceWidth = GetTextAsGlyphs( nullptr, nullptr, wxS( " " ), aSize, VECTOR2I(), ANGLE_0,
+    int spaceWidth = GetTextAsGlyphs( nullptr, nullptr, " ", aSize, VECTOR2I(), ANGLE_0,
                                       false, VECTOR2I(), textStyle ).x;
 
-    wxArrayString  textLines;
-    wxStringSplit( aText, textLines, '\n' );
+    std::vector<std::string>  textLines;
+    StringSplit( aText, textLines, '\n' );
 
-    aText = wxEmptyString;
+    aText = "";
 
-    for( size_t ii = 0; ii < textLines.Count(); ++ii )
+    for( size_t ii = 0; ii < textLines.size(); ++ii )
     {
-        std::vector<std::pair<wxString, int>> markup;
-        std::vector<std::pair<wxString, int>> words;
+        std::vector<std::pair<std::string, int>> markup;
+        std::vector<std::pair<std::string, int>> words;
 
         wordbreakMarkup( &markup, textLines[ii], aSize, textStyle );
 
         for( const auto& [ run, runWidth ] : markup )
         {
-            if( !words.empty() && !words.back().first.EndsWith( ' ' ) )
+            if( !words.empty() && !words.back().first.ends_with( ' ' ) )
             {
                 words.back().first += run;
                 words.back().second += runWidth;
@@ -620,23 +649,23 @@ void FONT::LinebreakText( wxString& aText, int aColumnWidth, const VECTOR2I& aSi
 
         bool     buryMode = false;
         int      lineWidth = 0;
-        wxString pendingSpaces;
+        std::string pendingSpaces;
 
         for( const auto& [ word, wordWidth ] : words )
         {
-            int  pendingSpaceWidth = (int) pendingSpaces.Length() * spaceWidth;
+            int  pendingSpaceWidth = (int) pendingSpaces.size() * spaceWidth;
             bool overflow = lineWidth + pendingSpaceWidth + wordWidth > aColumnWidth - aThickness;
 
-            if( overflow && pendingSpaces.Length() > 0 )
+            if( overflow && pendingSpaces.size() > 0 )
             {
                 aText += '\n';
                 lineWidth = 0;
-                pendingSpaces = wxEmptyString;
+                pendingSpaces = "";
                 pendingSpaceWidth = 0;
                 buryMode = true;
             }
 
-            if( word == wxS( " " ) )
+            if( word == " " )
             {
                 pendingSpaces += word;
             }
@@ -652,15 +681,15 @@ void FONT::LinebreakText( wxString& aText, int aColumnWidth, const VECTOR2I& aSi
                     lineWidth += pendingSpaceWidth;
                 }
 
-                if( word.EndsWith( ' ' ) )
+                if( word.ends_with( ' ' ) )
                 {
-                    aText += word.Left( word.Length() - 1 );
-                    pendingSpaces = wxS( " " );
+                    aText += word.substr(0, word.size() - 1);
+                    pendingSpaces = " ";
                 }
                 else
                 {
                     aText += word;
-                    pendingSpaces = wxEmptyString;
+                    pendingSpaces = "";
                 }
 
                 lineWidth += wordWidth;
@@ -668,7 +697,7 @@ void FONT::LinebreakText( wxString& aText, int aColumnWidth, const VECTOR2I& aSi
         }
 
         // Add the newlines back onto the string
-        if( ii != ( textLines.Count() - 1 ) )
+        if( ii != ( textLines.size() - 1 ) )
             aText += '\n';
     }
 }

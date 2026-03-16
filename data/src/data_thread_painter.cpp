@@ -8,6 +8,7 @@
 #include "data_arc.hxx"
 #include "data_polygon.hxx"
 #include "data_poly_set.hxx"
+#include "data_text.hxx"
 
 MINI::DATA_THREAD_PAINTER::DATA_THREAD_PAINTER(GAL* aGal)
 	: PAINTER(aGal) {
@@ -48,6 +49,10 @@ bool MINI::DATA_THREAD_PAINTER::Draw(const VIEW_ITEM* aItem, int aLayer) {
 		// draw arc
 		draw(static_cast<const DATA_Arc*>(item), aLayer);
 		break;
+    case ITEM_TYPE::TEXT:
+		// draw text
+        //draw(static_cast<const DATA_Text*>(item), aLayer);
+        break;
 	default:
 		break;
 	}

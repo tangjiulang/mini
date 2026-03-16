@@ -1,32 +1,5 @@
-/*
- * This program source code file is part of KICAD, a free EDA CAD application.
- *
- * Copyright (C) 2021 Ola Rinta-Koski <gitlab@rinta-koski.net>
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- *
- * Outline font class
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, you may find one here:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * or you may search the http://www.gnu.org website for the version 2 license,
- * or you may write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
- */
-
-#include <advanced_config.h>
-#include <font/outline_decomposer.h>
-#include <bezier_curves.h>
+#include <outline_decomposer.hxx>
+#include <bezier_curves.hxx>
 
 using namespace KIFONT;
 
@@ -112,7 +85,7 @@ int OUTLINE_DECOMPOSER::cubicTo( const FT_Vector* aFirstControlPoint,
 
     std::vector<VECTOR2D> result;
     BEZIER_POLY           converter( bezier );
-    converter.GetPoly( result, ADVANCED_CFG::GetCfg().m_FontErrorSize );
+    converter.GetPoly( result, 2 );
 
     for( const VECTOR2D& p : result )
         decomposer->addContourPoint( p );

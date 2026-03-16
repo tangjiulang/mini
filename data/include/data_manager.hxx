@@ -7,6 +7,7 @@
 #include "data_arc.hxx"
 #include "data_polygon.hxx"
 #include "data_poly_set.hxx"
+#include "data_text.hxx"
 
 namespace MINI
 {
@@ -25,4 +26,5 @@ public:
 	std::vector<MINI::DATA_Polygon>	m_polygons;
 	std::vector<MINI::DATA_Arc>		m_arcs;
 	std::vector<MINI::DATA_PolySet>	m_polySet;
+	std::vector<MINI::DATA_Text>		m_texts;
 };

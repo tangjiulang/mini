@@ -1,36 +1,17 @@
-/*
- * This program source code file is part of KiCad, a free EDA CAD application.
- *
- * Copyright (C) 2021 Ola Rinta-Koski
- * Copyright (C) 2023 CERN (www.cern.ch)
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #include <mutex>
-#include <font/fontconfig.h>
-#include <wx/log.h>
-#include <trace_helpers.h>
-#include <string_utils.h>
-#include <macros.h>
+#include <fontconfig.hxx>
+#include <trace_helpers.hxx>
+#include <string_utils.hxx>
 #include <cstdint>
-#include <reporter.h>
-#include <embedded_files.h>
 
-#ifdef __WIN32__
+#include <spdlog/spdlog.h>
+#include <vector>
+#ifdef WIN32
 #include <windows.h>
+#endif
+
+#ifdef max
+#undef max
 #endif
 
 using namespace fontconfig;
@@ -50,9 +31,9 @@ struct fontconfig::FONTCONFIG_PAT
 };
 
 
-wxString FONTCONFIG::Version()
+std::string FONTCONFIG::Version()
 {
-    return wxString::Format( "%d.%d.%d", FC_MAJOR, FC_MINOR, FC_REVISION );
+    return std::format( "%d.%d.%d", FC_MAJOR, FC_MINOR, FC_REVISION );
 }
 
 
@@ -118,10 +99,21 @@ FONTCONFIG* Fontconfig()
     return g_config;
 }
 
-
-bool FONTCONFIG::isLanguageMatch( const wxString& aSearchLang, const wxString& aSupportedLang )
+static std::string toLower(const std::string& s)
 {
-    if( aSearchLang.Lower() == aSupportedLang.Lower() )
+    std::string r = s;
+    std::transform(r.begin(), r.end(), r.begin(),
+                   [](unsigned char c)
+                   {
+                       return std::tolower(c);
+                   });
+    return r;
+}
+
+
+bool FONTCONFIG::isLanguageMatch(const std::string& aSearchLang, const std::string& aSupportedLang)
+{
+    if( toLower(aSearchLang) == toLower(aSupportedLang))
         return true;
 
     if( aSupportedLang.empty() )
@@ -130,11 +122,11 @@ bool FONTCONFIG::isLanguageMatch( const wxString& aSearchLang, const wxString& a
     if( aSearchLang.empty() )
         return false;
 
-    wxArrayString supportedLangBits;
-    wxStringSplit( aSupportedLang.Lower(), supportedLangBits, wxS( '-' ) );
+    std::vector<std::string> supportedLangBits;
+    StringSplit( toLower(aSupportedLang), supportedLangBits, '-' );
 
-    wxArrayString searhcLangBits;
-    wxStringSplit( aSearchLang.Lower(), searhcLangBits, wxS( '-' ) );
+    std::vector<std::string> searhcLangBits;
+    StringSplit( toLower(aSearchLang), searhcLangBits, '-' );
 
     // if either side of the comparison have only one section, then its a broad match but fine
     // i.e. the haystack is declaring broad support or the search language is broad
@@ -187,7 +179,7 @@ void FONTCONFIG::getAllFamilyStrings( FONTCONFIG_PAT&                           
 }
 
 
-std::string FONTCONFIG::getFamilyStringByLang( FONTCONFIG_PAT& aPat, const wxString& aDesiredLang )
+std::string FONTCONFIG::getFamilyStringByLang(FONTCONFIG_PAT& aPat, const std::string& aDesiredLang)
 {
     std::unordered_map<std::string, std::string> famStrings;
     getAllFamilyStrings( aPat, famStrings );
@@ -210,9 +202,8 @@ std::string FONTCONFIG::getFamilyStringByLang( FONTCONFIG_PAT& aPat, const wxStr
 }
 
 
-FONTCONFIG::FF_RESULT FONTCONFIG::FindFont( const wxString& aFontName, wxString& aFontFile,
-                                            int& aFaceIndex, bool aBold, bool aItalic,
-                                            const std::vector<wxString>* aEmbeddedFiles )
+FONTCONFIG::FF_RESULT FONTCONFIG::FindFont(const std::string& aFontName, std::string& aFontFile,
+                                            int& aFaceIndex, bool aBold, bool aItalic, const std::vector<std::string>* aEmbeddedFiles)
 {
     FF_RESULT retval = FF_RESULT::FF_ERROR;
 
@@ -221,11 +212,11 @@ FONTCONFIG::FF_RESULT FONTCONFIG::FindFont( const wxString& aFontName, wxString&
 
     // If the original font name contains any of these, then it is bold, regardless
     // of whether we are looking for bold or not
-    if( aFontName.Lower().Contains( wxS( "bold" ) )       // also catches ultrabold
-        || aFontName.Lower().Contains( wxS( "heavy" ) )
-        || aFontName.Lower().Contains( wxS( "black" ) )   // also catches extrablack
-        || aFontName.Lower().Contains( wxS( "thick" ) )
-        || aFontName.Lower().Contains( wxS( "dark" ) ) )
+    if( toLower(aFontName).find( "bold" ) != std::string::npos       // also catches ultrabold
+       || toLower(aFontName).find("heavy") != std::string::npos
+       || toLower(aFontName).find("black") != std::string::npos // also catches extrablack
+       || toLower(aFontName).find("thick") != std::string::npos 
+       || toLower(aFontName).find("dark") != std::string::npos)
     {
         aBold = true;
     }
@@ -236,13 +227,13 @@ FONTCONFIG::FF_RESULT FONTCONFIG::FindFont( const wxString& aFontName, wxString&
     {
         for( const auto& file : *aEmbeddedFiles )
         {
-            FcConfigAppFontAddFile( config, (const FcChar8*) file.c_str().AsChar() );
+            FcConfigAppFontAddFile( config, (const FcChar8*) file.c_str() );
         }
     }
 
-    wxString qualifiedFontName = aFontName;
+    std::string qualifiedFontName = aFontName;
 
-    wxScopedCharBuffer const fcBuffer = qualifiedFontName.ToUTF8();
+    std::string const fcBuffer = qualifiedFontName;
 
     FcPattern* pat = FcPatternCreate();
 
@@ -260,7 +251,7 @@ FONTCONFIG::FF_RESULT FONTCONFIG::FindFont( const wxString& aFontName, wxString&
     FcResult   r = FcResultNoMatch;
     FcPattern* font = FcFontMatch( config, pat, &r );
 
-    wxString fontName;
+    std::string fontName;
 
     if( font )
     {
@@ -268,10 +259,10 @@ FONTCONFIG::FF_RESULT FONTCONFIG::FindFont( const wxString& aFontName, wxString&
 
         if( FcPatternGetString( font, FC_FILE, 0, &file ) == FcResultMatch )
         {
-            aFontFile = wxString::FromUTF8( (char*) file );
+            aFontFile = std::string((char*) file);
             aFaceIndex = 0;
 
-            wxString styleStr;
+            std::string styleStr;
             FcChar8* family = nullptr;
             FcChar8* style = nullptr;
 
@@ -286,59 +277,59 @@ FONTCONFIG::FF_RESULT FONTCONFIG::FindFont( const wxString& aFontName, wxString&
             {
                 FcPatternGetInteger( font, FC_INDEX, 0, &aFaceIndex );
 
-                fontName = wxString::FromUTF8( (char*) family );
+                fontName = std::string((char*) family);
 
                 if( FcPatternGetString( font, FC_STYLE, 0, &style ) == FcResultMatch )
                 {
-                    styleStr = wxString::FromUTF8( (char*) style );
+                    styleStr = std::string((char*) style);
 
-                    if( !styleStr.IsEmpty() )
+                    if( !styleStr.empty() )
                     {
-                        styleStr.Replace( ' ', ':' );
+                        std::replace(styleStr.begin(), styleStr.end(), ' ', ':');
                         fontName += ':' + styleStr;
                     }
                 }
 
                 bool has_bold = false;
                 bool has_ital = false;
-                wxString lower_style = styleStr.Lower();
+                std::string lower_style = toLower(styleStr);
 
-                if( lower_style.Contains( wxS( "thin" ) )
-                         || lower_style.Contains( wxS( "light" ) )   // catches ultra & extra light
-                         || lower_style.Contains( wxS( "regular" ) )
-                         || lower_style.Contains( wxS( "roman" ) )
-                         || lower_style.Contains( wxS( "book" ) ) )
+                if(lower_style.find("thin") != std::string::npos
+                   || lower_style.find("light") != std::string::npos // catches ultra & extra light
+                   || lower_style.find("regular") != std::string::npos
+                   || lower_style.find("roman") != std::string::npos
+                   || lower_style.find( "book" ) != std::string::npos)
                 {
                     has_bold = false;
                 }
-                else if( lower_style.Contains( wxS( "medium" ) )
-                         || lower_style.Contains( wxS( "semibold" ) )
-                         || lower_style.Contains( wxS( "demibold" ) ) )
+                else if(lower_style.find("medium") != std::string::npos
+                        || lower_style.find("semibold") != std::string::npos
+                        || lower_style.find("demibold") != std::string::npos)
                 {
                     has_bold = aBold;
                 }
-                else if( lower_style.Contains( wxS( "bold" ) )       // also catches ultrabold
-                         || lower_style.Contains( wxS( "heavy" ) )
-                         || lower_style.Contains( wxS( "black" ) )   // also catches extrablack
-                         || lower_style.Contains( wxS( "thick" ) )
-                         || lower_style.Contains( wxS( "dark" ) ) )
+                else if(lower_style.find("bold") != std::string::npos             // also catches ultrabold
+                        || lower_style.find("heavy") != std::string::npos
+                        || lower_style.find("black") != std::string::npos // also catches extrablack
+                        || lower_style.find("thick") != std::string::npos
+                        || lower_style.find("dark") != std::string::npos)
                 {
                     has_bold = true;
                 }
 
-                if( lower_style.Contains( wxS( "italic" ) )
-                        || lower_style.Contains( wxS( "oblique" ) )
-                        || lower_style.Contains( wxS( "slant" ) ) )
+                if(lower_style.find("italic") != std::string::npos 
+                   || lower_style.find("oblique") != std::string::npos
+                   || lower_style.find("slant") != std::string::npos)
                 {
                     has_ital = true;
                 }
 
                 for( auto const& [key, val] : famStrings )
                 {
-                    wxString searchFont;
-                    searchFont = wxString::FromUTF8( (char*) val.data() );
+                    std::string searchFont;
+                    searchFont = val.data();
 
-                    if( searchFont.Lower().StartsWith( aFontName.Lower() ) )
+                    if( toLower(searchFont).starts_with( toLower(aFontName)) )
                     {
                         if( ( aBold && !has_bold ) && ( aItalic && !has_ital ) )
                             retval = FF_RESULT::FF_MISSING_BOLD_ITAL;
@@ -362,20 +353,18 @@ FONTCONFIG::FF_RESULT FONTCONFIG::FindFont( const wxString& aFontName, wxString&
 
     if( retval == FF_RESULT::FF_ERROR )
     {
-        if( s_reporter )
-            s_reporter->Report( wxString::Format( _( "Error loading font '%s'." ),
-                                                  qualifiedFontName ) );
+        spdlog::error( std::format( "Error loading font '%s'.", qualifiedFontName ) );
     }
     else if( retval == FF_RESULT::FF_SUBSTITUTE )
     {
-        fontName.Replace( ':', ' ' );
+        std::replace(fontName.begin(), fontName.end(), ':', ' ');
 
         // If we missed a case but the matching found the original font name, then we are
         // not substituting
-        if( fontName.CmpNoCase( qualifiedFontName ) == 0 )
+        if(toLower(fontName) == toLower(qualifiedFontName ))
             retval = FF_RESULT::FF_OK;
-        else if( s_reporter )
-            s_reporter->Report( wxString::Format( _( "Font '%s' not found; substituting '%s'." ),
+        else 
+            spdlog::error( std::format( "Font '%s' not found; substituting '%s'.",
                                                   qualifiedFontName, fontName ) );
     }
 
@@ -385,7 +374,7 @@ FONTCONFIG::FF_RESULT FONTCONFIG::FindFont( const wxString& aFontName, wxString&
 
 
 void FONTCONFIG::ListFonts( std::vector<std::string>& aFonts, const std::string& aDesiredLang,
-                            const std::vector<wxString>* aEmbeddedFiles, bool aForce )
+                            const std::vector<std::string>* aEmbeddedFiles, bool aForce )
 {
     if( !g_fcInitSuccess )
         return;
@@ -399,7 +388,7 @@ void FONTCONFIG::ListFonts( std::vector<std::string>& aFonts, const std::string&
         {
             for( const auto& file : *aEmbeddedFiles )
             {
-                FcConfigAppFontAddFile( config, (const FcChar8*) file.c_str().AsChar() );
+                FcConfigAppFontAddFile( config, (const FcChar8*) file.c_str());
             }
         }
 

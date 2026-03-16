@@ -8,6 +8,7 @@
 #include "data_arc.hxx"
 #include "data_polygon.hxx"
 #include "data_poly_set.hxx"
+#include "data_text.hxx"
 
 MINI::DATA_PAINTER::DATA_PAINTER(GAL* aGal)
 	: PAINTER(aGal) { }
@@ -47,6 +48,10 @@ bool MINI::DATA_PAINTER::Draw(const VIEW_ITEM* aItem, int aLayer) {
 		// draw arc
 		draw(static_cast<const DATA_Arc*>(item), aLayer);
 		break;
+    case ITEM_TYPE::TEXT :
+        // draw text
+        draw(static_cast<const DATA_Text*>(item), aLayer);
+        break;
 	default:
 		break;
 	}
@@ -146,4 +151,46 @@ void MINI::DATA_PAINTER::draw(DATA_PolySet* aPolySet, int aLayer)
 		aPolySet->m_polySet.CacheTriangulation(true, true);
 
 	m_gal->DrawPolygon(aPolySet->m_polySet, true);
+}
+
+void MINI::DATA_PAINTER::draw(const DATA_Text* aText, int aLayer)
+{
+    const KIFONT::METRICS& metrics = KIFONT::METRICS::Default();
+    TEXT_ATTRIBUTES        attrs = aText->m_textAttrs;
+    const COLOR4D&         color = m_dataSettings.GetColor(aText, aLayer);
+
+	m_gal->SetStrokeColor(color);
+    m_gal->SetFillColor(color);
+
+	attrs.m_StrokeWidth = aText->GetEffectiveTextPenWidth();
+
+	strokeText(aText->m_text, aText->m_position, attrs, metrics);
+}
+
+void MINI::DATA_PAINTER::strokeText(const std::string& aText, const VECTOR2I& aPosition, const TEXT_ATTRIBUTES& aAttrs,
+                                    const KIFONT::METRICS& aFontMetrics)
+{
+    KIFONT::FONT* font = aAttrs.m_Font;
+
+    if(!font)
+        font = KIFONT::FONT::GetFont("", aAttrs.m_Bold, aAttrs.m_Italic);
+
+	m_gal->SetIsFill(font->IsOutline());
+    m_gal->SetIsStroke(font->IsStroke());
+
+	VECTOR2I pos(aPosition);
+    VECTOR2I fudge(KiROUND(0.16 * aAttrs.m_StrokeWidth), 0);
+
+	if((aAttrs.m_Halign == GR_TEXT_H_ALIGN_LEFT && !aAttrs.m_Mirrored)
+       || (aAttrs.m_Halign == GR_TEXT_H_ALIGN_RIGHT && aAttrs.m_Mirrored))
+    {
+        pos -= fudge;
+    }
+    else if((aAttrs.m_Halign == GR_TEXT_H_ALIGN_RIGHT && !aAttrs.m_Mirrored)
+            || (aAttrs.m_Halign == GR_TEXT_H_ALIGN_LEFT && aAttrs.m_Mirrored))
+    {
+        pos += fudge;
+    }
+
+    font->Draw(m_gal, aText, pos, aAttrs, aFontMetrics);
 }

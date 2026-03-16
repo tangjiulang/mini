@@ -1,61 +1,16 @@
-/*
- * This program source code file is part of KiCad, a free EDA CAD application.
- *
- * Copyright (C) 2021 Ola Rinta-Koski
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #ifndef TEXT_ATTRIBUTES_H
 #define TEXT_ATTRIBUTES_H
 
-#include <math/vector2d.h>
-#include <gal/color4d.h>
-#include <geometry/eda_angle.h>
-#include <gal/gal.h>
+#include <vector2d.hxx>
+#include <color4d.hxx>
+#include <eda_angle.hxx>
+#include <gal/include/graphics_abstraction_layer.hxx>
 
 
 namespace KIFONT
 {
 class FONT;
 };
-
-
-// Graphic Text alignments:
-//
-// NB: values -1,0,1 are used in computations, do not change them
-//
-
-/// This is API surface mapped to common.types.HorizontalAlignment
-enum GR_TEXT_H_ALIGN_T
-{
-    GR_TEXT_H_ALIGN_LEFT   = -1,
-    GR_TEXT_H_ALIGN_CENTER = 0,
-    GR_TEXT_H_ALIGN_RIGHT  = 1,
-    GR_TEXT_H_ALIGN_INDETERMINATE
-};
-
-/// This is API surface mapped to common.types.VertialAlignment
-enum GR_TEXT_V_ALIGN_T
-{
-    GR_TEXT_V_ALIGN_TOP    = -1,
-    GR_TEXT_V_ALIGN_CENTER = 0,
-    GR_TEXT_V_ALIGN_BOTTOM = 1,
-    GR_TEXT_V_ALIGN_INDETERMINATE
-};
-
 
 /**
  * Get the reverse alignment: left-right are swapped, others are unchanged.
@@ -115,7 +70,7 @@ constexpr GR_TEXT_H_ALIGN_T ToHAlignment( int x )
 }
 
 
-class GAL_API TEXT_ATTRIBUTES
+class TEXT_ATTRIBUTES
 {
 public:
     TEXT_ATTRIBUTES( KIFONT::FONT* aFont = nullptr );
@@ -136,7 +91,7 @@ public:
     bool              m_Bold;
     bool              m_Underlined;
     bool              m_Hover;
-    KIGFX::COLOR4D    m_Color;
+    MINI::COLOR4D    m_Color;
     bool              m_Mirrored;
     bool              m_Multiline;
     VECTOR2I          m_Size;
@@ -147,7 +102,7 @@ public:
 };
 
 
-extern GAL_API std::ostream& operator<<( std::ostream& aStream,
+std::ostream& operator<<( std::ostream& aStream,
                                          const TEXT_ATTRIBUTES& aAttributes );
 
 

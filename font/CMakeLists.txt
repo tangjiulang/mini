@@ -3,16 +3,15 @@ file(GLOB Src_List CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 add_library(font STATIC ${Src_List})
 
-target_link_libraries(font PUBLIC 
-                        Qt6::Core
-                        Qt6::Gui
-                        Qt6::Widgets
-                        Qt6::OpenGL
-                        Qt6::OpenGLWidgets
+target_link_libraries(font PUBLIC
 						spdlog::spdlog 
-                        core
-						math
+                        Freetype::Freetype
+						taocpp::pegtl
+						Fontconfig::Fontconfig
+						harfbuzz::harfbuzz
                         base
+						gal
+						
 
 )
 

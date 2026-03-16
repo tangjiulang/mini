@@ -1,5 +1,6 @@
 #include <map>
 #include <format>
+#include <ostream>
 //#include <json_common.h>
 //#include <i18n_utility.h>
 
@@ -137,7 +138,7 @@ std::string COLOR4D::ToCSSString() const
     else // use rgba() form
     {
         double alpha_norm = alpha / 255.0;
-        str = std::format("rgba({}, {}, {}, {:.3f})", red, green, blue, alpha_norm);
+        str = std::format("rgba({}, {}, {}, {})", red, green, blue, alpha_norm);
     }
 
     return str;
@@ -241,10 +242,10 @@ bool operator<( const COLOR4D& lhs, const COLOR4D& rhs )
 }
 
 
-//std::ostream &operator<<( std::ostream &aStream, COLOR4D const &aColor )
-//{
-//    return aStream << aColor.ToCSSString();
-//}
+std::ostream &operator<<( std::ostream &aStream, COLOR4D const &aColor )
+{
+    return aStream << aColor.ToCSSString();
+}
 
 
 //void to_json( nlohmann::json& aJson, const COLOR4D& aColor )

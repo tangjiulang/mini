@@ -1,34 +1,13 @@
-/*
- * This program source code file is part of KiCad, a free EDA CAD application.
- *
- * Copyright (C) 2021 Ola Rinta-Koski
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the
- * Free Software Foundation, either version 3 of the License, or (at your
- * option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along
- * with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 #ifndef KICAD_FONTCONFIG_H
 #define KICAD_FONTCONFIG_H
 
-#include <fontconfig/fontconfig.h>
+#include <Fontconfig/fontconfig.h>
 
-#include <kicommon.h>
-#include <wx/string.h>
+#include <string>
 #include <vector>
 #include <map>
 #include <unordered_map>
-#include <font/fontinfo.h>
+#include <fontinfo.hxx>
 
 class REPORTER;
 namespace fontconfig
@@ -36,12 +15,12 @@ namespace fontconfig
 
 struct FONTCONFIG_PAT;
 
-class KICOMMON_API FONTCONFIG
+class FONTCONFIG
 {
 public:
     FONTCONFIG();
 
-    static wxString Version();
+    static std::string Version();
 
     enum class FF_RESULT
     {
@@ -59,8 +38,8 @@ public:
      *
      * A return value of false indicates a serious error in the font system.
      */
-    FF_RESULT FindFont( const wxString& aFontName, wxString& aFontFile, int& aFaceIndex, bool aBold,
-                        bool aItalic, const std::vector<wxString>* aEmbeddedFiles = nullptr );
+    FF_RESULT FindFont(const std::string& aFontName, std::string& aFontFile, int& aFaceIndex, bool aBold, bool aItalic,
+                       const std::vector<std::string>* aEmbeddedFiles = nullptr);
 
     /**
      * List the current available font families.
@@ -72,7 +51,7 @@ public:
      * @param aForce If true, force rebuilding the font cache
      */
     void ListFonts( std::vector<std::string>& aFonts, const std::string& aDesiredLang,
-                    const std::vector<wxString>* aEmbeddedFiles = nullptr, bool aForce = false );
+                   const std::vector<std::string>* aEmbeddedFiles = nullptr, bool aForce = false);
 
     /**
      * Set the reporter to use for reporting font substitution warnings.
@@ -90,7 +69,7 @@ public:
 
 private:
     std::map<std::string, FONTINFO> m_fontInfoCache;
-    wxString                        m_fontCacheLastLang;
+    std::string                     m_fontCacheLastLang;
     static REPORTER*                s_reporter;
 
     /**
@@ -104,7 +83,7 @@ private:
      * @param aSearchLang the language being searched for
      * @param aSupportedLang the language being offered
      */
-    bool isLanguageMatch( const wxString& aSearchLang, const wxString& aSupportedLang );
+    bool isLanguageMatch(const std::string& aSearchLang, const std::string& aSupportedLang);
 
     /**
      * Get a list of all family name strings mapped to lang
@@ -125,7 +104,7 @@ private:
      * @param aPat reference to FcPattern container
      * @param aDesiredLang Language to research for (RFC3066 format)
      */
-    std::string getFamilyStringByLang( FONTCONFIG_PAT& APat, const wxString& aDesiredLang );
+    std::string getFamilyStringByLang(FONTCONFIG_PAT& APat, const std::string& aDesiredLang);
 
     /**
      * Wrapper of FcPatternGetString to return a std::string
@@ -140,7 +119,7 @@ private:
 } // namespace fontconfig
 
 
-KICOMMON_API fontconfig::FONTCONFIG* Fontconfig();
+fontconfig::FONTCONFIG* Fontconfig();
 
 
 #endif //KICAD_FONTCONFIG_H

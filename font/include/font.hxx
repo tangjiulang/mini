@@ -1,40 +1,16 @@
-/*
- * This program source code file is part of KICAD, a free EDA CAD application.
- *
- * Copyright (C) 2021 Ola Rinta-Koski
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- *
- * Font abstract base class
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, you may find one here:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * or you may search the http://www.gnu.org website for the version 2 license,
- * or you may write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
- */
-
 #ifndef FONT_H_
 #define FONT_H_
 
-#include <gal/gal.h>
+#include <gal/include/graphics_abstraction_layer.hxx>
+
 #include <iostream>
 #include <map>
 #include <algorithm>
-#include <wx/string.h>
-#include <font/font_metrics.h>
-#include <font/glyph.h>
-#include <font/text_attributes.h>
+#include <font_metrics.hxx>
+#include <glyph.hxx>
+#include <text_attributes.hxx>
+#include <string>
+
 
 namespace KIGFX
 {
@@ -94,7 +70,7 @@ namespace KIFONT
 /**
  * FONT is an abstract base class for both outline and stroke fonts
  */
-class GAL_API FONT
+class FONT
 {
 public:
     explicit FONT();
@@ -107,14 +83,14 @@ public:
     virtual bool IsBold() const    { return false; }
     virtual bool IsItalic() const  { return false; }
 
-    static FONT* GetFont( const wxString& aFontName = wxEmptyString, bool aBold = false,
+    static FONT* GetFont(const std::string& aFontName = "", bool aBold = false,
                           bool aItalic = false,
-                          const std::vector<wxString>* aEmbeddedFiles = nullptr,
+                          const std::vector<std::string>* aEmbeddedFiles = nullptr,
                           bool aForDrawingSheet = false );
-    static bool IsStroke( const wxString& aFontName );
+    static bool IsStroke( const std::string& aFontName );
 
-    const wxString& GetName() const { return m_fontName; };
-    inline const char* NameAsToken() const { return GetName().utf8_str().data(); }
+    const std::string& GetName() const { return m_fontName; };
+    inline const char* NameAsToken() const { return GetName().data(); }
 
     /**
      * Draw a string.
@@ -128,14 +104,13 @@ public:
      * @param aMousePos optional parameter for highlighting urls in text
      * @param aActiveUrl optional [out] parameter for returning highlighted url
      */
-    void Draw( KIGFX::GAL* aGal, const wxString& aText, const VECTOR2I& aPosition,
+    void Draw(MINI::GAL* aGal, const std::string& aText, const VECTOR2I& aPosition,
                const VECTOR2I& aCursor, const TEXT_ATTRIBUTES& aAttributes,
-               const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos = std::nullopt,
-               wxString* aActiveUrl = nullptr ) const;
+               const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos = std::nullopt, std::string* aActiveUrl = nullptr) const;
 
-    void Draw( KIGFX::GAL* aGal, const wxString& aText, const VECTOR2I& aPosition,
-               const TEXT_ATTRIBUTES& aAttributes, const METRICS& aFontMetrics,
-               std::optional<VECTOR2I> aMousePos = std::nullopt, wxString* aActiveUrl = nullptr ) const
+    void Draw(MINI::GAL* aGal, const std::string& aText, const VECTOR2I& aPosition,
+               const TEXT_ATTRIBUTES& aAttributes, const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos = std::nullopt,
+              std::string* aActiveUrl = nullptr) const
     {
         Draw( aGal, aText, aPosition, VECTOR2I( 0, 0 ), aAttributes, aFontMetrics, aMousePos, aActiveUrl );
     }
@@ -145,7 +120,7 @@ public:
      *
      * @return a VECTOR2I giving the width and height of text.
      */
-    VECTOR2I StringBoundaryLimits( const wxString& aText, const VECTOR2I& aSize, int aThickness,
+    VECTOR2I StringBoundaryLimits(const std::string& aText, const VECTOR2I& aSize, int aThickness,
                                    bool aBold, bool aItalic, const METRICS& aFontMetrics ) const;
 
     /**
@@ -161,7 +136,7 @@ public:
      * The results of the linebreaking are the addition of \n in the text.  It is presumed that this
      * function is called on m_shownText (or equivalent) rather than the original source text.
      */
-    void LinebreakText( wxString& aText, int aColumnWidth, const VECTOR2I& aGlyphSize,
+    void LinebreakText(std::string& aText, int aColumnWidth, const VECTOR2I& aGlyphSize,
                         int aThickness, bool aBold, bool aItalic ) const;
 
     /**
@@ -185,7 +160,7 @@ public:
      * @return text cursor position after this text
      */
     virtual VECTOR2I GetTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_ptr<GLYPH>>* aGlyphs,
-                                      const wxString& aText, const VECTOR2I& aSize,
+                                     const std::string& aText, const VECTOR2I& aSize,
                                       const VECTOR2I& aPosition, const EDA_ANGLE& aAngle,
                                       bool aMirror, const VECTOR2I& aOrigin,
                                       TEXT_STYLE_FLAGS aTextStyle ) const = 0;
@@ -197,7 +172,7 @@ protected:
      * @param aText is the text to be checked.
      * @return unsigned - The number of lines in aText.
      */
-    inline unsigned linesCount( const wxString& aText ) const
+    inline unsigned linesCount(const std::string& aText) const
     {
         if( aText.empty() )
             return 0; // std::count does not work well with empty strings
@@ -223,11 +198,11 @@ protected:
      * @param aHover draw the text in hyperlink hover mode (nominally blue + underline)
      * @return new cursor position in non-rotated, non-mirrored coordinates
      */
-    void drawSingleLineText( KIGFX::GAL* aGal, BOX2I* aBoundingBox, const wxString& aText,
+    void drawSingleLineText(MINI::GAL* aGal, BOX2I* aBoundingBox, const std::string& aText,
                              const VECTOR2I& aPosition, const VECTOR2I& aSize,
                              const EDA_ANGLE& aAngle, bool aMirror, const VECTOR2I& aOrigin,
                              bool aItalic, bool aUnderline, bool aHover, const METRICS& aFontMetrics,
-                             std::optional<VECTOR2I> aMousePos, wxString* aActiveUrl ) const;
+                            std::optional<VECTOR2I> aMousePos, std::string* aActiveUrl) const;
 
     /**
      * Compute the bounding box for a single line of text.
@@ -240,36 +215,35 @@ protected:
      * @param aSize is the cap-height and em-width of the text.
      * @return new cursor position
      */
-    VECTOR2I boundingBoxSingleLine( BOX2I* aBBox, const wxString& aText, const VECTOR2I& aPosition,
+    VECTOR2I boundingBoxSingleLine(BOX2I* aBBox, const std::string& aText, const VECTOR2I& aPosition,
                                     const VECTOR2I& aSize, bool aItalic,
                                     const METRICS& aFontMetrics ) const;
 
-    void getLinePositions( const wxString& aText, const VECTOR2I& aPosition,
-                           wxArrayString& aTextLines, std::vector<VECTOR2I>& aPositions,
+    void getLinePositions(const std::string& aText, const VECTOR2I& aPosition, std::vector<std::string>& aTextLines,
+                          std::vector<VECTOR2I>& aPositions,
                            std::vector<VECTOR2I>& aExtents, const TEXT_ATTRIBUTES& aAttrs,
                            const METRICS& aFontMetrics ) const;
 
-    VECTOR2I drawMarkup( BOX2I* aBoundingBox, std::vector<std::unique_ptr<GLYPH>>* aGlyphs,
-                         const wxString& aText, const VECTOR2I& aPosition,
+    VECTOR2I drawMarkup( BOX2I* aBoundingBox, std::vector<std::unique_ptr<GLYPH>>* aGlyphs, const std::string& aText,
+                        const VECTOR2I& aPosition,
                          const VECTOR2I& aSize, const EDA_ANGLE& aAngle, bool aMirror,
                          const VECTOR2I& aOrigin, TEXT_STYLE_FLAGS aTextStyle,
-                         const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos = std::nullopt,
-                         wxString* aActiveUrl = nullptr ) const;
+                         const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos = std::nullopt, std::string* aActiveUrl = nullptr) const;
 
-    void wordbreakMarkup( std::vector<std::pair<wxString, int>>* aWords, const wxString& aText,
+    void wordbreakMarkup(std::vector<std::pair<std::string, int>>* aWords, const std::string& aText,
                           const VECTOR2I& aSize, TEXT_STYLE_FLAGS aTextStyle ) const;
 
 private:
     static FONT* getDefaultFont();
 
 protected:
-    wxString     m_fontName;         ///< Font name
-    wxString     m_fontFileName;     ///< Font file name
+    std::string m_fontName;     ///< Font name
+    std::string m_fontFileName; ///< Font file name
 
 private:
     static FONT* s_defaultFont;
 
-    static std::map< std::tuple<wxString, bool, bool, bool>, FONT* > s_fontMap;
+    static std::map<std::tuple<std::string, bool, bool, bool>, FONT*> s_fontMap;
 };
 
 } //namespace KIFONT

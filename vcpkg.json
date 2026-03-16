@@ -6,6 +6,10 @@
     "glm",
     "glew",
     "libtess2",
-    "tinyxml2"
+    "tinyxml2",
+    "freetype",
+    "pegtl",
+    "fontconfig",
+    "harfbuzz"
   ]
 }

@@ -1,40 +1,12 @@
-/*
- * This program source code file is part of KICAD, a free EDA CAD application.
- *
- * Copyright (C) 2012 Torsten Hueter, torstenhtr <at> gmx.de
- * Copyright (C) 2013 CERN
- * @author Maciej Suminski <maciej.suminski@cern.ch>
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, you may find one here:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * or you may search the http://www.gnu.org website for the version 2 license,
- * or you may write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
- */
-
-#include <gal/graphics_abstraction_layer.h>
-#include <wx/string.h>
-#include <wx/textfile.h>
-#include <newstroke_font.h>
-#include <font/glyph.h>
-#include <font/stroke_font.h>
-#include <geometry/shape_line_chain.h>
-#include <trigo.h>
+#include <gal/include/graphics_abstraction_layer.hxx>
+#include <newstroke_font.hxx>
+#include <glyph.hxx>
+#include <stroke_font.hxx>
+#include <shape_line_chain.hxx>
+#include <trigo.hxx>
 
 // The "official" name of the building Kicad stroke font (always existing)
-#include <font/kicad_font_name.h>
+#include <mini_font_name.hxx>
 
 #include <mutex>
 
@@ -62,7 +34,7 @@ STROKE_FONT::STROKE_FONT() :
 }
 
 
-STROKE_FONT* STROKE_FONT::LoadFont( const wxString& aFontName )
+STROKE_FONT* STROKE_FONT::LoadFont( const std::string& aFontName )
 {
     if( aFontName.empty() )
     {
@@ -186,8 +158,8 @@ void STROKE_FONT::loadNewStrokeFont( const char* const aNewStrokeFont[], int aNe
 
     m_glyphs = &g_defaultFontGlyphs;
     m_glyphBoundingBoxes = g_defaultFontGlyphBoundingBoxes;
-    m_fontName = KICAD_FONT_NAME;
-    m_fontFileName = wxEmptyString;
+    m_fontName = MINI_FONT_NAME;
+    m_fontFileName = "";
 }
 
 
@@ -199,8 +171,34 @@ double STROKE_FONT::GetInterline( double aGlyphHeight, const METRICS& aFontMetri
 }
 
 
+int utf8_decode(const char* s, char32_t& cp)
+{
+    unsigned char c = s[0];
+
+    if(c < 0x80)
+    {
+        cp = c;
+        return 1;
+    }
+    else if((c >> 5) == 0x6)
+    {
+        cp = ((c & 0x1F) << 6) | (s[1] & 0x3F);
+        return 2;
+    }
+    else if((c >> 4) == 0xE)
+    {
+        cp = ((c & 0x0F) << 12) | ((s[1] & 0x3F) << 6) | (s[2] & 0x3F);
+        return 3;
+    }
+    else
+    {
+        cp = ((c & 0x07) << 18) | ((s[1] & 0x3F) << 12) | ((s[2] & 0x3F) << 6) | (s[3] & 0x3F);
+        return 4;
+    }
+}
+
 VECTOR2I STROKE_FONT::GetTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_ptr<GLYPH>>* aGlyphs,
-                                       const wxString& aText, const VECTOR2I& aSize,
+                                       const std::string& aText, const VECTOR2I& aSize,
                                        const VECTOR2I& aPosition, const EDA_ANGLE& aAngle,
                                        bool aMirror, const VECTOR2I& aOrigin,
                                        TEXT_STYLE_FLAGS aTextStyle ) const
@@ -227,8 +225,11 @@ VECTOR2I STROKE_FONT::GetTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_ptr
             cursor.y -= glyphSize.y * SUPER_HEIGHT_OFFSET;
     }
 
-    for( wxUniChar c : aText )
+    for(int i = 0; i < aText.size();)
     {
+        char32_t c;
+        int len = utf8_decode(aText.data() + i, c);
+        i += len;
         // Handle tabs as locked to the next 4th column (in base-widths).
         if( c == '\t' )
         {

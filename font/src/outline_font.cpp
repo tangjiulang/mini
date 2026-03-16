@@ -1,42 +1,18 @@
-/*
- * This program source code file is part of KICAD, a free EDA CAD application.
- *
- * Copyright (C) 2021 Ola Rinta-Koski <gitlab@rinta-koski.net>
- * Copyright The KiCad Developers, see AUTHORS.txt for contributors.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, you may find one here:
- * http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
- * or you may search the http://www.gnu.org website for the version 2 license,
- * or you may write to the Free Software Foundation, Inc.,
- * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
- */
-
 #include <limits>
 #include <harfbuzz/hb.h>
 #include <harfbuzz/hb-ft.h>
-#include <bezier_curves.h>
-#include <geometry/shape_poly_set.h>
-#include <font/fontconfig.h>
-#include <font/outline_font.h>
+#include <bezier_curves.hxx>
+#include <shape_poly_set.hxx>
+#include <fontconfig.hxx>
+#include <outline_font.hxx>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_SFNT_NAMES_H
 #include FT_TRUETYPE_TABLES_H
 #include FT_GLYPH_H
 #include FT_BBOX_H
-#include <trigo.h>
-#include <core/utf8.h>
+#include <trigo.hxx>
+#include <utf8.hxx>
 
 using namespace KIFONT;
 
@@ -93,13 +69,13 @@ OUTLINE_FONT::EMBEDDING_PERMISSION OUTLINE_FONT::GetEmbeddingPermission() const
 }
 
 
-OUTLINE_FONT* OUTLINE_FONT::LoadFont( const wxString& aFontName, bool aBold, bool aItalic,
-                                      const std::vector<wxString>* aEmbeddedFiles,
+OUTLINE_FONT* OUTLINE_FONT::LoadFont( const std::string& aFontName, bool aBold, bool aItalic,
+                                     const std::vector<std::string>* aEmbeddedFiles,
                                       bool aForDrawingSheet )
 {
     std::unique_ptr<OUTLINE_FONT> font = std::make_unique<OUTLINE_FONT>();
 
-    wxString fontFile;
+    std::string fontFile;
     int      faceIndex;
     using fc = fontconfig::FONTCONFIG;
 
@@ -127,11 +103,11 @@ OUTLINE_FONT* OUTLINE_FONT::LoadFont( const wxString& aFontName, bool aBold, boo
 }
 
 
-FT_Error OUTLINE_FONT::loadFace( const wxString& aFontFileName, int aFaceIndex )
+FT_Error OUTLINE_FONT::loadFace(const std::string& aFontFileName, int aFaceIndex)
 {
     std::lock_guard<std::mutex> guard( m_freeTypeMutex );
 
-    FT_Error e = FT_New_Face( m_freeType, aFontFileName.mb_str( wxConvUTF8 ), aFaceIndex, &m_face );
+    FT_Error e = FT_New_Face(m_freeType, aFontFileName.data(), aFaceIndex, &m_face);
 
     if( !e )
     {
@@ -209,12 +185,12 @@ BOX2I OUTLINE_FONT::getBoundingBox( const std::vector<std::unique_ptr<GLYPH>>& a
 }
 
 
-void OUTLINE_FONT::GetLinesAsGlyphs( std::vector<std::unique_ptr<GLYPH>>* aGlyphs,
-                                     const wxString& aText, const VECTOR2I& aPosition,
+void OUTLINE_FONT::GetLinesAsGlyphs( std::vector<std::unique_ptr<GLYPH>>* aGlyphs, const std::string& aText,
+                                    const VECTOR2I& aPosition,
                                      const TEXT_ATTRIBUTES& aAttrs,
                                      const METRICS& aFontMetrics ) const
 {
-    wxArrayString         strings;
+    std::vector<std::string>         strings;
     std::vector<VECTOR2I> positions;
     std::vector<VECTOR2I> extents;
     TEXT_STYLE_FLAGS      textStyle = 0;
@@ -224,16 +200,16 @@ void OUTLINE_FONT::GetLinesAsGlyphs( std::vector<std::unique_ptr<GLYPH>>* aGlyph
 
     getLinePositions( aText, aPosition, strings, positions, extents, aAttrs, aFontMetrics );
 
-    for( size_t i = 0; i < strings.GetCount(); i++ )
+    for( size_t i = 0; i < strings.size(); i++ )
     {
-        (void) drawMarkup( nullptr, aGlyphs, strings.Item( i ), positions[i], aAttrs.m_Size,
+        (void) drawMarkup(nullptr, aGlyphs, strings[i], positions[i], aAttrs.m_Size,
                            aAttrs.m_Angle, aAttrs.m_Mirrored, aPosition, textStyle, aFontMetrics );
     }
 }
 
 
 VECTOR2I OUTLINE_FONT::GetTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_ptr<GLYPH>>* aGlyphs,
-                                        const wxString& aText, const VECTOR2I& aSize,
+                                       const std::string& aText, const VECTOR2I& aSize,
                                         const VECTOR2I& aPosition, const EDA_ANGLE& aAngle,
                                         bool aMirror, const VECTOR2I& aOrigin,
                                         TEXT_STYLE_FLAGS aTextStyle ) const
@@ -243,7 +219,7 @@ VECTOR2I OUTLINE_FONT::GetTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_pt
     constexpr double TAB_WIDTH = 4 * 0.6;
 
     VECTOR2I position = aPosition;
-    wxString textRun;
+    std::string textRun;
 
     if( aBBox )
     {
@@ -251,12 +227,12 @@ VECTOR2I OUTLINE_FONT::GetTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_pt
         aBBox->SetEnd( aPosition );
     }
 
-    for( wxUniChar c : aText )
+    for( char c : aText )
     {
         // Handle tabs as locked to the nearest 4th column (in space-widths).
         if( c == '\t' )
         {
-            if( !textRun.IsEmpty() )
+            if( !textRun.empty() )
             {
                 position = getTextAsGlyphs( aBBox, aGlyphs, textRun, aSize, position, aAngle,
                                             aMirror, aOrigin, aTextStyle );
@@ -274,7 +250,7 @@ VECTOR2I OUTLINE_FONT::GetTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_pt
         }
     }
 
-    if( !textRun.IsEmpty() )
+    if( !textRun.empty() )
     {
         position = getTextAsGlyphs( aBBox, aGlyphs, textRun, aSize, position, aAngle, aMirror,
                                     aOrigin, aTextStyle );
@@ -285,7 +261,7 @@ VECTOR2I OUTLINE_FONT::GetTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_pt
 
 
 VECTOR2I OUTLINE_FONT::getTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_ptr<GLYPH>>* aGlyphs,
-                                        const wxString& aText, const VECTOR2I& aSize,
+                                       const std::string& aText, const VECTOR2I& aSize,
                                         const VECTOR2I& aPosition, const EDA_ANGLE& aAngle,
                                         bool aMirror, const VECTOR2I& aOrigin,
                                         TEXT_STYLE_FLAGS aTextStyle ) const
@@ -332,7 +308,7 @@ namespace std
 }
 
 
-static const HARFBUZZ_CACHE_ENTRY& getHarfbuzzShape( FT_Face aFace, const wxString& aText,
+static const HARFBUZZ_CACHE_ENTRY& getHarfbuzzShape(FT_Face aFace, const std::string& aText,
                                                      int aScaler )
 {
     static std::unordered_map<HARFBUZZ_CACHE_KEY, HARFBUZZ_CACHE_ENTRY> s_harfbuzzCache;
@@ -411,7 +387,7 @@ namespace std
 
 VECTOR2I OUTLINE_FONT::getTextAsGlyphsUnlocked( BOX2I* aBBox,
                                                 std::vector<std::unique_ptr<GLYPH>>* aGlyphs,
-                                                const wxString& aText, const VECTOR2I& aSize,
+                                               const std::string& aText, const VECTOR2I& aSize,
                                                 const VECTOR2I& aPosition, const EDA_ANGLE& aAngle,
                                                 bool aMirror, const VECTOR2I& aOrigin,
                                                 TEXT_STYLE_FLAGS aTextStyle ) const

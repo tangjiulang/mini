@@ -32,15 +32,15 @@ MiniFrame::~MiniFrame()
 
 void MiniFrame::GeneratorData()
 {
-	std::string filePath = "C:\\Users\\Administrator\\Documents\\preview.xml";
-	IPC2581Document doc(filePath);
-	doc.DocumentReader();
-	doc.ContentReader();
-	doc.EcadReader();
+	//std::string filePath = "C:\\Users\\Administrator\\Documents\\preview.xml";
+	//IPC2581Document doc(filePath);
+	//doc.DocumentReader();
+	//doc.ContentReader();
+	//doc.EcadReader();
 
-	TranslateToData translate(&doc.m_ecad, m_dataManager, m_drawPanelGal->m_view);
-	translate.Translate(m_drawPanelGal->m_view);
-	//m_dataManager->GenerateData(m_drawPanelGal->m_view);
+	//TranslateToData translate(&doc.m_ecad, m_dataManager, m_drawPanelGal->m_view);
+	//translate.Translate(m_drawPanelGal->m_view);
+	m_dataManager->GenerateData(m_drawPanelGal->m_view);
 }
 
 void MiniFrame::InitialViewData()

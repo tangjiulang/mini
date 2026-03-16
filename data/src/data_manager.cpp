@@ -39,15 +39,23 @@ void DataManager::GenerateData(MINI::VIEW* view)
     //    m_circles.push_back(SHAPE_CIRCLE{ view->ToWorld(VECTOR2D(cx, cy)), static_cast<int32_t>(view->ToWorld(r)) });
     //}
 
-    for (int i = 0; i < N; i++) {
-        VECTOR2I center(0, 0);
-        VECTOR2I start(1000, 0);
+    //for (int i = 0; i < N; i++) {
+    //    VECTOR2I center(0, 0);
+    //    VECTOR2I start(1000, 0);
 
-        // 90 度
-        EDA_ANGLE angle(90.0, DEGREES_T);
+    //    // 90 度
+    //    EDA_ANGLE angle(90.0, DEGREES_T);
 
-        SHAPE_ARC Arc(center, start, angle, 100);
-        MINI::DATA_Arc arc(Arc);
-        m_arcs.push_back(arc);
-    }
+    //    SHAPE_ARC Arc(center, start, angle, 100);
+    //    MINI::DATA_Arc arc(Arc);
+    //    m_arcs.push_back(arc);
+    //}
+
+    TEXT_ATTRIBUTES attrs;
+    attrs.m_StrokeWidth = 30000;
+    attrs.m_Size = { 1500000, 1500000 };
+    attrs.m_Mirrored = true;
+    attrs.m_Angle = EDA_ANGLE(180);
+
+    m_texts.push_back(MINI::DATA_Text{ "你好 hello, world", attrs, view->ToWorld(VECTOR2I{ 0, 0 }) });
 }

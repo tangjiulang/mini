@@ -17,7 +17,8 @@ enum class ITEM_TYPE {
 	POLYGON,
     POLYLINE,
     POLYSET,
-	GROUP
+	GROUP,
+    TEXT
 };
 
 using ITEM_FLAGS = uint32_t;

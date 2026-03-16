@@ -140,10 +140,10 @@ public:
     void DrawPolygon( const SHAPE_LINE_CHAIN& aPolySet ) override;
 
     /// @copydoc GAL::DrawGlyph()
-    //virtual void DrawGlyph( const KIFONT::GLYPH& aGlyph, int aNth, int aTotal ) override;
+    virtual void DrawGlyph( const KIFONT::GLYPH& aGlyph, int aNth, int aTotal ) override;
 
     /// @copydoc GAL::DrawGlyphs()
-    //virtual void DrawGlyphs( const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs ) override;
+    virtual void DrawGlyphs( const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs ) override;
 
     /// @copydoc GAL::DrawCurve()
     void DrawCurve( const VECTOR2D& startPoint, const VECTOR2D& controlPointA,

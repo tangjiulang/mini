@@ -2764,143 +2764,143 @@ void OPENGL_GAL::ComputeWorldScreenMatrix()
 }
 
 
-//void OPENGL_GAL::DrawGlyph( const KIFONT::GLYPH& aGlyph, int aNth, int aTotal )
-//{
-//    if( aGlyph.IsStroke() )
-//    {
-//        const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( aGlyph );
-//
-//        DrawPolylines( strokeGlyph );
-//    }
-//    else if( aGlyph.IsOutline() )
-//    {
-//        const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( aGlyph );
-//
-//        m_currentManager->Shader( SHADER_NONE );
-//        m_currentManager->Color( m_fillColor );
-//
-//        outlineGlyph.Triangulate(
-//                [&]( const VECTOR2D& aPt1, const VECTOR2D& aPt2, const VECTOR2D& aPt3 )
-//                {
-//                    m_currentManager->Reserve( 3 );
-//
-//                    m_currentManager->Vertex( aPt1.x, aPt1.y, m_layerDepth );
-//                    m_currentManager->Vertex( aPt2.x, aPt2.y, m_layerDepth );
-//                    m_currentManager->Vertex( aPt3.x, aPt3.y, m_layerDepth );
-//                } );
-//    }
-//}
-//
-//
-//void OPENGL_GAL::DrawGlyphs( const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs )
-//{
-//    if( aGlyphs.empty() )
-//        return;
-//
-//    bool allGlyphsAreStroke = true;
-//    bool allGlyphsAreOutline = true;
-//
-//    for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-//    {
-//        if( !glyph->IsStroke() )
-//        {
-//            allGlyphsAreStroke = false;
-//            break;
-//        }
-//    }
-//
-//    for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-//    {
-//        if( !glyph->IsOutline() )
-//        {
-//            allGlyphsAreOutline = false;
-//            break;
-//        }
-//    }
-//
-//    if( allGlyphsAreStroke )
-//    {
-//        // Optimized path for stroke fonts that pre-reserves line quads.
-//        int lineQuadCount = 0;
-//
-//        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-//        {
-//            const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( *glyph );
-//
-//            for( const std::vector<VECTOR2D>& points : strokeGlyph )
-//                lineQuadCount += points.size() - 1;
-//        }
-//
-//        reserveLineQuads( lineQuadCount );
-//
-//        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-//        {
-//            const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( *glyph );
-//
-//            for( const std::vector<VECTOR2D>& points : strokeGlyph )
-//            {
-//                drawPolyline(
-//                        [&]( int idx )
-//                        {
-//                            return points[idx];
-//                        },
-//                        points.size(), false );
-//            }
-//        }
-//
-//        return;
-//    }
-//    else if( allGlyphsAreOutline )
-//    {
-//        // Optimized path for outline fonts that pre-reserves glyph triangles.
-//        int triangleCount = 0;
-//
-//        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-//        {
-//            const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( *glyph );
-//
-//            for( unsigned int i = 0; i < outlineGlyph.TriangulatedPolyCount(); i++ )
-//            {
-//                const SHAPE_POLY_SET::TRIANGULATED_POLYGON* polygon =
-//                        outlineGlyph.TriangulatedPolygon( i );
-//
-//                triangleCount += polygon->GetTriangleCount();
-//            }
-//        }
-//
-//        m_currentManager->Shader( SHADER_NONE );
-//        m_currentManager->Color( m_fillColor );
-//
-//        m_currentManager->Reserve( 3 * triangleCount );
-//
-//        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
-//        {
-//            const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( *glyph );
-//
-//            for( unsigned int i = 0; i < outlineGlyph.TriangulatedPolyCount(); i++ )
-//            {
-//                const SHAPE_POLY_SET::TRIANGULATED_POLYGON* polygon =
-//                        outlineGlyph.TriangulatedPolygon( i );
-//
-//                for( size_t j = 0; j < polygon->GetTriangleCount(); j++ )
-//                {
-//                    VECTOR2I a, b, c;
-//                    polygon->GetTriangle( j, a, b, c );
-//
-//                    m_currentManager->Vertex( a.x, a.y, m_layerDepth );
-//                    m_currentManager->Vertex( b.x, b.y, m_layerDepth );
-//                    m_currentManager->Vertex( c.x, c.y, m_layerDepth );
-//                }
-//            }
-//        }
-//    }
-//    else
-//    {
-//        // Regular path
-//        for( size_t i = 0; i < aGlyphs.size(); i++ )
-//            DrawGlyph( *aGlyphs[i], i, aGlyphs.size() );
-//    }
-//}
+void OPENGL_GAL::DrawGlyph( const KIFONT::GLYPH& aGlyph, int aNth, int aTotal )
+{
+    if( aGlyph.IsStroke() )
+    {
+        const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( aGlyph );
+
+        DrawPolylines( strokeGlyph );
+    }
+    else if( aGlyph.IsOutline() )
+    {
+        const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( aGlyph );
+
+        m_currentManager->Shader( SHADER_NONE );
+        m_currentManager->Color( m_fillColor );
+
+        outlineGlyph.Triangulate(
+                [&]( const VECTOR2D& aPt1, const VECTOR2D& aPt2, const VECTOR2D& aPt3 )
+                {
+                    m_currentManager->Reserve( 3 );
+
+                    m_currentManager->Vertex( aPt1.x, aPt1.y, m_layerDepth );
+                    m_currentManager->Vertex( aPt2.x, aPt2.y, m_layerDepth );
+                    m_currentManager->Vertex( aPt3.x, aPt3.y, m_layerDepth );
+                } );
+    }
+}
+
+
+void OPENGL_GAL::DrawGlyphs( const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs )
+{
+    if( aGlyphs.empty() )
+        return;
+
+    bool allGlyphsAreStroke = true;
+    bool allGlyphsAreOutline = true;
+
+    for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+    {
+        if( !glyph->IsStroke() )
+        {
+            allGlyphsAreStroke = false;
+            break;
+        }
+    }
+
+    for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+    {
+        if( !glyph->IsOutline() )
+        {
+            allGlyphsAreOutline = false;
+            break;
+        }
+    }
+
+    if( allGlyphsAreStroke )
+    {
+        // Optimized path for stroke fonts that pre-reserves line quads.
+        int lineQuadCount = 0;
+
+        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+        {
+            const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( *glyph );
+
+            for( const std::vector<VECTOR2D>& points : strokeGlyph )
+                lineQuadCount += points.size() - 1;
+        }
+
+        reserveLineQuads( lineQuadCount );
+
+        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+        {
+            const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>( *glyph );
+
+            for( const std::vector<VECTOR2D>& points : strokeGlyph )
+            {
+                drawPolyline(
+                        [&]( int idx )
+                        {
+                            return points[idx];
+                        },
+                        points.size(), false );
+            }
+        }
+
+        return;
+    }
+    else if( allGlyphsAreOutline )
+    {
+        // Optimized path for outline fonts that pre-reserves glyph triangles.
+        int triangleCount = 0;
+
+        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+        {
+            const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( *glyph );
+
+            for( unsigned int i = 0; i < outlineGlyph.TriangulatedPolyCount(); i++ )
+            {
+                const SHAPE_POLY_SET::TRIANGULATED_POLYGON* polygon =
+                        outlineGlyph.TriangulatedPolygon( i );
+
+                triangleCount += polygon->GetTriangleCount();
+            }
+        }
+
+        m_currentManager->Shader( SHADER_NONE );
+        m_currentManager->Color( m_fillColor );
+
+        m_currentManager->Reserve( 3 * triangleCount );
+
+        for( const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs )
+        {
+            const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>( *glyph );
+
+            for( unsigned int i = 0; i < outlineGlyph.TriangulatedPolyCount(); i++ )
+            {
+                const SHAPE_POLY_SET::TRIANGULATED_POLYGON* polygon =
+                        outlineGlyph.TriangulatedPolygon( i );
+
+                for( size_t j = 0; j < polygon->GetTriangleCount(); j++ )
+                {
+                    VECTOR2I a, b, c;
+                    polygon->GetTriangle( j, a, b, c );
+
+                    m_currentManager->Vertex( a.x, a.y, m_layerDepth );
+                    m_currentManager->Vertex( b.x, b.y, m_layerDepth );
+                    m_currentManager->Vertex( c.x, c.y, m_layerDepth );
+                }
+            }
+        }
+    }
+    else
+    {
+        // Regular path
+        for( size_t i = 0; i < aGlyphs.size(); i++ )
+            DrawGlyph( *aGlyphs[i], i, aGlyphs.size() );
+    }
+}
 
 void OPENGL_GAL::initializeGL() {
     initializeOpenGLFunctions();

@@ -3,6 +3,7 @@ Checks: >
   readability-identifier-naming
 
 WarningsAsErrors: ''
+HeaderFilterRegex: ''
 
 ExtraArgs:
   - -fexceptions
@@ -48,9 +49,6 @@ CheckOptions:
   - key: readability-identifier-naming.EnumCase
     value: CamelCase
 
-  # 枚举值
-  - key: readability-identifier-naming.EnumConstantCase
-    value: CamelCase
 
   # 宏
   - key: readability-identifier-naming.MacroDefinitionCase
