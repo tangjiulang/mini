@@ -4,12 +4,12 @@
 #include <geometry_utils.hxx>
 #include <tesselator.h>
 
-void MINI::INSERT_VERTEX::DrawLine(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, COLOR4D& aStrokeColor, float aLineWidth)
+void MINI::INSERT_VERTEX::DrawLine(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint)
 {
-    drawLineQuad(aStartPoint, aEndPoint, aStrokeColor, aLineWidth);
+    drawLineQuad(aStartPoint, aEndPoint);
 }
 
-void MINI::INSERT_VERTEX::drawLineQuad(const VECTOR2D& aStartPoint, const  VECTOR2D& aEndPoint, COLOR4D& strokeColor, float aLineWidth)
+void MINI::INSERT_VERTEX::drawLineQuad(const VECTOR2D& aStartPoint, const  VECTOR2D& aEndPoint)
 {
 	m_currentVertex =  m_container->Allocate(6);
 	auto v1 = m_transform
@@ -18,12 +18,18 @@ void MINI::INSERT_VERTEX::drawLineQuad(const VECTOR2D& aStartPoint, const  VECTO
         * glm::vec4(aEndPoint.x, aEndPoint.y, 0.0, 0.0);
 
     VECTOR2D vs(v2.x - v1.x, v2.y - v1.y);
-	InsertVertex(aStartPoint, m_layerDepth, strokeColor, { (GLfloat)SHADER_LINE_A, (GLfloat)aLineWidth, (GLfloat)vs.x, (GLfloat)vs.y });
-    InsertVertex(aStartPoint, m_layerDepth, strokeColor, { (GLfloat)SHADER_LINE_B, (GLfloat)aLineWidth, (GLfloat)vs.x, (GLfloat)vs.y });
-    InsertVertex(aEndPoint, m_layerDepth, strokeColor, { (GLfloat)SHADER_LINE_C, (GLfloat)aLineWidth, (GLfloat)vs.x, (GLfloat)vs.y });
-    InsertVertex(aEndPoint, m_layerDepth, strokeColor, { (GLfloat)SHADER_LINE_D, (GLfloat)aLineWidth, (GLfloat)vs.x, (GLfloat)vs.y });
-    InsertVertex(aEndPoint, m_layerDepth, strokeColor, { (GLfloat)SHADER_LINE_E, (GLfloat)aLineWidth, (GLfloat)vs.x, (GLfloat)vs.y });
-    InsertVertex(aStartPoint, m_layerDepth, strokeColor, { (GLfloat)SHADER_LINE_F, (GLfloat)aLineWidth, (GLfloat)vs.x, (GLfloat)vs.y });
+    InsertVertex(aStartPoint, m_layerDepth, m_strokeColor,
+                 { (GLfloat) SHADER_LINE_A, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+    InsertVertex(aStartPoint, m_layerDepth, m_strokeColor,
+                 { (GLfloat) SHADER_LINE_B, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+    InsertVertex(aEndPoint, m_layerDepth, m_strokeColor,
+                 { (GLfloat) SHADER_LINE_C, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+    InsertVertex(aEndPoint, m_layerDepth, m_strokeColor,
+                 { (GLfloat) SHADER_LINE_D, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+    InsertVertex(aEndPoint, m_layerDepth, m_strokeColor,
+                 { (GLfloat) SHADER_LINE_E, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+    InsertVertex(aStartPoint, m_layerDepth, m_strokeColor,
+                 { (GLfloat) SHADER_LINE_F, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
 }
 
 bool MINI::INSERT_VERTEX::InsertVertex(const VECTOR2D& aPoint, double aLayerDepth, COLOR4D& aColor, std::array<GLfloat, 4> aShader)
@@ -50,12 +56,12 @@ bool MINI::INSERT_VERTEX::InsertVertex(const VECTOR2D& aPoint, double aLayerDept
     return true;
 }
 
-void MINI::INSERT_VERTEX::DrawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, bool isFilledEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, float aLineWidth)
+void MINI::INSERT_VERTEX::DrawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint)
 {
-    drawSegment(aStartPoint, aEndPoint, isFilledEnabled, isStrokeEnabled, aFillColor, aStrokeColor, aLineWidth);
+    drawSegment(aStartPoint, aEndPoint);
 }
 
-void MINI::INSERT_VERTEX::drawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, bool isFilledEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, float aLineWidth)
+void MINI::INSERT_VERTEX::drawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint)
 {
     VECTOR2D startEndVector = aEndPoint - aStartPoint;
     double   lineLength = startEndVector.EuclideanNorm();
@@ -71,12 +77,12 @@ void MINI::INSERT_VERTEX::drawSegment(const VECTOR2D& aStartPoint, const VECTOR2
 
     if (startX == endX && startY == endY)
     {
-        drawCircle(aStartPoint, aLineWidth / 2, isFilledEnabled, isStrokeEnabled, aFillColor, aStrokeColor);
+        drawCircle(aStartPoint, m_lineWidth / 2);
         return;
     }
 
-    if (isFilledEnabled || aLineWidth == 1.0)
-        drawLineQuad(aStartPoint, aEndPoint, aFillColor, aLineWidth);
+    if(m_isFillEnabled || m_lineWidth == 1.0)
+        drawLineQuad(aStartPoint, aEndPoint);
     else
     {
         EDA_ANGLE lineAngle(startEndVector);
@@ -87,45 +93,53 @@ void MINI::INSERT_VERTEX::drawSegment(const VECTOR2D& aStartPoint, const VECTOR2
         Translate(aStartPoint.x, aStartPoint.y, 0.0);
         Rotate(lineAngle.AsRadians(), 0.0f, 0.0f, 1.0f);
 
-        drawLineQuad(VECTOR2D(0.0, aLineWidth / 2.0), VECTOR2D(lineLength, aLineWidth / 2.0), aStrokeColor, 1.0);
+        drawLineQuad(VECTOR2D(0.0, m_lineWidth / 2.0), VECTOR2D(lineLength, m_lineWidth / 2.0));
 
-        drawLineQuad(VECTOR2D(0.0, -aLineWidth / 2.0), VECTOR2D(lineLength, -aLineWidth / 2.0), aStrokeColor, 1.0);
+        drawLineQuad(VECTOR2D(0.0, -m_lineWidth / 2.0), VECTOR2D(lineLength, -m_lineWidth / 2.0));
 
         // Draw line caps
-        drawStrokedSemiCircle(VECTOR2D(0.0, 0.0), aStrokeColor, aLineWidth / 2, M_PI / 2, 1.0);
-        drawStrokedSemiCircle(VECTOR2D(lineLength, 0.0), aStrokeColor, aLineWidth / 2, -M_PI / 2, 1.0);
+        SetLineWidth(m_lineWidth / 2);
+
+        drawStrokedSemiCircle(VECTOR2D(0.0, 0.0), M_PI / 2, 1.0);
+        drawStrokedSemiCircle(VECTOR2D(lineLength, 0.0), -M_PI / 2, 1.0);
 
         popMatrix();
     }
 }
 
-void MINI::INSERT_VERTEX::DrawCircle(const VECTOR2D& aCenterPoint, double aRadius, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aStrokeColor, COLOR4D& aFillColor)
+void MINI::INSERT_VERTEX::DrawCircle(const VECTOR2D& aCenterPoint, double aRadius)
 {
-    drawCircle(aCenterPoint, aRadius, isFillEnabled, isStrokeEnabled, aStrokeColor, aFillColor);
+    drawCircle(aCenterPoint, aRadius);
 }
 
-void MINI::INSERT_VERTEX::drawCircle(const VECTOR2D& aCenterPoint, double aRadius, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& strokeColor, COLOR4D& fillColor)
+void MINI::INSERT_VERTEX::drawCircle(const VECTOR2D& aCenterPoint, double aRadius)
 {
-    if (isFillEnabled)
+    if (m_isFillEnabled)
     {
         m_currentVertex = m_container->Allocate(3);
 
-        InsertVertex(aCenterPoint, m_layerDepth, fillColor, { SHADER_FILLED_CIRCLE, 1.0, static_cast<GLfloat>(aRadius) });
-        InsertVertex(aCenterPoint, m_layerDepth, fillColor, { SHADER_FILLED_CIRCLE, 2.0, static_cast<GLfloat>(aRadius) });
-        InsertVertex(aCenterPoint, m_layerDepth, fillColor, { SHADER_FILLED_CIRCLE, 3.0, static_cast<GLfloat>(aRadius) });
+        InsertVertex(aCenterPoint, m_layerDepth, m_fillColor,
+                     { SHADER_FILLED_CIRCLE, 1.0, static_cast<GLfloat>(aRadius) });
+        InsertVertex(aCenterPoint, m_layerDepth, m_fillColor,
+                     { SHADER_FILLED_CIRCLE, 2.0, static_cast<GLfloat>(aRadius) });
+        InsertVertex(aCenterPoint, m_layerDepth, m_fillColor,
+                     { SHADER_FILLED_CIRCLE, 3.0, static_cast<GLfloat>(aRadius) });
     }
 
-    if (isStrokeEnabled)
+    if (m_isStrokeEnabled)
     {
         m_currentVertex = m_container->Allocate(3);
 
-        InsertVertex(aCenterPoint, m_layerDepth, strokeColor, { SHADER_STROKED_CIRCLE, 1.0, static_cast<GLfloat>(aRadius) });
-        InsertVertex(aCenterPoint, m_layerDepth, strokeColor, { SHADER_STROKED_CIRCLE, 2.0, static_cast<GLfloat>(aRadius) });
-        InsertVertex(aCenterPoint, m_layerDepth, strokeColor, { SHADER_STROKED_CIRCLE, 3.0, static_cast<GLfloat>(aRadius) });
+        InsertVertex(aCenterPoint, m_layerDepth, m_strokeColor,
+                     { SHADER_STROKED_CIRCLE, 1.0, static_cast<GLfloat>(aRadius) });
+        InsertVertex(aCenterPoint, m_layerDepth, m_strokeColor,
+                     { SHADER_STROKED_CIRCLE, 2.0, static_cast<GLfloat>(aRadius) });
+        InsertVertex(aCenterPoint, m_layerDepth, m_strokeColor,
+                     { SHADER_STROKED_CIRCLE, 3.0, static_cast<GLfloat>(aRadius) });
     }
 }
 
-void MINI::INSERT_VERTEX::drawFilledSemiCircle(const VECTOR2D& aCenterPoint, COLOR4D& aFillColor, double aRadius, double aAngle)
+void MINI::INSERT_VERTEX::drawFilledSemiCircle(const VECTOR2D& aCenterPoint, double aRadius, double aAngle)
 {
     pushMatrix();
 
@@ -133,17 +147,17 @@ void MINI::INSERT_VERTEX::drawFilledSemiCircle(const VECTOR2D& aCenterPoint, COL
     Translate(aCenterPoint.x, aCenterPoint.y, 0.0f);
     Rotate(aAngle, 0.0f, 0.0f, 1.0f);
 
-	InsertVertex(VECTOR2D{ -aRadius * 3.0f / sqrt(3.0f), 0.0f }, m_layerDepth, aFillColor, { SHADER_FILLED_CIRCLE, 4.0f });
-    InsertVertex(VECTOR2D{ aRadius * 3.0f / sqrt(3.0f), 0.0f }, m_layerDepth, aFillColor, { SHADER_FILLED_CIRCLE, 5.0f });
-    InsertVertex(VECTOR2D{ 0.0f, aRadius * 2.0f}, m_layerDepth, aFillColor, { SHADER_FILLED_CIRCLE, 6.0f });
+	InsertVertex(VECTOR2D{ -aRadius * 3.0f / sqrt(3.0f), 0.0f }, m_layerDepth, m_fillColor, { SHADER_FILLED_CIRCLE, 4.0f });
+    InsertVertex(VECTOR2D{ aRadius * 3.0f / sqrt(3.0f), 0.0f }, m_layerDepth, m_fillColor, { SHADER_FILLED_CIRCLE, 5.0f });
+    InsertVertex(VECTOR2D{ 0.0f, aRadius * 2.0f}, m_layerDepth, m_fillColor, { SHADER_FILLED_CIRCLE, 6.0f });
 
 
     popMatrix();
 }
 
-void MINI::INSERT_VERTEX::drawStrokedSemiCircle(const VECTOR2D& aCenterPoint, COLOR4D& aStrokeColor, double aRadius, double aAngle, double aLineWidth)
+void MINI::INSERT_VERTEX::drawStrokedSemiCircle(const VECTOR2D& aCenterPoint, double aRadius, double aAngle)
 {
-    double outerRadius = aRadius + (aLineWidth / 2);
+    double outerRadius = aRadius + (m_lineWidth / 2);
 
     pushMatrix();
 
@@ -152,32 +166,35 @@ void MINI::INSERT_VERTEX::drawStrokedSemiCircle(const VECTOR2D& aCenterPoint, CO
     Translate(aCenterPoint.x, aCenterPoint.y, 0.0f);
     Rotate(aAngle, 0.0f, 0.0f, 1.0f);
 
-    InsertVertex(VECTOR2D{ -outerRadius * 3.0f / sqrt(3.0f), 0.0f }, m_layerDepth, aStrokeColor, { SHADER_STROKED_CIRCLE, 4.0f, static_cast<GLfloat>(aRadius), static_cast<GLfloat>(aLineWidth) });
-    InsertVertex(VECTOR2D{ outerRadius * 3.0f / sqrt(3.0f), 0.0f }, m_layerDepth, aStrokeColor, { SHADER_STROKED_CIRCLE, 5.0f, static_cast<GLfloat>(aRadius), static_cast<GLfloat>(aLineWidth) });
-    InsertVertex(VECTOR2D{ 0.0f, outerRadius * 2.0f }, m_layerDepth, aStrokeColor, { SHADER_STROKED_CIRCLE, 6.0f, static_cast<GLfloat>(aRadius), static_cast<GLfloat>(aLineWidth) });
+    InsertVertex(VECTOR2D{ -outerRadius * 3.0f / sqrt(3.0f), 0.0f }, m_layerDepth, m_strokeColor,
+                 { SHADER_STROKED_CIRCLE, 4.0f, static_cast<GLfloat>(aRadius), static_cast<GLfloat>(m_lineWidth) });
+    InsertVertex(VECTOR2D{ outerRadius * 3.0f / sqrt(3.0f), 0.0f }, m_layerDepth, m_strokeColor,
+                 { SHADER_STROKED_CIRCLE, 5.0f, static_cast<GLfloat>(aRadius), static_cast<GLfloat>(m_lineWidth) });
+    InsertVertex(VECTOR2D{ 0.0f, outerRadius * 2.0f }, m_layerDepth, m_strokeColor,
+                 { SHADER_STROKED_CIRCLE, 6.0f, static_cast<GLfloat>(aRadius), static_cast<GLfloat>(m_lineWidth) });
 
     popMatrix();
 }
 
-void MINI::INSERT_VERTEX::drawSemiCircle(const VECTOR2D& aCenterPoint, double aRadius, double aAngle, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aStrokeColor, COLOR4D& aFillColor, double aLineWidth)
+void MINI::INSERT_VERTEX::drawSemiCircle(const VECTOR2D& aCenterPoint, double aRadius, double aAngle)
 {
-    if (isFillEnabled)
-        drawFilledSemiCircle(aCenterPoint, aFillColor, aRadius, aAngle);
+    if (m_isFillEnabled)
+        drawFilledSemiCircle(aCenterPoint, aRadius, aAngle);
 
-    if (isStrokeEnabled)
+    if (m_isStrokeEnabled)
     {
-        drawStrokedSemiCircle(aCenterPoint, aStrokeColor, aRadius, aAngle, aLineWidth);
+        drawStrokedSemiCircle(aCenterPoint, aRadius, aAngle);
     }
 }
 
-void MINI::INSERT_VERTEX::drawPolyline(const std::function<VECTOR2D(int)>& aPointGetter, int aPointCount, COLOR4D& aStrokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::drawPolyline(const std::function<VECTOR2D(int)>& aPointGetter, int aPointCount)
 {
     Q_ASSERT(aPointCount > 0);
 
 
     if (aPointCount == 1)
     {
-        drawLineQuad(aPointGetter(0), aPointGetter(0), aStrokeColor, aLineWidth);
+        drawLineQuad(aPointGetter(0), aPointGetter(0));
         return;
     }
 
@@ -186,13 +203,13 @@ void MINI::INSERT_VERTEX::drawPolyline(const std::function<VECTOR2D(int)>& aPoin
         auto start = aPointGetter(i - 1);
         auto end = aPointGetter(i);
 
-        drawLineQuad(start, end, aStrokeColor, aLineWidth);
+        drawLineQuad(start, end);
     }
 }
 
-void MINI::INSERT_VERTEX::drawPolygon(GLdouble* aPoints, int aPointCount, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::drawPolygon(GLdouble* aPoints, int aPointCount)
 {
-    if (isFillEnabled)
+    if (m_isFillEnabled)
     {
         TESStesselator* tesselator = tessNewTess(NULL);;
 
@@ -243,24 +260,24 @@ void MINI::INSERT_VERTEX::drawPolygon(GLdouble* aPoints, int aPointCount, bool i
             {
                 int index = poly[j];
                 if (index != TESS_UNDEF)
-                    InsertVertex({ verts[index * 3 + 0],  verts[index * 3 + 1], }, verts[index * 3 + 2], aFillColor, { SHADER_NONE });
+                    InsertVertex({ verts[index * 3 + 0],  verts[index * 3 + 1], }, verts[index * 3 + 2], m_fillColor, { SHADER_NONE });
             }
         }
 
     }
 
-    if (isStrokeEnabled)
+    if (m_isStrokeEnabled)
     {
         drawPolyline(
             [&](int idx)
             {
                 return VECTOR2D(aPoints[idx * 3], aPoints[idx * 3 + 1]);
             },
-            aPointCount, aStrokeColor, aLineWidth);
+            aPointCount);
     }
 }
 
-void MINI::INSERT_VERTEX::drawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, double aWidth, bool isFilledEnabled, bool isStokeEnabled, COLOR4D& aFilledColor, COLOR4D& aStrokeColor)
+void MINI::INSERT_VERTEX::drawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, double aWidth)
 {
     VECTOR2D startEndVector = aEndPoint - aStartPoint;
     double   lineLength = startEndVector.EuclideanNorm();
@@ -276,12 +293,12 @@ void MINI::INSERT_VERTEX::drawSegment(const VECTOR2D& aStartPoint, const VECTOR2
 
     if (startX == endX && startY == endY)
     {
-        drawCircle(aStartPoint, aWidth / 2, isFilledEnabled, isStokeEnabled, aStrokeColor, aFilledColor);
+        drawCircle(aStartPoint, aWidth / 2);
         return;
     }
 
-    if (isFilledEnabled || aWidth == 1.0)
-        drawLineQuad(aStartPoint, aEndPoint, aFilledColor, aWidth);
+    if (m_isFillEnabled || aWidth == 1.0)
+        drawLineQuad(aStartPoint, aEndPoint);
     else
     {
         EDA_ANGLE lineAngle(startEndVector);
@@ -292,20 +309,22 @@ void MINI::INSERT_VERTEX::drawSegment(const VECTOR2D& aStartPoint, const VECTOR2
         Translate(aStartPoint.x, aStartPoint.y, 0.0);
         Rotate(lineAngle.AsRadians(), 0.0f, 0.0f, 1.0f);
 
-        drawLineQuad(VECTOR2D(0.0, aWidth / 2.0), VECTOR2D(lineLength, aWidth / 2.0), aStrokeColor, 1.0);
+        
+        drawLineQuad(VECTOR2D(0.0, aWidth / 2.0), VECTOR2D(lineLength, aWidth / 2.0));
 
-        drawLineQuad(VECTOR2D(0.0, -aWidth / 2.0), VECTOR2D(lineLength, -aWidth / 2.0), aStrokeColor, 1.0);
+        drawLineQuad(VECTOR2D(0.0, -aWidth / 2.0), VECTOR2D(lineLength, -aWidth / 2.0));
 
         // Draw line caps
-        drawStrokedSemiCircle(VECTOR2D(0.0, 0.0), aStrokeColor, aWidth / 2, M_PI / 2, 1.0);
-        drawStrokedSemiCircle(VECTOR2D(lineLength, 0.0), aStrokeColor, aWidth / 2, -M_PI / 2, 1.0);
+        SetLineWidth(aWidth / 2);
+        drawStrokedSemiCircle(VECTOR2D(0.0, 0.0), M_PI / 2, 1.0);
+        drawStrokedSemiCircle(VECTOR2D(lineLength, 0.0), -M_PI / 2, 1.0);
 
         popMatrix();
     }
 }
 
-void MINI::INSERT_VERTEX::DrawArc(const VECTOR2D& aCenterPoint, double aRadius,
-                         const EDA_ANGLE& aStartAngle, const EDA_ANGLE& aAngle, bool isFilledEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::DrawArc(const VECTOR2D& aCenterPoint, double aRadius, const EDA_ANGLE& aStartAngle,
+                                  const EDA_ANGLE& aAngle)
 {
     if (aRadius <= 0)
         return;
@@ -321,7 +340,7 @@ void MINI::INSERT_VERTEX::DrawArc(const VECTOR2D& aCenterPoint, double aRadius,
     pushMatrix();
     Translate(aCenterPoint.x, aCenterPoint.y, 0.0);
 
-    if (isFilledEnabled)
+    if (m_isFillEnabled)
     {
         double alpha;
 
@@ -329,23 +348,23 @@ void MINI::INSERT_VERTEX::DrawArc(const VECTOR2D& aCenterPoint, double aRadius,
         for (alpha = startAngle; (alpha + alphaIncrement) < endAngle; )
         {
             m_currentVertex = m_container->Allocate(3);
-			InsertVertex({ 0.0, 0.0 }, m_layerDepth, aFillColor, { SHADER_NONE });
-            InsertVertex({ cos(alpha) * aRadius, sin(alpha) * aRadius }, m_layerDepth, aFillColor, { SHADER_NONE });
+			InsertVertex({ 0.0, 0.0 }, m_layerDepth, m_fillColor, { SHADER_NONE });
+            InsertVertex({ cos(alpha) * aRadius, sin(alpha) * aRadius }, m_layerDepth, m_fillColor, { SHADER_NONE });
             alpha += alphaIncrement;
-            InsertVertex({ cos(alpha) * aRadius, sin(alpha) * aRadius }, m_layerDepth, aFillColor, { SHADER_NONE });
+            InsertVertex({ cos(alpha) * aRadius, sin(alpha) * aRadius }, m_layerDepth, m_fillColor, { SHADER_NONE });
         }
 
         // The last missing triangle
         const VECTOR2D endPoint(cos(endAngle) * aRadius, sin(endAngle) * aRadius);
 
         m_currentVertex = m_container->Allocate(3);
-        InsertVertex({ 0.0, 0.0 }, m_layerDepth, aFillColor, { SHADER_NONE });
-        InsertVertex({ cos(alpha) * aRadius, sin(alpha) * aRadius }, m_layerDepth, aFillColor, { SHADER_NONE });
+        InsertVertex({ 0.0, 0.0 }, m_layerDepth, m_fillColor, { SHADER_NONE });
+        InsertVertex({ cos(alpha) * aRadius, sin(alpha) * aRadius }, m_layerDepth, m_fillColor, { SHADER_NONE });
         alpha += alphaIncrement;
-        InsertVertex({ endPoint.x, endPoint.y }, m_layerDepth, aFillColor, { SHADER_NONE });
+        InsertVertex({ endPoint.x, endPoint.y }, m_layerDepth, m_fillColor, { SHADER_NONE });
     }
 
-    if (isStrokeEnabled)
+    if (m_isStrokeEnabled)
     {
 
         VECTOR2D p(cos(startAngle) * aRadius, sin(startAngle) * aRadius);
@@ -362,7 +381,7 @@ void MINI::INSERT_VERTEX::DrawArc(const VECTOR2D& aCenterPoint, double aRadius,
         for (alpha = startAngle + alphaIncrement; alpha <= endAngle; alpha += alphaIncrement)
         {
             VECTOR2D p_next(cos(alpha) * aRadius, sin(alpha) * aRadius);
-            drawLineQuad(p, p_next, aStokeColor, aLineWidth);
+            drawLineQuad(p, p_next);
 
             p = p_next;
         }
@@ -371,23 +390,21 @@ void MINI::INSERT_VERTEX::DrawArc(const VECTOR2D& aCenterPoint, double aRadius,
         if (alpha != endAngle)
         {
             VECTOR2D p_last(cos(endAngle) * aRadius, sin(endAngle) * aRadius);
-            drawLineQuad(p, p_last, aStokeColor, aLineWidth);
+            drawLineQuad(p, p_last);
         }
     }
 
     popMatrix();
 }
 
-void MINI::INSERT_VERTEX::DrawArcSegment(const VECTOR2D& aCenterPoint, double aRadius,
-                                const EDA_ANGLE& aStartAngle, const EDA_ANGLE& aAngle,
-								bool isFilledEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor,
-                                double aWidth, double aLineWidth, double aMaxError)
+void MINI::INSERT_VERTEX::DrawArcSegment(const VECTOR2D& aCenterPoint, double aRadius, const EDA_ANGLE& aStartAngle,
+                                         const EDA_ANGLE& aAngle, double aWidth, double aMaxError)
 {
     if (aRadius <= 0)
     {
         // Arcs of zero radius are a circle of aWidth diameter
         if (aWidth > 0)
-            DrawCircle(aCenterPoint, aWidth / 2.0, isFilledEnabled, isStrokeEnabled, aFillColor, aStrokeColor);
+            DrawCircle(aCenterPoint, aWidth / 2.0);
 
         return;
     }
@@ -420,7 +437,7 @@ void MINI::INSERT_VERTEX::DrawArcSegment(const VECTOR2D& aCenterPoint, double aR
         VECTOR2D p_end(aCenterPoint.x + cos(endAngle) * aRadius,
                        aCenterPoint.y + sin(endAngle) * aRadius);
 
-        DrawSegment(p_start, p_end, isFilledEnabled, isStrokeEnabled, aFillColor, aStrokeColor, aWidth);
+        DrawSegment(p_start, p_end);
         return;
     }
 
@@ -430,14 +447,14 @@ void MINI::INSERT_VERTEX::DrawArcSegment(const VECTOR2D& aCenterPoint, double aR
 	pushMatrix();
     Translate(aCenterPoint.x, aCenterPoint.y, 0.0);
 
-    if (isStrokeEnabled)
+    if (m_isStrokeEnabled)
     {
         double   width = aWidth / 2.0;
         VECTOR2D startPoint(cos(startAngle) * aRadius, sin(startAngle) * aRadius);
         VECTOR2D endPoint(cos(endAngle) * aRadius, sin(endAngle) * aRadius);
 
-        drawStrokedSemiCircle(startPoint, aStrokeColor, width, startAngle + M_PI, aLineWidth);
-        drawStrokedSemiCircle(endPoint, aStrokeColor, width, endAngle, aLineWidth);
+        drawStrokedSemiCircle(startPoint, width, startAngle + M_PI);
+        drawStrokedSemiCircle(endPoint, width, endAngle);
 
         VECTOR2D pOuter(cos(startAngle) * (aRadius + width),
                         sin(startAngle) * (aRadius + width));
@@ -454,8 +471,8 @@ void MINI::INSERT_VERTEX::DrawArcSegment(const VECTOR2D& aCenterPoint, double aR
             VECTOR2D pNextInner(cos(alpha) * (aRadius - width),
                                 sin(alpha) * (aRadius - width));
 
-            drawLineQuad(pOuter, pNextOuter, aStrokeColor, aLineWidth);
-            drawLineQuad(pInner, pNextInner, aStrokeColor, aLineWidth);
+            drawLineQuad(pOuter, pNextOuter);
+            drawLineQuad(pInner, pNextInner);
 
             pOuter = pNextOuter;
             pInner = pNextInner;
@@ -469,12 +486,12 @@ void MINI::INSERT_VERTEX::DrawArcSegment(const VECTOR2D& aCenterPoint, double aR
             VECTOR2D pLastInner(cos(endAngle) * (aRadius - width),
                                 sin(endAngle) * (aRadius - width));
 
-            drawLineQuad(pOuter, pLastOuter, aStrokeColor, aLineWidth);
-            drawLineQuad(pInner, pLastInner, aStrokeColor, aLineWidth);
+            drawLineQuad(pOuter, pLastOuter);
+            drawLineQuad(pInner, pLastInner);
         }
     }
 
-    if (isFilledEnabled)
+    if (m_isFillEnabled)
     {
         VECTOR2D p(cos(startAngle) * aRadius, sin(startAngle) * aRadius);
         double   alpha;
@@ -496,7 +513,7 @@ void MINI::INSERT_VERTEX::DrawArcSegment(const VECTOR2D& aCenterPoint, double aR
         for (alpha = startAngle + alphaIncrement; alpha <= endAngle; alpha += alphaIncrement)
         {
             VECTOR2D p_next(cos(alpha) * aRadius, sin(alpha) * aRadius);
-            drawLineQuad(p, p_next, aFillColor, aLineWidth);
+            drawLineQuad(p, p_next);
 
             p = p_next;
         }
@@ -505,40 +522,40 @@ void MINI::INSERT_VERTEX::DrawArcSegment(const VECTOR2D& aCenterPoint, double aR
         if (alpha != endAngle)
         {
             VECTOR2D p_last(cos(endAngle) * aRadius, sin(endAngle) * aRadius);
-            drawLineQuad(p, p_last, aFillColor, aLineWidth);
+            drawLineQuad(p, p_last);
         }
     }
 
     popMatrix();
 }
 
-void MINI::INSERT_VERTEX::DrawRectangle(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::DrawRectangle(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint)
 {
     // Compute the diagonal points of the rectangle
     VECTOR2D diagonalPointA(aEndPoint.x, aStartPoint.y);
     VECTOR2D diagonalPointB(aStartPoint.x, aEndPoint.y);
 
     // Fill the rectangle
-    if (isFillEnabled)
+    if (m_isFillEnabled)
     {
         m_currentVertex = m_container->Allocate(6);
 
-        InsertVertex({ aStartPoint.x, aStartPoint.y }, m_layerDepth, aFillColor, { SHADER_NONE });
-        InsertVertex({ diagonalPointA.x, diagonalPointA.y }, m_layerDepth, aFillColor, { SHADER_NONE });
-        InsertVertex({ aEndPoint.x, aEndPoint.y }, m_layerDepth, aFillColor, { SHADER_NONE });
-        InsertVertex({ aStartPoint.x, aStartPoint.y }, m_layerDepth, aFillColor, { SHADER_NONE });
-        InsertVertex({ aEndPoint.x, aEndPoint.y }, m_layerDepth, aFillColor, { SHADER_NONE });
-        InsertVertex({ diagonalPointB.x, diagonalPointB.y }, m_layerDepth, aFillColor, { SHADER_NONE });
+        InsertVertex({ aStartPoint.x, aStartPoint.y }, m_layerDepth, m_fillColor, { SHADER_NONE });
+        InsertVertex({ diagonalPointA.x, diagonalPointA.y }, m_layerDepth, m_fillColor, { SHADER_NONE });
+        InsertVertex({ aEndPoint.x, aEndPoint.y }, m_layerDepth, m_fillColor, { SHADER_NONE });
+        InsertVertex({ aStartPoint.x, aStartPoint.y }, m_layerDepth, m_fillColor, { SHADER_NONE });
+        InsertVertex({ aEndPoint.x, aEndPoint.y }, m_layerDepth, m_fillColor, { SHADER_NONE });
+        InsertVertex({ diagonalPointB.x, diagonalPointB.y }, m_layerDepth, m_fillColor, { SHADER_NONE });
     }
 
     // Stroke the outline
-    if (isStrokeEnabled)
+    if (m_isStrokeEnabled)
     {
         // DrawLine (and DrawPolyline )
         // has problem with 0 length lines so enforce minimum
         if (aStartPoint == aEndPoint)
         {
-            drawLineQuad(aStartPoint + VECTOR2D(1.0, 0.0), aEndPoint, aStrokeColor, aLineWidth);
+            drawLineQuad(aStartPoint + VECTOR2D(1.0, 0.0), aEndPoint);
         }
         else
         {
@@ -549,43 +566,43 @@ void MINI::INSERT_VERTEX::DrawRectangle(const VECTOR2D& aStartPoint, const VECTO
             pointList.push_back(aEndPoint);
             pointList.push_back(diagonalPointB);
             pointList.push_back(aStartPoint);
-            DrawPolyline(pointList, aStrokeColor, aLineWidth);
+            DrawPolyline(pointList);
         }
     }
 }
 
-void MINI::INSERT_VERTEX::DrawPolyline(const std::deque<VECTOR2D>& aPointList, COLOR4D& aStrokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::DrawPolyline(const std::deque<VECTOR2D>& aPointList)
 {
     drawPolyline(
         [&](int idx)
         {
             return aPointList[idx];
         },
-        aPointList.size(), aStrokeColor, aLineWidth);
+        aPointList.size());
 }
 
-void MINI::INSERT_VERTEX::DrawPolyline(const std::vector<VECTOR2D>& aPointList, COLOR4D& aStrokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::DrawPolyline(const std::vector<VECTOR2D>& aPointList)
 {
     drawPolyline(
         [&](int idx)
         {
             return aPointList[idx];
         },
-        aPointList.size(), aStrokeColor, aLineWidth);
+        aPointList.size());
 }
 
-void MINI::INSERT_VERTEX::DrawPolyline(const VECTOR2D aPointList[], int aListSize, COLOR4D& aStrokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::DrawPolyline(const VECTOR2D aPointList[], int aListSize)
 {
     drawPolyline(
         [&](int idx)
         {
             return aPointList[idx];
         },
-        aListSize, aStrokeColor, aLineWidth);
+        aListSize);
 }
 
 
-void MINI::INSERT_VERTEX::DrawPolyline(const SHAPE_LINE_CHAIN& aLineChain, COLOR4D& aStrokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::DrawPolyline(const SHAPE_LINE_CHAIN& aLineChain)
 {
     auto numPoints = aLineChain.PointCount();
 
@@ -597,26 +614,26 @@ void MINI::INSERT_VERTEX::DrawPolyline(const SHAPE_LINE_CHAIN& aLineChain, COLOR
         {
             return aLineChain.CPoint(idx);
         },
-        numPoints, aStrokeColor, aLineWidth);
+        numPoints);
 }
 
-void MINI::INSERT_VERTEX::DrawPolygon(const SHAPE_POLY_SET& aPolySet, bool aStrokeTriangulation, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::DrawPolygon(const SHAPE_POLY_SET& aPolySet, bool aStrokeTriangulation)
 {
     if (aPolySet.IsTriangulationUpToDate())
     {
-        drawTriangulatedPolyset(aPolySet, aStrokeTriangulation, isFillEnabled, isStrokeEnabled, aFillColor, aStrokeColor, aLineWidth);
+        drawTriangulatedPolyset(aPolySet, aStrokeTriangulation);
         return;
     }
 
     for (int j = 0; j < aPolySet.OutlineCount(); ++j)
     {
         const SHAPE_LINE_CHAIN& outline = aPolySet.COutline(j);
-        DrawPolygon(outline, isFillEnabled, isStrokeEnabled, aFillColor, aStrokeColor, aLineWidth);
+        DrawPolygon(outline);
     }
 }
 
 
-void MINI::INSERT_VERTEX::DrawPolygon(const SHAPE_LINE_CHAIN& aPolygon, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::DrawPolygon(const SHAPE_LINE_CHAIN& aPolygon)
 {
     if (aPolygon.PointCount() < 2)
         return;
@@ -633,13 +650,12 @@ void MINI::INSERT_VERTEX::DrawPolygon(const SHAPE_LINE_CHAIN& aPolygon, bool isF
         *ptr++ = m_layerDepth;
     }
 
-    drawPolygon(points.get(), pointCount, isFillEnabled, isStrokeEnabled, aFillColor, aStrokeColor, aLineWidth);
+    drawPolygon(points.get(), pointCount);
 }
 
-void MINI::INSERT_VERTEX::drawTriangulatedPolyset(const SHAPE_POLY_SET& aPolySet,
-                                         bool aStrokeTriangulation, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, double aLineWidth)
+void MINI::INSERT_VERTEX::drawTriangulatedPolyset(const SHAPE_POLY_SET& aPolySet, bool aStrokeTriangulation)
 {
-    if (isFillEnabled)
+    if (m_isFillEnabled)
     {
         int totalTriangleCount = 0;
 
@@ -661,14 +677,14 @@ void MINI::INSERT_VERTEX::drawTriangulatedPolyset(const SHAPE_POLY_SET& aPolySet
             {
                 VECTOR2I a, b, c;
                 triPoly->GetTriangle(i, a, b, c);
-				InsertVertex(a, m_layerDepth, aFillColor, { SHADER_NONE });
-				InsertVertex(b, m_layerDepth, aFillColor, { SHADER_NONE });
-				InsertVertex(c, m_layerDepth, aFillColor, { SHADER_NONE });
+				InsertVertex(a, m_layerDepth, m_fillColor, { SHADER_NONE });
+                InsertVertex(b, m_layerDepth, m_fillColor, { SHADER_NONE });
+                InsertVertex(c, m_layerDepth, m_fillColor, { SHADER_NONE });
             }
         }
     }
 
-    if (isStrokeEnabled)
+    if (m_isStrokeEnabled)
     {
         for (int j = 0; j < aPolySet.OutlineCount(); ++j)
         {
@@ -676,7 +692,7 @@ void MINI::INSERT_VERTEX::drawTriangulatedPolyset(const SHAPE_POLY_SET& aPolySet
 
             for (const auto& lc : poly)
             {
-                DrawPolyline(lc, aStrokeColor, aLineWidth);
+                DrawPolyline(lc);
             }
         }
     }
@@ -684,7 +700,7 @@ void MINI::INSERT_VERTEX::drawTriangulatedPolyset(const SHAPE_POLY_SET& aPolySet
     //if( ADVANCED_CFG::GetCfg().m_DrawTriangulationOutlines )
     {
         aStrokeTriangulation = true;
-        aStrokeColor = COLOR4D(0.0, 1.0, 0.2, 1.0);
+        m_strokeColor = COLOR4D(0.0, 1.0, 0.2, 1.0);
     }
 
 
@@ -699,9 +715,9 @@ void MINI::INSERT_VERTEX::drawTriangulatedPolyset(const SHAPE_POLY_SET& aPolySet
             {
                 VECTOR2I a, b, c;
                 triPoly->GetTriangle(i, a, b, c);
-                drawLineQuad(a, b, aStrokeColor, aLineWidth);
-                drawLineQuad(b, c, aStrokeColor, aLineWidth);
-                drawLineQuad(c, a, aStrokeColor, aLineWidth);
+                drawLineQuad(a, b);
+                drawLineQuad(b, c);
+                drawLineQuad(c, a);
             }
         }
     }
@@ -716,4 +732,153 @@ void MINI::INSERT_VERTEX::MergeToManager()
         return;
     m_mergeManager->DirectPushVertices(vertex, number);
     m_container->Clear();
+}
+
+void MINI::INSERT_VERTEX::DrawGlyph(const KIFONT::GLYPH& aGlyph, int aNth, int aTotal)
+{
+    if(aGlyph.IsStroke())
+    {
+        const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>(aGlyph);
+
+        DrawPolylines(strokeGlyph);
+    }
+    else if(aGlyph.IsOutline())
+    {
+        const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>(aGlyph);
+
+        outlineGlyph.Triangulate(
+                [&](const VECTOR2D& aPt1, const VECTOR2D& aPt2, const VECTOR2D& aPt3)
+                {
+                    m_currentVertex = m_container->Allocate(3);
+
+                    InsertVertex(VECTOR2D{ aPt1.x, aPt1.y }, m_layerDepth, m_fillColor, { SHADER_NONE });
+                    InsertVertex(VECTOR2D{ aPt2.x, aPt2.y }, m_layerDepth, m_fillColor, { SHADER_NONE });
+                    InsertVertex(VECTOR2D{ aPt3.x, aPt3.y }, m_layerDepth, m_fillColor, { SHADER_NONE });
+                });
+    }
+}
+
+
+void MINI::INSERT_VERTEX::DrawGlyphs(const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs)
+{
+    if(aGlyphs.empty())
+        return;
+
+    bool allGlyphsAreStroke = true;
+    bool allGlyphsAreOutline = true;
+
+    for(const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs)
+    {
+        if(!glyph->IsStroke())
+        {
+            allGlyphsAreStroke = false;
+            break;
+        }
+    }
+
+    for(const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs)
+    {
+        if(!glyph->IsOutline())
+        {
+            allGlyphsAreOutline = false;
+            break;
+        }
+    }
+
+    if(allGlyphsAreStroke)
+    {
+        // Optimized path for stroke fonts that pre-reserves line quads.
+        int lineQuadCount = 0;
+
+        for(const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs)
+        {
+            const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>(*glyph);
+
+            for(const std::vector<VECTOR2D>& points : strokeGlyph)
+                lineQuadCount += points.size() - 1;
+        }
+
+
+        for(const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs)
+        {
+            const auto& strokeGlyph = static_cast<const KIFONT::STROKE_GLYPH&>(*glyph);
+
+            for(const std::vector<VECTOR2D>& points : strokeGlyph)
+            {
+                drawPolyline(
+                        [&](int idx)
+                        {
+                            return points[idx];
+                        },
+                        points.size());
+            }
+        }
+
+        return;
+    }
+    else if(allGlyphsAreOutline)
+    {
+        // Optimized path for outline fonts that pre-reserves glyph triangles.
+        int triangleCount = 0;
+
+        for(const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs)
+        {
+            const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>(*glyph);
+
+            for(unsigned int i = 0; i < outlineGlyph.TriangulatedPolyCount(); i++)
+            {
+                const SHAPE_POLY_SET::TRIANGULATED_POLYGON* polygon = outlineGlyph.TriangulatedPolygon(i);
+
+                triangleCount += polygon->GetTriangleCount();
+            }
+        }
+
+
+        m_currentVertex = m_container->Allocate(3 * triangleCount);
+
+        for(const std::unique_ptr<KIFONT::GLYPH>& glyph : aGlyphs)
+        {
+            const auto& outlineGlyph = static_cast<const KIFONT::OUTLINE_GLYPH&>(*glyph);
+
+            for(unsigned int i = 0; i < outlineGlyph.TriangulatedPolyCount(); i++)
+            {
+                const SHAPE_POLY_SET::TRIANGULATED_POLYGON* polygon = outlineGlyph.TriangulatedPolygon(i);
+
+                for(size_t j = 0; j < polygon->GetTriangleCount(); j++)
+                {
+                    VECTOR2I a, b, c;
+                    polygon->GetTriangle(j, a, b, c);
+
+                    InsertVertex(VECTOR2D( a.x, a.y ), m_layerDepth, m_fillColor, { SHADER_NONE });
+                    InsertVertex(VECTOR2D( b.x, b.y ), m_layerDepth, m_fillColor, { SHADER_NONE });
+                    InsertVertex(VECTOR2D( c.x, c.y ), m_layerDepth, m_fillColor, { SHADER_NONE });
+                }
+            }
+        }
+    }
+    else
+    {
+        // Regular path
+        for(size_t i = 0; i < aGlyphs.size(); i++)
+            DrawGlyph(*aGlyphs[i], i, aGlyphs.size());
+    }
+}
+
+void MINI::INSERT_VERTEX::DrawPolylines(const std::vector<std::vector<VECTOR2D>>& aPointList)
+{
+    int lineQuadCount = 0;
+
+    for(const std::vector<VECTOR2D>& points : aPointList)
+        lineQuadCount += points.size() - 1;
+
+
+    for(const std::vector<VECTOR2D>& points : aPointList)
+    {
+        drawPolyline(
+                [&](int idx)
+                {
+                    return points[idx];
+                },
+                points.size());
+    }
 }

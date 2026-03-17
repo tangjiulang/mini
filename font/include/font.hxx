@@ -2,6 +2,7 @@
 #define FONT_H_
 
 #include <gal/include/graphics_abstraction_layer.hxx>
+#include <gal/include/insert_vertex.hxx>
 
 #include <iostream>
 #include <map>
@@ -115,6 +116,18 @@ public:
         Draw( aGal, aText, aPosition, VECTOR2I( 0, 0 ), aAttributes, aFontMetrics, aMousePos, aActiveUrl );
     }
 
+        void Draw(MINI::INSERT_VERTEX* aInsertVertex, const std::string& aText, const VECTOR2I& aPosition, const VECTOR2I& aCursor,
+              const TEXT_ATTRIBUTES& aAttributes, const METRICS& aFontMetrics,
+              std::optional<VECTOR2I> aMousePos = std::nullopt, std::string* aActiveUrl = nullptr) const;
+
+    void Draw(MINI::INSERT_VERTEX* aInsertVertex, const std::string& aText, const VECTOR2I& aPosition,
+                  const TEXT_ATTRIBUTES& aAttributes,
+              const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos = std::nullopt,
+              std::string* aActiveUrl = nullptr) const
+    {
+        Draw(aInsertVertex, aText, aPosition, VECTOR2I(0, 0), aAttributes, aFontMetrics, aMousePos, aActiveUrl);
+    }
+
     /**
      * Compute the boundary limits of aText (the bounding box of all shapes).
      *
@@ -204,6 +217,11 @@ protected:
                              bool aItalic, bool aUnderline, bool aHover, const METRICS& aFontMetrics,
                             std::optional<VECTOR2I> aMousePos, std::string* aActiveUrl) const;
 
+     void drawSingleLineText(MINI::INSERT_VERTEX* aInsertVertex, BOX2I* aBoundingBox, const std::string& aText, const VECTOR2I& aPosition,
+                            const VECTOR2I& aSize, const EDA_ANGLE& aAngle, bool aMirror, const VECTOR2I& aOrigin,
+                            bool aItalic, bool aUnderline, bool aHover, const METRICS& aFontMetrics,
+                            std::optional<VECTOR2I> aMousePos, std::string* aActiveUrl) const;
+
     /**
      * Compute the bounding box for a single line of text.
      *
@@ -244,6 +262,7 @@ private:
     static FONT* s_defaultFont;
 
     static std::map<std::tuple<std::string, bool, bool, bool>, FONT*> s_fontMap;
+    static std::mutex                                                 s_fontMapMutex;
 };
 
 } //namespace KIFONT

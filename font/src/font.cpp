@@ -30,6 +30,7 @@ const METRICS& METRICS::Default()
 FONT* FONT::s_defaultFont = nullptr;
 
 std::map< std::tuple<std::string, bool, bool, bool>, FONT*> FONT::s_fontMap;
+std::mutex                                                 FONT::s_fontMapMutex;
 
 class MARKUP_CACHE
 {
@@ -123,6 +124,8 @@ FONT* FONT::GetFont(const std::string& aFontName, bool aBold, bool aItalic,
         return getDefaultFont();
 
     std::tuple<std::string, bool, bool, bool> key = { aFontName, aBold, aItalic, aForDrawingSheet };
+
+    std::lock_guard<std::mutex> lock(s_fontMapMutex); 
 
     FONT* font = nullptr;
 
@@ -242,6 +245,32 @@ void FONT::Draw( MINI::GAL* aGal, const std::string& aText, const VECTOR2I& aPos
         drawSingleLineText( aGal, nullptr, strings_list[i], positions[i], aAttrs.m_Size, aAttrs.m_Angle,
                             aAttrs.m_Mirrored, aPosition, aAttrs.m_Italic, aAttrs.m_Underlined, aAttrs.m_Hover,
                             aFontMetrics, aMousePos, aActiveUrl );
+    }
+}
+
+void FONT::Draw(MINI::INSERT_VERTEX* aInsertVertex, const std::string& aText, const VECTOR2I& aPosition, const VECTOR2I& aCursor,
+                const TEXT_ATTRIBUTES& aAttrs, const METRICS& aFontMetrics, std::optional<VECTOR2I> aMousePos,
+                std::string* aActiveUrl) const
+{
+    if(!aInsertVertex || aText.empty())
+        return;
+
+    VECTOR2I position(aPosition - aCursor);
+
+    // Split multiline strings into separate ones and draw them line by line
+    std::vector<std::string> strings_list;
+    std::vector<VECTOR2I>    positions;
+    std::vector<VECTOR2I>    extents;
+
+    getLinePositions(aText, position, strings_list, positions, extents, aAttrs, aFontMetrics);
+
+    aInsertVertex->SetLineWidth((float) aAttrs.m_StrokeWidth);
+
+    for(size_t i = 0; i < strings_list.size(); i++)
+    {
+        drawSingleLineText(aInsertVertex, nullptr, strings_list[i], positions[i], aAttrs.m_Size, aAttrs.m_Angle,
+                           aAttrs.m_Mirrored, aPosition, aAttrs.m_Italic, aAttrs.m_Underlined, aAttrs.m_Hover,
+                           aFontMetrics, aMousePos, aActiveUrl);
     }
 }
 
@@ -417,6 +446,36 @@ void FONT::drawSingleLineText(MINI::GAL* aGal, BOX2I* aBoundingBox, const std::s
     }
 
     aGal->DrawGlyphs( glyphs );
+}
+
+void FONT::drawSingleLineText(MINI::INSERT_VERTEX* aInsertVertex, BOX2I* aBoundingBox, const std::string& aText, const VECTOR2I& aPosition,
+                              const VECTOR2I& aSize, const EDA_ANGLE& aAngle, bool aMirror, const VECTOR2I& aOrigin,
+                              bool aItalic, bool aUnderline, bool aHover, const METRICS& aFontMetrics,
+                              std::optional<VECTOR2I> aMousePos, std::string* aActiveUrl) const
+{
+    if(!aInsertVertex)
+        return;
+
+    TEXT_STYLE_FLAGS textStyle = 0;
+
+    if(aItalic)
+        textStyle |= TEXT_STYLE::ITALIC;
+
+    if(aUnderline)
+        textStyle |= TEXT_STYLE::UNDERLINE;
+
+    std::vector<std::unique_ptr<GLYPH>> glyphs;
+
+    (void) drawMarkup(aBoundingBox, &glyphs, aText, aPosition, aSize, aAngle, aMirror, aOrigin, textStyle, aFontMetrics,
+                      aMousePos, aActiveUrl);
+
+    if(aHover)
+    {
+        for(std::unique_ptr<GLYPH>& glyph : glyphs)
+            glyph->SetIsHover(true);
+    }
+
+    aInsertVertex->DrawGlyphs(glyphs);
 }
 
 

@@ -73,44 +73,70 @@ public:
 		m_transform = aTransform;
 	}
 
-	void DrawLine(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, COLOR4D& aStrokeColor, float aLineWidth);
-	void drawLineQuad(const VECTOR2D& startPoint, const VECTOR2D& endPoint, COLOR4D& strokeColor, float aLineWidth);
-	void DrawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, bool isFilledEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, float aLineWidth);
-	void drawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, bool isFilledEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, float aLineWidth);
-	void DrawCircle(const VECTOR2D& aCenterPoint, double aRadius, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aStrokeColor, COLOR4D& aFillColor);
-	void drawCircle(const VECTOR2D& aCenterPoint, double aRadius, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& strokeColor, COLOR4D& fillColor);
-	void drawFilledSemiCircle(const VECTOR2D& aCenterPoint, COLOR4D& aColor, double aRadius, double aAngle);
-	void drawStrokedSemiCircle(const VECTOR2D& aCenterPoint, COLOR4D& aStrokeColor, double aRadius, double aAngle, double aLineWidth);
-	void drawSemiCircle(const VECTOR2D& aCenterPoint, double aRadius, double aAngle, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& strokeColor, COLOR4D& fillColor, double aLineWidth);
-	void drawPolyline(const std::function<VECTOR2D(int)>& aPointGetter, int aPointCount, COLOR4D& aStrokeColor, double aLineWidth);
-	void drawPolygon(GLdouble* aPoints, int aPointCount, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, double aLineWidth);
-	void drawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, double aWidth, bool isFilledEnabled, bool isStokeEnabled, COLOR4D& aFilledColor, COLOR4D& aStrokeColor);
+	void SetFillColor(const COLOR4D& aFillColor) {
+		m_fillColor = aFillColor;
+	}
+
+	void SetStrokeColor(const COLOR4D& aStrokeColor) {
+		m_strokeColor = aStrokeColor; 
+	}
+
+	void SetFillEnabled(bool isFillEnabled) {
+		m_isFillEnabled = isFillEnabled;
+	}
+
+	void SetStrokeEnabled(bool isStrokeEnabled) {
+		m_isStrokeEnabled = isStrokeEnabled;
+	}
+
+	void SetLineWidth(double aLineWidth) {
+		m_lineWidth = aLineWidth;
+	}
+
+	void DrawLine(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);
+	void drawLineQuad(const VECTOR2D& startPoint, const VECTOR2D& endPoint);
+	void DrawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);
+	void drawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);
+	void DrawCircle(const VECTOR2D& aCenterPoint, double aRadius);
+	void drawCircle(const VECTOR2D& aCenterPoint, double aRadius);
+	void drawFilledSemiCircle(const VECTOR2D& aCenterPoint, double aRadius, double aAngle);
+	void drawStrokedSemiCircle(const VECTOR2D& aCenterPoint, double aRadius, double aAngle);
+	void drawSemiCircle(const VECTOR2D& aCenterPoint, double aRadius, double aAngle);
+	void drawPolyline(const std::function<VECTOR2D(int)>& aPointGetter, int aPointCount);
+	void drawPolygon(GLdouble* aPoints, int aPointCount);
+	void drawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, double aWidth);
 	void DrawArc(const VECTOR2D& aCenterPoint, double aRadius,
-				 const EDA_ANGLE& aStartAngle, const EDA_ANGLE& aAngle, bool isFilledEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStokeColor, double aLineWidth);
-	void DrawArcSegment(const VECTOR2D& aCenterPoint, double aRadius,
-						const EDA_ANGLE& aStartAngle, const EDA_ANGLE& aAngle,
-						bool isFilledEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor,
-						double aWidth, double aLineWidth, double aMaxError);
-	void DrawRectangle(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, double aLineWidth);
-	void DrawPolyline(const std::deque<VECTOR2D>& aPointList, COLOR4D& aStrokeColor, double aLineWidth);
-	void DrawPolyline(const std::vector<VECTOR2D>& aPointList, COLOR4D& aStrokeColor, double aLineWidth);
-	void DrawPolyline(const VECTOR2D aPointList[], int aListSize, COLOR4D& aStrokeColor, double aLineWidth);
-	void DrawPolyline(const SHAPE_LINE_CHAIN& aLineChain, COLOR4D& aStrokeColor, double aLineWidth);
-	void DrawPolygon(const SHAPE_POLY_SET& aPolySet, bool aStrokeTriangulation, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, double aLineWidth);
-	void DrawPolygon(const SHAPE_LINE_CHAIN& aPolygon, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, double aLineWidth);
-	void drawTriangulatedPolyset(const SHAPE_POLY_SET& aPolySet,
-								 bool aStrokeTriangulation, bool isFillEnabled, bool isStrokeEnabled, COLOR4D& aFillColor, COLOR4D& aStrokeColor, double aLineWidth);
+				 const EDA_ANGLE& aStartAngle, const EDA_ANGLE& aAngle);
+    void DrawArcSegment(const VECTOR2D& aCenterPoint, double aRadius, const EDA_ANGLE& aStartAngle,
+                        const EDA_ANGLE& aAngle, double aWidth, double aMaxError);
+	void DrawRectangle(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);
+	void DrawPolyline(const std::deque<VECTOR2D>& aPointList);
+	void DrawPolyline(const std::vector<VECTOR2D>& aPointList);
+	void DrawPolyline(const VECTOR2D aPointList[], int aListSize);
+	void DrawPolyline(const SHAPE_LINE_CHAIN& aLineChain);
+	void DrawPolygon(const SHAPE_POLY_SET& aPolySet, bool aStrokeTriangulation);
+	void DrawPolygon(const SHAPE_LINE_CHAIN& aPolygon);
+    void drawTriangulatedPolyset(const SHAPE_POLY_SET& aPolySet, bool aStrokeTriangulation);
+    void DrawGlyph(const KIFONT::GLYPH& aGlyph, int aNth, int aTotal);
+    void DrawGlyphs(const std::vector<std::unique_ptr<KIFONT::GLYPH>>& aGlyphs);
+    void DrawPolylines(const std::vector<std::vector<VECTOR2D>>& aPointList);
+
 	void MergeToManager();
 private:
 	bool InsertVertex(const VECTOR2D& aPoint, double aLayerDepth, COLOR4D& aColor, std::array<GLfloat, 4> aShader);
 private:
-	VERTEX_CONTAINER* m_container;
-	VERTEX* m_currentVertex;
-	glm::mat4 m_transform;
+    VERTEX_CONTAINER*     m_container;
+    VERTEX*               m_currentVertex;
+    glm::mat4             m_transform;
 	std::stack<glm::mat4> m_transformStack;
-	VERTEX_MANAGER* m_mergeManager;
-	double m_layerDepth;
-	bool m_noTransform;
+    VERTEX_MANAGER*       m_mergeManager;
+    double                m_layerDepth;
+    bool                  m_noTransform;
+    bool                  m_isFillEnabled;
+    bool                  m_isStrokeEnabled;
+    COLOR4D               m_fillColor;
+    COLOR4D               m_strokeColor;
+    double                m_lineWidth;
 };
 }
 

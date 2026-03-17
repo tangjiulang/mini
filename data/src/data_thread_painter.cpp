@@ -51,7 +51,7 @@ bool MINI::DATA_THREAD_PAINTER::Draw(const VIEW_ITEM* aItem, int aLayer) {
 		break;
     case ITEM_TYPE::TEXT:
 		// draw text
-        //draw(static_cast<const DATA_Text*>(item), aLayer);
+        draw(static_cast<const DATA_Text*>(item), aLayer);
         break;
 	default:
 		break;
@@ -66,25 +66,52 @@ void MINI::DATA_THREAD_PAINTER::draw(const DATA_Triangle* aTriangle, int aLayer)
 	drawData.push_back(aTriangle->m_point3);
 	drawData.push_back(aTriangle->m_point1);
 
-	m_insertVertex->DrawPolyline(drawData, color, aTriangle->m_lineWidth);
+	m_insertVertex->SetStrokeEnabled(true);
+	m_insertVertex->SetStrokeColor(color);
+	m_insertVertex->SetLineWidth(aTriangle->m_lineWidth);
+
+	m_insertVertex->DrawPolyline(drawData);
 }
 void MINI::DATA_THREAD_PAINTER::draw(const DATA_Rectangle* a_Rectangle, int aLayer) {
 	COLOR4D color = m_dataSettings.GetColor(a_Rectangle, aLayer);
-	m_insertVertex->DrawRectangle(a_Rectangle->m_rect.GetPosition(), a_Rectangle->m_rect.GetPosition() + a_Rectangle->m_rect.GetSize(), false, true, color, color, a_Rectangle->m_lineWidth);
+
+	m_insertVertex->SetFillEnabled(true);
+    m_insertVertex->SetStrokeEnabled(false);
+    m_insertVertex->SetFillColor(color);
+    m_insertVertex->SetStrokeColor(color);
+    m_insertVertex->SetLineWidth(a_Rectangle->m_lineWidth);
+
+	m_insertVertex->DrawRectangle(a_Rectangle->m_rect.GetPosition(), a_Rectangle->m_rect.GetPosition() + a_Rectangle->m_rect.GetSize());
 }
 void MINI::DATA_THREAD_PAINTER::draw(const DATA_Line* aLine, int aLayer) {
 	COLOR4D color = m_dataSettings.GetColor(aLine, aLayer);
-	m_insertVertex->DrawLine(aLine->m_line.GetSeg().A, aLine->m_line.GetSeg().B, color, aLine->m_lineWidth);
+
+	m_insertVertex->SetStrokeEnabled(true);
+    m_insertVertex->SetStrokeColor(color);
+	m_insertVertex->SetLineWidth(aLine->m_lineWidth);
+
+	m_insertVertex->DrawLine(aLine->m_line.GetSeg().A, aLine->m_line.GetSeg().B);
 }
 void MINI::DATA_THREAD_PAINTER::draw(const DATA_Circle* aCircle, int aLayer) {
 	COLOR4D color = m_dataSettings.GetColor(aCircle, aLayer);
-	m_insertVertex->DrawCircle(aCircle->m_circle.GetCenter(), aCircle->m_circle.GetRadius(), false, true, color, color);
+
+	m_insertVertex->SetFillEnabled(false);
+    m_insertVertex->SetStrokeEnabled(true);
+    m_insertVertex->SetFillColor(color);
+    m_insertVertex->SetStrokeColor(color);
+
+	m_insertVertex->DrawCircle(aCircle->m_circle.GetCenter(), aCircle->m_circle.GetRadius());
 }
 
 void MINI::DATA_THREAD_PAINTER::draw(const DATA_Polyline* aPolygon, int aLayer)
 {
 	COLOR4D color = m_dataSettings.GetColor(aPolygon, aLayer);
-	m_insertVertex->DrawPolyline(aPolygon->m_polyline, color, aPolygon->m_lineWidth);
+
+	m_insertVertex->SetStrokeEnabled(true);
+	m_insertVertex->SetStrokeColor(color);
+    m_insertVertex->SetLineWidth(aPolygon->m_lineWidth);
+
+	m_insertVertex->DrawPolyline(aPolygon->m_polyline);
 }
 
 void MINI::DATA_THREAD_PAINTER::draw(const DATA_Polygon* aPolygon, int aLayer) {
@@ -92,14 +119,28 @@ void MINI::DATA_THREAD_PAINTER::draw(const DATA_Polygon* aPolygon, int aLayer) {
 	for (auto segment : aPolygon->m_segments) {
 		if (std::holds_alternative<SHAPE_SEGMENT>(segment)) {
 			auto& shape_line = std::get<SHAPE_SEGMENT>(segment);
-			m_insertVertex->DrawSegment(shape_line.GetSeg().A, shape_line.GetSeg().B, false, true, color, color, aPolygon->m_lineWidth);
+
+			m_insertVertex->SetFillEnabled(false);
+            m_insertVertex->SetStrokeEnabled(true);
+            m_insertVertex->SetFillColor(color);
+            m_insertVertex->SetStrokeColor(color);
+			m_insertVertex->SetLineWidth(aPolygon->m_lineWidth);
+
+			m_insertVertex->DrawSegment(shape_line.GetSeg().A, shape_line.GetSeg().B);
 		}
 		else {
 			auto& shape_arc = std::get<SHAPE_ARC>(segment);
 			EDA_ANGLE startAngle, endAngle;
 			startAngle = shape_arc.GetStartAngle();
 			endAngle = shape_arc.GetEndAngle();
-			m_insertVertex->DrawArcSegment(shape_arc.GetCenter(), shape_arc.GetRadius(), startAngle, (endAngle - startAngle).Normalize(), false, true, color, color, aPolygon->m_lineWidth, aPolygon->m_lineWidth, 0);
+
+			m_insertVertex->SetFillEnabled(false);
+            m_insertVertex->SetStrokeEnabled(true);
+            m_insertVertex->SetFillColor(color);
+            m_insertVertex->SetStrokeColor(color);
+            m_insertVertex->SetLineWidth(aPolygon->m_lineWidth);
+
+			m_insertVertex->DrawArcSegment(shape_arc.GetCenter(), shape_arc.GetRadius(), startAngle, (endAngle - startAngle).Normalize(), aPolygon->m_lineWidth, 0);
 		}
 	}
 }
@@ -110,20 +151,71 @@ void MINI::DATA_THREAD_PAINTER::draw(const DATA_Arc* aArc, int aLayer)
 	EDA_ANGLE startAngle, endAngle;
 	startAngle = aArc->m_arc.GetStartAngle();
 	endAngle = aArc->m_arc.GetEndAngle();
-	m_insertVertex->DrawArc(aArc->m_arc.GetCenter(), aArc->m_arc.GetRadius(), startAngle, (endAngle - startAngle).Normalize(), false, true, color, color, aArc->m_lineWidth);
+
+	m_insertVertex->SetFillEnabled(false);
+    m_insertVertex->SetStrokeEnabled(true);
+    m_insertVertex->SetFillColor(color);
+    m_insertVertex->SetStrokeColor(color);
+    m_insertVertex->SetLineWidth(aArc->m_lineWidth);
+
+	m_insertVertex->DrawArc(aArc->m_arc.GetCenter(), aArc->m_arc.GetRadius(), startAngle, (endAngle - startAngle).Normalize());
 }
 
 void MINI::DATA_THREAD_PAINTER::draw(DATA_PolySet* aPolySet, int aLayer)
 {
 	COLOR4D color = m_dataSettings.GetColor(aPolySet, aLayer);
-	m_gal->SetStrokeColor(color);
-	m_gal->SetFillColor(color);
-	m_gal->SetLineWidth(0);
-	m_gal->SetIsFill(true);
-	m_gal->SetIsStroke(false);
 
 	if (!aPolySet->m_polySet.IsTriangulationUpToDate())
 		aPolySet->m_polySet.CacheTriangulation(true, true);
 
-	m_insertVertex->DrawPolygon(aPolySet->m_polySet, true, true, false, color, color, aPolySet->m_lineWidth);
+	m_insertVertex->SetFillEnabled(true);
+    m_insertVertex->SetStrokeEnabled(false);
+    m_insertVertex->SetFillColor(color);
+    m_insertVertex->SetStrokeColor(color);
+    m_insertVertex->SetLineWidth(aPolySet->m_lineWidth);
+
+	m_insertVertex->DrawPolygon(aPolySet->m_polySet, true);
+}
+
+void MINI::DATA_THREAD_PAINTER::draw(const DATA_Text* aText, int aLayer)
+{
+    const KIFONT::METRICS& metrics = KIFONT::METRICS::Default();
+    TEXT_ATTRIBUTES        attrs = aText->m_textAttrs;
+    const COLOR4D&         color = m_dataSettings.GetColor(aText, aLayer);
+
+    m_insertVertex->SetStrokeColor(color);
+    m_insertVertex->SetFillColor(color);
+
+    attrs.m_StrokeWidth = aText->GetEffectiveTextPenWidth();
+
+    strokeText(aText->m_text, aText->m_position, attrs, metrics);
+}
+
+void MINI::DATA_THREAD_PAINTER::strokeText(const std::string& aText, const VECTOR2I& aPosition,
+                                           const TEXT_ATTRIBUTES& aAttrs,
+                                    const KIFONT::METRICS& aFontMetrics)
+{
+    KIFONT::FONT* font = aAttrs.m_Font;
+
+    if(!font)
+        font = KIFONT::FONT::GetFont("", aAttrs.m_Bold, aAttrs.m_Italic);
+
+    m_insertVertex->SetFillEnabled(font->IsOutline());
+    m_insertVertex->SetStrokeEnabled(font->IsStroke());
+
+    VECTOR2I pos(aPosition);
+    VECTOR2I fudge(KiROUND(0.16 * aAttrs.m_StrokeWidth), 0);
+
+    if((aAttrs.m_Halign == GR_TEXT_H_ALIGN_LEFT && !aAttrs.m_Mirrored)
+       || (aAttrs.m_Halign == GR_TEXT_H_ALIGN_RIGHT && aAttrs.m_Mirrored))
+    {
+        pos -= fudge;
+    }
+    else if((aAttrs.m_Halign == GR_TEXT_H_ALIGN_RIGHT && !aAttrs.m_Mirrored)
+            || (aAttrs.m_Halign == GR_TEXT_H_ALIGN_LEFT && aAttrs.m_Mirrored))
+    {
+        pos += fudge;
+    }
+
+    font->Draw(m_insertVertex, aText, pos, aAttrs, aFontMetrics);
 }
