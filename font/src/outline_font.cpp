@@ -227,8 +227,10 @@ VECTOR2I OUTLINE_FONT::GetTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_pt
         aBBox->SetEnd( aPosition );
     }
 
-    for( char c : aText )
+    for(int i = 0; i < aText.size();)
     {
+        char32_t c;
+        int len = utf8_decode(aText.data() + i, c);
         // Handle tabs as locked to the nearest 4th column (in space-widths).
         if( c == '\t' )
         {
@@ -246,8 +248,9 @@ VECTOR2I OUTLINE_FONT::GetTextAsGlyphs( BOX2I* aBBox, std::vector<std::unique_pt
         }
         else
         {
-            textRun += c;
+            textRun += aText.substr(i, len);
         }
+        i += len;
     }
 
     if( !textRun.empty() )

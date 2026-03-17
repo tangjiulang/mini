@@ -452,7 +452,7 @@ public:
     /**
      * @return the vector of values indicating shape type and location.
      */
-    const std::vector<std::pair<size_t, size_t>>& CShapes() const
+    const std::vector<std::pair<int64_t, int64_t>>& CShapes() const
     {
         return m_shapes;
     }
@@ -899,7 +899,7 @@ protected:
      *
      * @param aArcIndex index of the arc to convert to points
      */
-    void convertArc(size_t aArcIndex );
+    void convertArc(int64_t aArcIndex);
 
     /**
      * Splits an arc into two arcs at aPtIndex. Parameter \p aCoincident controls whether the two
@@ -978,7 +978,7 @@ private:
      *
      * The second element must always be SHAPE_IS_PT if the first element is SHAPE_IS_PT.
      */
-    std::vector<std::pair<size_t, size_t>> m_shapes;
+    std::vector<std::pair<int64_t, int64_t>> m_shapes;
 
     std::vector<SHAPE_ARC> m_arcs;
 

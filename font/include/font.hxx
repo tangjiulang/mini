@@ -264,4 +264,6 @@ inline std::ostream& operator<<(std::ostream& os, const KIFONT::FONT* aFont)
     return os;
 }
 
+int utf8_decode(const char* s, char32_t& cp);
+
 #endif // FONT_H_

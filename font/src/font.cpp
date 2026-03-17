@@ -702,4 +702,28 @@ void FONT::LinebreakText(std::string& aText, int aColumnWidth, const VECTOR2I& a
     }
 }
 
+int utf8_decode(const char* s, char32_t& cp)
+{
+    unsigned char c = s[0];
 
+    if(c < 0x80)
+    {
+        cp = c;
+        return 1;
+    }
+    else if((c >> 5) == 0x6)
+    {
+        cp = ((c & 0x1F) << 6) | (s[1] & 0x3F);
+        return 2;
+    }
+    else if((c >> 4) == 0xE)
+    {
+        cp = ((c & 0x0F) << 12) | ((s[1] & 0x3F) << 6) | (s[2] & 0x3F);
+        return 3;
+    }
+    else
+    {
+        cp = ((c & 0x07) << 18) | ((s[1] & 0x3F) << 12) | ((s[2] & 0x3F) << 6) | (s[3] & 0x3F);
+        return 4;
+    }
+}

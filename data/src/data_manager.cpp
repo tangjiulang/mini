@@ -56,6 +56,7 @@ void DataManager::GenerateData(MINI::VIEW* view)
     attrs.m_Size = { 1500000, 1500000 };
     attrs.m_Mirrored = true;
     attrs.m_Angle = EDA_ANGLE(180);
+    attrs.m_Font = KIFONT::FONT::GetFont("Arial");
 
     m_texts.push_back(MINI::DATA_Text{ "你好 hello, world", attrs, view->ToWorld(VECTOR2I{ 0, 0 }) });
 }

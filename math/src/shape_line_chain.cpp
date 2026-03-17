@@ -76,7 +76,7 @@ SHAPE_LINE_CHAIN::SHAPE_LINE_CHAIN( const std::vector<VECTOR2I>& aV, bool aClose
         m_width( 0 )
 {
     m_points = aV;
-    m_shapes = std::vector<std::pair<size_t, size_t>>( aV.size(), SHAPES_ARE_PT );
+    m_shapes = std::vector<std::pair<int64_t, int64_t>>(aV.size(), SHAPES_ARE_PT);
     SetClosed( aClosed );
 }
 
@@ -237,19 +237,19 @@ void SHAPE_LINE_CHAIN::mergeFirstLastPointIfNeeded()
 }
 
 
-void SHAPE_LINE_CHAIN::convertArc( size_t aArcIndex )
+void SHAPE_LINE_CHAIN::convertArc( int64_t aArcIndex )
 {
     if( aArcIndex < 0 )
         aArcIndex += m_arcs.size();
 
-    if( aArcIndex >= static_cast<size_t>( m_arcs.size() ) )
+    if( aArcIndex >= static_cast<int64_t>( m_arcs.size() ) )
         return;
 
     // Clear the shapes references
     for( auto& sh : m_shapes )
     {
         alg::run_on_pair( sh,
-            [&]( size_t& aShapeIndex )
+                         [&](int64_t& aShapeIndex)
             {
                 if( aShapeIndex == aArcIndex )
                     aShapeIndex = SHAPE_IS_PT;
@@ -355,7 +355,7 @@ void SHAPE_LINE_CHAIN::splitArc( size_t aPtIndex, bool aCoincident )
         // Only change the arc indices for the second half of the point range
         for( int i = aPtIndex; i < PointCount(); i++ )
         {
-            alg::run_on_pair( m_shapes[i], [&]( size_t& aIndex ) {
+            alg::run_on_pair( m_shapes[i], [&]( int64_t& aIndex ) {
                 if( aIndex != SHAPE_IS_PT )
                     aIndex++;
             } );
@@ -914,7 +914,7 @@ const SHAPE_LINE_CHAIN SHAPE_LINE_CHAIN::Reverse() const
         if( sh != SHAPES_ARE_PT )
         {
             alg::run_on_pair( sh,
-                [&]( size_t& aShapeIndex )
+                [&]( int64_t& aShapeIndex )
                 {
                     if( aShapeIndex != SHAPE_IS_PT )
                         aShapeIndex = a.m_arcs.size() - aShapeIndex - 1;
@@ -942,7 +942,7 @@ const SHAPE_LINE_CHAIN SHAPE_LINE_CHAIN::Reverse() const
 
 void SHAPE_LINE_CHAIN::ClearArcs()
 {
-    for( size_t arcIndex = m_arcs.size() - 1; arcIndex >= 0; --arcIndex )
+    for( int64_t arcIndex = m_arcs.size() - 1; arcIndex >= 0; --arcIndex )
         convertArc( arcIndex );
 }
 
@@ -1047,12 +1047,12 @@ void SHAPE_LINE_CHAIN::Replace( int aStartIndex, int aEndIndex, const SHAPE_LINE
 
     // The total new arcs index is added to the new arc indices
     size_t prev_arc_count = m_arcs.size();
-    std::vector<std::pair<size_t, size_t>> new_shapes = newLine.m_shapes;
+    std::vector<std::pair<int64_t, int64_t>> new_shapes = newLine.m_shapes;
 
-    for( std::pair<size_t, size_t>& shape_pair : new_shapes )
+    for(std::pair<int64_t, int64_t>& shape_pair : new_shapes)
     {
         alg::run_on_pair( shape_pair,
-            [&]( size_t& aShape )
+            [&]( int64_t& aShape )
             {
                 if( aShape != SHAPE_IS_PT )
                     aShape += prev_arc_count;
@@ -1110,7 +1110,7 @@ void SHAPE_LINE_CHAIN::Remove( int aStartIndex, int aEndIndex )
     }
 
     std::set<size_t> extra_arcs;
-    auto logArcIdxRemoval = [&]( size_t& aShapeIndex )
+    auto             logArcIdxRemoval = [&](int64_t& aShapeIndex)
                             {
                                 if( aShapeIndex != SHAPE_IS_PT )
                                     extra_arcs.insert( aShapeIndex );
@@ -1369,7 +1369,7 @@ void SHAPE_LINE_CHAIN::SetPoint( int aIndex, const VECTOR2I& aPos )
     m_points[aIndex] = aPos;
 
     alg::run_on_pair( m_shapes[aIndex],
-        [&]( size_t& aIdx )
+                     [&](int64_t& aIdx)
         {
             if( aIdx != SHAPE_IS_PT )
                 convertArc( aIdx );
@@ -1561,12 +1561,11 @@ void SHAPE_LINE_CHAIN::Append( const SHAPE_LINE_CHAIN& aOtherLine )
     size_t num_arcs = m_arcs.size();
     m_arcs.insert( m_arcs.end(), aOtherLine.m_arcs.begin(), aOtherLine.m_arcs.end() );
 
-    auto fixShapeIndices =
-            [&]( const std::pair<size_t, size_t>& aShapeIndices ) -> std::pair<size_t, size_t>
+    auto fixShapeIndices = [&](const std::pair<int64_t, int64_t>& aShapeIndices) -> std::pair<int64_t, int64_t>
             {
-                std::pair<size_t, size_t> retval =  aShapeIndices;
+        std::pair<int64_t, int64_t> retval = aShapeIndices;
 
-                alg::run_on_pair( retval, [&]( size_t& aIndex )
+                alg::run_on_pair( retval, [&]( int64_t& aIndex )
                                           {
                                               if( aIndex != SHAPE_IS_PT )
                                                   aIndex = aIndex + num_arcs;
@@ -1692,7 +1691,7 @@ void SHAPE_LINE_CHAIN::Insert( size_t aVertex, const SHAPE_ARC& aArc, int aMaxEr
     for( auto& sh : m_shapes )
     {
         alg::run_on_pair( sh,
-            [&]( size_t& aIndex )
+                         [&](int64_t& aIndex)
             {
                 if( aIndex >= arc_pos )
                     aIndex++;
@@ -2594,7 +2593,7 @@ void SHAPE_LINE_CHAIN::Simplify( int aTolerance )
         return;
 
     std::vector<VECTOR2I> new_points;
-    std::vector<std::pair<size_t, size_t>> new_shapes;
+    std::vector<std::pair<int64_t, int64_t>> new_shapes;
 
     new_points.reserve( m_points.size() );
     new_shapes.reserve( m_shapes.size() );
