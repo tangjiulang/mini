@@ -69,39 +69,3 @@ target_link_libraries(mini PUBLIC
                         GLEW::GLEW
                         ipc-2581
 )
-
-project("TestGAL")
-
-add_executable(TestGAL "test/testGal.cpp")
-target_link_libraries(TestGAL PUBLIC 
-                        Qt6::Core
-                        Qt6::Gui
-                        Qt6::Widgets
-                        Qt6::OpenGL
-                        Qt6::OpenGLWidgets
-						spdlog::spdlog 
-                        base
-                        core
-						math
-                        gal
-                        GLEW::GLEW
-)
-
-project("TestView")
-
-add_executable(TestView "test/testView.cpp")
-target_link_libraries(TestView PUBLIC 
-                        Qt6::Core
-                        Qt6::Gui
-                        Qt6::Widgets
-                        Qt6::OpenGL
-                        Qt6::OpenGLWidgets
-						spdlog::spdlog 
-                        base
-                        core
-						math
-                        gal
-                        view
-                        data
-                        GLEW::GLEW
-)
