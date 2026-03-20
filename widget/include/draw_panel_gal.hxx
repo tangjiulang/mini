@@ -11,7 +11,7 @@
 
 class DataManager;
 
-class DrawPanelGal : public QWidget {
+class DrawPanelGal : public QObject {
 public:
     enum GAL_TYPE {
         GAL_TYPE_UNKNOWN = -1,  ///< not specified: a GAL engine must be set by the client
@@ -31,7 +31,7 @@ public:
 
     void onWheel(QWheelEvent* event);
 
-    void Paint(QPaintEvent*);
+    void Paint();
 
     void SetCursor();
 
@@ -40,16 +40,14 @@ public:
     void DrawSelectRect();
 
     void SetDefaultLayerDeps();
+
+    void ResizeEvent(QResizeEvent*);
+
 protected:
-    
-    void resizeEvent(QResizeEvent*) override;
-    //void enterEvent(QEnterEvent*) override;
-    //void focusOutEvent(QFocusEvent*) override;
-    //void timerEvent(QTimerEvent*) override;
-    //void showEvent(QShowEvent*) override;
+
 
 public:
-    QWindow*                        m_parent;
+    QWidget*                        m_parent;
     MINI::OPENGL_GAL*              m_gal;
     MINI::VIEW*                    m_view;
     SELECTION_TOOL                  m_selectionTool;

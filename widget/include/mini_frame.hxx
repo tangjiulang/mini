@@ -21,11 +21,11 @@ protected:
     void wheelEvent(QWheelEvent* event)
     {
         m_drawPanelGal->onWheel(event);
+        m_drawPanelGal->Paint();
     }
 
     void paintEvent(QPaintEvent* event) {
-        m_drawPanelGal->Paint(event);
-        update();
+        m_drawPanelGal->Paint();
     }
 
     void mousePressEvent(QMouseEvent* event) override;

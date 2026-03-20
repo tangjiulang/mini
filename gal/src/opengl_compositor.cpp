@@ -312,6 +312,7 @@ void OPENGL_COMPOSITOR::DrawBuffer( unsigned int aSourceHandle, unsigned int aDe
 
     // Depth test has to be disabled to make transparency working
     function->glDisable( GL_DEPTH_TEST );
+    function->glEnable( GL_BLEND );
     function->glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
 
     // Enable texturing and bind the main texture

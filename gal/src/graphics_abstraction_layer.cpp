@@ -225,7 +225,7 @@ VECTOR2D GAL::GetGridPoint( const VECTOR2D& aPoint ) const
 // Currently MINI::VIEW::VIEW_MAX_LAYERS = MAX_LAYERS_FOR_VIEW
 const int GAL::MIN_DEPTH = -2*MAX_LAYERS_FOR_VIEW;
 const int GAL::MAX_DEPTH = 2*MAX_LAYERS_FOR_VIEW - 1;
-const int GAL::GRID_DEPTH = MAX_DEPTH - 1;
+const int GAL::GRID_DEPTH = MAX_DEPTH - 2;
 
 
 COLOR4D GAL::getCursorColor() const

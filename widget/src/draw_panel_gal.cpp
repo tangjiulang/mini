@@ -346,7 +346,7 @@ const int GAL_LAYER_ORDER[] =
 };
 
 DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
-	: QWidget(parent),
+	: m_parent(parent),
 	  m_gal(nullptr),
 	  m_view(nullptr),
 	  m_painter(nullptr),
@@ -368,9 +368,9 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
 	qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
 	m_gal->show();
 	m_gal->SetScreenDPI(dpi);
+    m_gal->SetGridSize(VECTOR2D{ 1000, 1000 });
 
 	m_control = new ViewControler(m_gal, m_view, m_painter.get());
-	setMouseTracking(true);
 
     m_selectionTool.SetView(m_view);
 
@@ -403,20 +403,25 @@ void DrawPanelGal::onWheel(QWheelEvent* event)
     m_selectionTool.SelectRectArea();
 }
 
-void DrawPanelGal::Paint(QPaintEvent* event)
+void DrawPanelGal::Paint()
 {
 	if (!m_gal->IsInitialized() || !m_gal->IsVisible() || m_gal->IsContextLocked())
 		return;
 
-	MINI::GAL_DRAWING_CONTEXT ctx(m_gal);
+    m_gal->makeCurrent();
 
+	MINI::GAL_DRAWING_CONTEXT ctx(m_gal);
 
 	m_gal->SetCursorEnabled(true);
 	if (m_view->IsDirty()) {
+        m_view->ClearTargets();
+        m_gal->DrawGrid();
 		m_view->Redraw();
 	}
     m_gal->SetCursorColor(MINI::COLOR4D::WHITE);
 	m_gal->DrawCursor(m_cursor);
+
+    m_gal->update();
 }
 
 void DrawPanelGal::SetCursor()
@@ -541,7 +546,7 @@ void DrawPanelGal::SetDefaultLayerDeps()
 	}
 }
 
-void DrawPanelGal::resizeEvent(QResizeEvent* event)
+void DrawPanelGal::ResizeEvent(QResizeEvent* event)
 {
 	QSize viewSize = event->size();
 
@@ -574,14 +579,14 @@ bool DrawPanelGal::SwitchBackend(GAL_TYPE aGalType)
 	MINI::OPENGL_GAL* new_gal = nullptr;
 	if (aGalType == GAL_TYPE::GAL_TYPE_OPENGL) {
 		MINI::OPENGL_GAL::CheckFeatures(m_options);
-		new_gal = new MINI::OPENGL_GAL(m_options, this);
+		new_gal = new MINI::OPENGL_GAL(m_options, m_parent);
 	}
 
 	if (m_gal)
 		delete m_gal;
 	m_gal = new_gal;
 
-	m_gal->ResizeScreen(this->size().height(), this->size().width());
+	m_gal->ResizeScreen(m_parent->size().height(), m_parent->size().width());
 
 	if (m_painter)
 		m_painter->SetGAL(m_gal);

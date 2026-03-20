@@ -15,7 +15,7 @@ MiniFrame::MiniFrame(QWidget* parent)
 
 	m_drawPanelGal->SetDefaultLayerDeps();
 
-	this->setCentralWidget(m_drawPanelGal);
+	this->setCentralWidget(m_drawPanelGal->m_gal);
 
 	m_dataManager = new DataManager();
 
@@ -48,9 +48,10 @@ void MiniFrame::InitialViewData()
 	m_drawPanelGal->InitialViewData(m_dataManager);
 }
 
-void MiniFrame::resizeEvent(QResizeEvent*)
+void MiniFrame::resizeEvent(QResizeEvent* event)
 {
-	m_drawPanelGal->resize(this->size());
+	m_drawPanelGal->ResizeEvent(event);
+    m_drawPanelGal->Paint();
 }
 
 void MiniFrame::mousePressEvent(QMouseEvent* event)
@@ -62,6 +63,7 @@ void MiniFrame::mousePressEvent(QMouseEvent* event)
 void MiniFrame::mouseMoveEvent(QMouseEvent* event)
 {
 	m_drawPanelGal->SetCursor();
+    m_drawPanelGal->Paint();
 }
 
 void MiniFrame::mouseReleaseEvent(QMouseEvent* event)

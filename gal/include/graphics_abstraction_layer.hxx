@@ -390,6 +390,8 @@ public:
      */
     virtual void SetLayerDepth( double aLayerDepth )
     {
+        assert(aLayerDepth <= m_depthRange.y);
+        assert(aLayerDepth >= m_depthRange.x);
         //wxCHECK_MSG( aLayerDepth <= m_depthRange.y,
         //              "SetLayerDepth: below minimum" );
         //wxCHECK_MSG( aLayerDepth >= m_depthRange.x,
@@ -649,6 +651,13 @@ public:
      * @return the actual world scale factor.
      */
     double GetWorldScale() const { return m_worldScale; }
+
+    /**
+     * Get the display scale factor from GAL display options.
+     *
+     * @return UI/display scale factor (typically > 1 on HiDPI).
+     */
+    double GetScaleFactor() const { return m_options.m_scaleFactor; }
 
     /**
      * Sets flipping of the screen.

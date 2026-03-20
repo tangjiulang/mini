@@ -22,6 +22,7 @@
 #include <memory>
 #include <cassert>
 #include <list>
+#include <cmath>
 using namespace std::placeholders;
 using namespace MINI;
 
@@ -305,7 +306,7 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
     m_screenSize = ToVECTOR2I(nativeSize);
 
     // Grid color settings are different in Cairo and OpenGL
-    SetGridColor( COLOR4D( 0.8, 0.8, 0.8, 0.1 ) );
+    SetGridColor( COLOR4D( 0.8, 0.8, 0.8, 0.3 ) );
     SetAxesColor( COLOR4D( BLUE ) );
 
     // Tesselator initialization
@@ -325,6 +326,7 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
 
     setMouseTracking(true);
     
+    m_gridStyle = GRID_STYLE::DOTS;
 }
 
 
@@ -514,7 +516,7 @@ void OPENGL_GAL::BeginDrawing()
 
     //// Setup blending, required for transparent objects
     this->glEnable( GL_BLEND );
-    this->glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+    this->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
 
     //// Set up the world <-> screen transformation
@@ -634,11 +636,6 @@ void OPENGL_GAL::EndDrawing()
 
     // Cached & non-cached containers are rendered to the same buffer
     m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_mainBuffer);
-    if (m_dirtyTargets[TARGET_NONCACHED] || m_dirtyTargets[TARGET_CACHED]) {
-        glClear((GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-        CleanTarget(TARGET_NONCACHED);
-        CleanTarget(TARGET_CACHED);
-    }
     if (m_nonCachedManager != nullptr) {
         cntEndNoncached.Start();
         m_nonCachedManager->EndDrawing();
@@ -655,20 +652,13 @@ void OPENGL_GAL::EndDrawing()
         // Overlay container is rendered to a different buffer
         if (m_overlayBuffer) 
             m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_overlayBuffer);
-        if (m_dirtyTargets[TARGET_OVERLAY]) {
-            glClear((GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-            CleanTarget(TARGET_OVERLAY);
-        }
         m_overlayManager->EndDrawing();
         cntEndOverlay.Stop();
     }
         
     cntComposite.Start();
     m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_tempBuffer);
-    if (m_dirtyTargets[TARGET_TEMP]) {
-        glClear((GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
-        CleanTarget(TARGET_TEMP);
-    }
+    glClear((GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
     blitCursor();
 
 
@@ -1675,148 +1665,144 @@ void OPENGL_GAL::BitmapText( const std::string& aText, const VECTOR2I& aPosition
 
 void OPENGL_GAL::DrawGrid()
 {
-    //SetTarget( TARGET_NONCACHED );
-    //m_compositor->SetBuffer( m_mainBuffer );
+    SetTarget(TARGET_NONCACHED);
+    m_compositor->SetBuffer(OPENGL_COMPOSITOR::DIRECT_RENDERING + m_mainBuffer);
 
-    //m_nonCachedManager->EnableDepthTest( false );
+    m_nonCachedManager->EnableDepthTest(false);
 
-    //// sub-pixel lines all render the same
-    //float minorLineWidth = std::fmax( 1.0f,
-    //                                  m_gridLineWidth ) * getWorldPixelSize() / GetScaleFactor();
-    //float majorLineWidth = minorLineWidth * 2.0f;
+    // sub-pixel lines all render the same
+    float minorLineWidth = std::fmax(1.0f, m_gridLineWidth) * getWorldPixelSize() / /*GetScaleFactor()*/ 1.0;
+    float majorLineWidth = minorLineWidth * 2.0f;
 
-    //// Draw the axis and grid
-    //// For the drawing the start points, end points and increments have
-    //// to be calculated in world coordinates
-    //VECTOR2D worldStartPoint = m_screenWorldMatrix * VECTOR2D( 0.0, 0.0 );
-    //VECTOR2D worldEndPoint = m_screenWorldMatrix * VECTOR2D( m_screenSize );
+    // Draw the axis and grid
+    // For the drawing the start points, end points and increments have
+    // to be calculated in world coordinates
+    VECTOR2D worldStartPoint = m_screenWorldMatrix * VECTOR2D(0.0, 0.0);
+    VECTOR2D worldEndPoint = m_screenWorldMatrix * VECTOR2D(m_screenSize);
 
-    //// Draw axes if desired
-    //if( m_axesEnabled )
-    //{
-    //    SetLineWidth( minorLineWidth );
-    //    SetStrokeColor( m_axesColor );
+    // Draw axes if desired
+    if(m_axesEnabled)
+    {
+        SetLineWidth(minorLineWidth);
+        SetStrokeColor(m_axesColor);
 
-    //    DrawLine( VECTOR2D( worldStartPoint.x, 0 ), VECTOR2D( worldEndPoint.x, 0 ) );
-    //    DrawLine( VECTOR2D( 0, worldStartPoint.y ), VECTOR2D( 0, worldEndPoint.y ) );
-    //}
+        DrawLine(VECTOR2D(worldStartPoint.x, 0), VECTOR2D(worldEndPoint.x, 0));
+        DrawLine(VECTOR2D(0, worldStartPoint.y), VECTOR2D(0, worldEndPoint.y));
+    }
 
-    //// force flush
-    //m_nonCachedManager->EndDrawing();
+    // force flush
+    m_nonCachedManager->EndDrawing();
 
-    //if( !m_gridVisibility || m_gridSize.x == 0 || m_gridSize.y == 0 )
-    //    return;
+    if(!m_gridVisibility || m_gridSize.x == 0 || m_gridSize.y == 0)
+        return;
 
-    //VECTOR2D gridScreenSize = GetVisibleGridSize();
+    VECTOR2D gridScreenSize = GetVisibleGridSize();
 
-    //// Compute grid starting and ending indexes to draw grid points on the
-    //// visible screen area
-    //// Note: later any point coordinate will be offset by m_gridOrigin
-    //int gridStartX = KiROUND( ( worldStartPoint.x - m_gridOrigin.x ) / gridScreenSize.x );
-    //int gridEndX = KiROUND( ( worldEndPoint.x - m_gridOrigin.x ) / gridScreenSize.x );
-    //int gridStartY = KiROUND( ( worldStartPoint.y - m_gridOrigin.y ) / gridScreenSize.y );
-    //int gridEndY = KiROUND( ( worldEndPoint.y - m_gridOrigin.y ) / gridScreenSize.y );
+    // Compute grid starting and ending indexes to draw grid points on the
+    // visible screen area
+    // Note: later any point coordinate will be offset by m_gridOrigin
+    int gridStartX = KiROUND((worldStartPoint.x - m_gridOrigin.x) / gridScreenSize.x);
+    int gridEndX = KiROUND((worldEndPoint.x - m_gridOrigin.x) / gridScreenSize.x);
+    int gridStartY = KiROUND((worldStartPoint.y - m_gridOrigin.y) / gridScreenSize.y);
+    int gridEndY = KiROUND((worldEndPoint.y - m_gridOrigin.y) / gridScreenSize.y);
 
-    //// Ensure start coordinate < end coordinate
-    //normalize( gridStartX, gridEndX );
-    //normalize( gridStartY, gridEndY );
+    // Ensure start coordinate < end coordinate
+    normalize(gridStartX, gridEndX);
+    normalize(gridStartY, gridEndY);
 
-    //// Ensure the grid fills the screen
-    //--gridStartX;
-    //++gridEndX;
-    //--gridStartY;
-    //++gridEndY;
+    // Ensure the grid fills the screen
+    --gridStartX;
+    ++gridEndX;
+    --gridStartY;
+    ++gridEndY;
 
-    //glDisable( GL_DEPTH_TEST );
-    //glDisable( GL_TEXTURE_2D );
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_TEXTURE_2D);
 
-    //if( m_gridStyle == GRID_STYLE::DOTS )
-    //{
-    //    glEnable( GL_STENCIL_TEST );
-    //    glStencilFunc( GL_ALWAYS, 1, 1 );
-    //    glStencilOp( GL_KEEP, GL_KEEP, GL_INCR );
-    //    glColor4d( 0.0, 0.0, 0.0, 0.0 );
-    //    SetStrokeColor( COLOR4D( 0.0, 0.0, 0.0, 0.0 ) );
-    //}
-    //else
-    //{
-    //    glColor4d( m_gridColor.r, m_gridColor.g, m_gridColor.b, m_gridColor.a );
-    //    SetStrokeColor( m_gridColor );
-    //}
+    if(m_gridStyle == GRID_STYLE::DOTS)
+    {
+        this->glEnable(GL_STENCIL_TEST);
+        this->glStencilFunc(GL_ALWAYS, 1, 1);
+        this->glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+        SetStrokeColor(COLOR4D(0.0, 0.0, 0.0, 0.0));
+    }
+    else
+    {
+        SetStrokeColor(m_gridColor);
+    }
 
-    //if( m_gridStyle == GRID_STYLE::SMALL_CROSS )
-    //{
-    //    // Vertical positions
-    //    for( int j = gridStartY; j <= gridEndY; j++ )
-    //    {
-    //        bool         tickY = ( j % m_gridTick == 0 );
-    //        const double posY = j * gridScreenSize.y + m_gridOrigin.y;
+    if(m_gridStyle == GRID_STYLE::SMALL_CROSS)
+    {
+        // Vertical positions
+        for(int j = gridStartY; j <= gridEndY; j++)
+        {
+            bool         tickY = (j % m_gridTick == 0);
+            const double posY = j * gridScreenSize.y + m_gridOrigin.y;
 
-    //        // Horizontal positions
-    //        for( int i = gridStartX; i <= gridEndX; i++ )
-    //        {
-    //            bool tickX = ( i % m_gridTick == 0 );
-    //            SetLineWidth( ( ( tickX && tickY ) ? majorLineWidth : minorLineWidth ) );
-    //            auto lineLen = 2.0 * GetLineWidth();
-    //            auto posX = i * gridScreenSize.x + m_gridOrigin.x;
+            // Horizontal positions
+            for(int i = gridStartX; i <= gridEndX; i++)
+            {
+                bool tickX = (i % m_gridTick == 0);
+                SetLineWidth(((tickX && tickY) ? majorLineWidth : minorLineWidth));
+                auto lineLen = 2.0 * GetLineWidth();
+                auto posX = i * gridScreenSize.x + m_gridOrigin.x;
 
-    //            DrawLine( VECTOR2D( posX - lineLen, posY ), VECTOR2D( posX + lineLen, posY ) );
-    //            DrawLine( VECTOR2D( posX, posY - lineLen ), VECTOR2D( posX, posY + lineLen ) );
-    //        }
-    //    }
+                DrawLine(VECTOR2D(posX - lineLen, posY), VECTOR2D(posX + lineLen, posY));
+                DrawLine(VECTOR2D(posX, posY - lineLen), VECTOR2D(posX, posY + lineLen));
+            }
+        }
 
-    //    m_nonCachedManager->EndDrawing();
-    //}
-    //else
-    //{
-    //    // Vertical lines
-    //    for( int j = gridStartY; j <= gridEndY; j++ )
-    //    {
-    //        const double y = j * gridScreenSize.y + m_gridOrigin.y;
+        m_nonCachedManager->EndDrawing();
+    }
+    else
+    {
+        // Vertical lines
+        for(int j = gridStartY; j <= gridEndY; j++)
+        {
+            const double y = j * gridScreenSize.y + m_gridOrigin.y;
 
-    //        // If axes are drawn, skip the lines that would cover them
-    //        if( m_axesEnabled && y == 0.0 )
-    //            continue;
+            // If axes are drawn, skip the lines that would cover them
+            if(m_axesEnabled && y == 0.0)
+                continue;
 
-    //        SetLineWidth( ( j % m_gridTick == 0 ) ? majorLineWidth : minorLineWidth );
-    //        VECTOR2D a( gridStartX * gridScreenSize.x + m_gridOrigin.x, y );
-    //        VECTOR2D b( gridEndX * gridScreenSize.x + m_gridOrigin.x, y );
+            SetLineWidth((j % m_gridTick == 0) ? majorLineWidth : minorLineWidth);
+            VECTOR2D a(gridStartX * gridScreenSize.x + m_gridOrigin.x, y);
+            VECTOR2D b(gridEndX * gridScreenSize.x + m_gridOrigin.x, y);
 
-    //        DrawLine( a, b );
-    //    }
+            DrawLine(a, b);
+        }
 
-    //    m_nonCachedManager->EndDrawing();
+        m_nonCachedManager->EndDrawing();
 
-    //    if( m_gridStyle == GRID_STYLE::DOTS )
-    //    {
-    //        glStencilFunc( GL_NOTEQUAL, 0, 1 );
-    //        glColor4d( m_gridColor.r, m_gridColor.g, m_gridColor.b, m_gridColor.a );
-    //        SetStrokeColor( m_gridColor );
-    //    }
+        if(m_gridStyle == GRID_STYLE::DOTS)
+        {
+            this->glStencilFunc(GL_NOTEQUAL, 0, 1);
+            SetStrokeColor(m_gridColor);
+        }
 
-    //    // Horizontal lines
-    //    for( int i = gridStartX; i <= gridEndX; i++ )
-    //    {
-    //        const double x = i * gridScreenSize.x + m_gridOrigin.x;
+        // Horizontal lines
+        for(int i = gridStartX; i <= gridEndX; i++)
+        {
+            const double x = i * gridScreenSize.x + m_gridOrigin.x;
 
-    //        // If axes are drawn, skip the lines that would cover them
-    //        if( m_axesEnabled && x == 0.0 )
-    //            continue;
+            // If axes are drawn, skip the lines that would cover them
+            if(m_axesEnabled && x == 0.0)
+                continue;
 
-    //        SetLineWidth( ( i % m_gridTick == 0 ) ? majorLineWidth : minorLineWidth );
-    //        VECTOR2D a( x, gridStartY * gridScreenSize.y + m_gridOrigin.y );
-    //        VECTOR2D b( x, gridEndY * gridScreenSize.y + m_gridOrigin.y );
-    //        DrawLine( a, b );
-    //    }
+            SetLineWidth((i % m_gridTick == 0) ? majorLineWidth : minorLineWidth);
+            VECTOR2D a(x, gridStartY * gridScreenSize.y + m_gridOrigin.y);
+            VECTOR2D b(x, gridEndY * gridScreenSize.y + m_gridOrigin.y);
+            DrawLine(a, b);
+        }
 
-    //    m_nonCachedManager->EndDrawing();
+        m_nonCachedManager->EndDrawing();
 
-    //    if( m_gridStyle == GRID_STYLE::DOTS )
-    //        glDisable( GL_STENCIL_TEST );
-    //}
+        if(m_gridStyle == GRID_STYLE::DOTS)
+            this->glDisable(GL_STENCIL_TEST);
+    }
 
-    //glEnable( GL_DEPTH_TEST );
-    //glEnable( GL_TEXTURE_2D );
+    this->glEnable(GL_DEPTH_TEST);
+    this->glEnable(GL_TEXTURE_2D);
 }
 
 
@@ -2931,20 +2917,12 @@ void OPENGL_GAL::resizeGL(int w, int h) {
     GAL_DRAWING_CONTEXT ctx(this);
     update();
 }
-void OPENGL_GAL::paintGL() {
-    //ClearScreen();
-    //m_fpsCounter.frame();
-
-    //qDebug() << m_fpsCounter.value();
-    this->glClearColor(0, 0, 0, 0);
-    this->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    
+void OPENGL_GAL::paintGL() {    
     m_compositor->Begin();
 
     if (m_isInitialized) {
         EndDrawing();
     }
-    update();
 }
 
 VERTEX_MANAGER* MINI::OPENGL_GAL::GetVertexManagerByTarget(RENDER_TARGET aTarget)
