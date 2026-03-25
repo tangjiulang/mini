@@ -6,9 +6,17 @@ name = "mini"
 script = ""
 
 [[actions]]
-name = "运行"
+name = "运行(Debug)"
 icon = "run"
 command = '''
-./build.bat
-.\build-ninja\mini.exe
+./build.bat Debug
+.\build-ninja\Debug\mini.exe
+'''
+
+[[actions]]
+name = "运行(Release)"
+icon = "run"
+command = '''
+./build.bat Release
+.\build-ninja\Release\mini.exe
 '''
