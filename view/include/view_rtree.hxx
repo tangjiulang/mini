@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/geometry.hpp>
+#include <boost/iterator/function_output_iterator.hpp>
 
 #include <box2.hxx>
 
@@ -83,15 +84,15 @@ namespace MINI
                 mmin[0] = mmin[1] = INT_MIN;
                 mmax[0] = mmax[1] = INT_MAX;
             }
-            std::vector<Value> val;
-            rtree.query(bgi::intersects(Box(Point2D(mmin[0], mmin[1]), Point2D(mmax[0], mmax[1]))), std::back_inserter(val));
-            for (auto [box, item] : val) {
-                aVisitor(item);
-            }
-            //rtree.query(
-            //    bgi::intersects(query_box),
-            //    boost::make_function_output_iterator([&](auto const& v) { aVisitor(v.second); })
-            //);
+            const Box queryBox( Point2D( mmin[0], mmin[1] ), Point2D( mmax[0], mmax[1] ) );
+
+            rtree.query(
+                    bgi::intersects( queryBox ),
+                    boost::make_function_output_iterator(
+                            [&]( const Value& v )
+                            {
+                                aVisitor( v.second );
+                            } ) );
         }
         void RemoveAll() {
             rtree.clear();
