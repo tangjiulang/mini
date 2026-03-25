@@ -71,6 +71,8 @@ public:
     void InitShader(QObject*);
 
 protected:
+    void ensureFullscreenBlitResources();
+
     /// Binds a specific Framebuffer Object.
     void bindFb( unsigned int aFb );
 
@@ -98,6 +100,8 @@ protected:
     GLuint          m_mainFbo;                ///< Main FBO handle (storing all target textures)
     GLuint          m_depthBuffer;            ///< Depth buffer handle
     SHADER*         m_shader;
+    GLuint          m_blitVao;
+    GLuint          m_blitVbo;
     typedef std::deque<OPENGL_BUFFER> OPENGL_BUFFERS;
 
     /// Stores information about initialized buffers

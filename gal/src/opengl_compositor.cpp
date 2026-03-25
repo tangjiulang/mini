@@ -21,6 +21,8 @@ OPENGL_COMPOSITOR::OPENGL_COMPOSITOR() :
         m_curBuffer( 0 ),
         m_mainFbo( 0 ),
         m_depthBuffer( 0 ),
+        m_blitVao( 0 ),
+        m_blitVbo( 0 ),
         m_curFbo( DIRECT_RENDERING ),
         m_currentAntialiasingMode( GAL_ANTIALIASING_MODE::AA_NONE )
 {
@@ -108,15 +110,11 @@ void OPENGL_COMPOSITOR::Initialize()
 
 
     GLenum status = function->glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-        qDebug() << "Framebuffer incomplete: " << QString::number(status, 16);
+    if( status != GL_FRAMEBUFFER_COMPLETE )
+        throw std::runtime_error( "Framebuffer incomplete during compositor initialization." );
 
     // Unbind the framebuffer, so by default all the rendering goes directly to the display
     bindFb( DIRECT_RENDERING );
-
-    GLint drawBuf;
-    function->glGetIntegerv(GL_DRAW_BUFFER, &drawBuf);
-    qDebug() << "Current draw buffer:" << drawBuf;
 
     m_initialized = true;
 
@@ -315,46 +313,14 @@ void OPENGL_COMPOSITOR::DrawBuffer( unsigned int aSourceHandle, unsigned int aDe
     function->glEnable( GL_BLEND );
     function->glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );
 
-    // Enable texturing and bind the main texture
-
-    // Draw a full screen quad with the texture
-    GLuint vao, vbo;
-
-    float vertices[] = {
-        // pos        // tex
-        -1.0f,  1.0f,  0.0f, 1.0f,  // 左上
-        -1.0f, -1.0f,  0.0f, 0.0f,  // 左下
-         1.0f, -1.0f,  1.0f, 0.0f,  // 右下
-
-        -1.0f,  1.0f,  0.0f, 1.0f,  // 左上
-         1.0f, -1.0f,  1.0f, 0.0f,  // 右下
-         1.0f,  1.0f,  1.0f, 1.0f   // 右上
-    };
-
-    
-    function->glGenVertexArrays(1, &vao);
-    function->glGenBuffers(1, &vbo);
-
-    function->glBindVertexArray(vao);
-    function->glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    function->glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // 顶点坐标
-    function->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    function->glEnableVertexAttribArray(0);
-
-    // 纹理坐标
-    function->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    function->glEnableVertexAttribArray(1);
-
-    function->glBindVertexArray(0);
+    ensureFullscreenBlitResources();
 
     m_shader->Use();
     function->glActiveTexture(GL_TEXTURE0);
     function->glBindTexture(GL_TEXTURE_2D, m_buffers[aSourceHandle - 1].textureTarget);
     m_shader->SetParameter(m_shader->AddParameter("uTexture"), 0);
 
-    function->glBindVertexArray(vao);
+    function->glBindVertexArray(m_blitVao);
     function->glDrawArrays(GL_TRIANGLES, 0, 6);
     function->glBindVertexArray(0);
     m_shader->Deactivate();
@@ -404,6 +370,18 @@ void OPENGL_COMPOSITOR::clean()
 
     function->glDeleteRenderbuffers( 1, &m_depthBuffer );
 
+    if( m_blitVbo != 0 )
+    {
+        function->glDeleteBuffers( 1, &m_blitVbo );
+        m_blitVbo = 0;
+    }
+
+    if( m_blitVao != 0 )
+    {
+        function->glDeleteVertexArrays( 1, &m_blitVao );
+        m_blitVao = 0;
+    }
+
     m_initialized = false;
 }
 
@@ -447,4 +425,41 @@ void MINI::OPENGL_COMPOSITOR::InitShader(QObject* parent)
     if (!m_shader->IsLinked() && !m_shader->Link())
         throw std::runtime_error("Cannot link the shaders!");
 
+}
+
+
+void OPENGL_COMPOSITOR::ensureFullscreenBlitResources()
+{
+    if( m_blitVao != 0 && m_blitVbo != 0 )
+        return;
+
+    QOpenGLFunctions_3_3_Core* function =
+            QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>( QOpenGLContext::currentContext() );
+
+    static constexpr float s_vertices[] = {
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+    };
+
+    if( m_blitVao == 0 )
+        function->glGenVertexArrays( 1, &m_blitVao );
+
+    if( m_blitVbo == 0 )
+        function->glGenBuffers( 1, &m_blitVbo );
+
+    function->glBindVertexArray( m_blitVao );
+    function->glBindBuffer( GL_ARRAY_BUFFER, m_blitVbo );
+    function->glBufferData( GL_ARRAY_BUFFER, sizeof( s_vertices ), s_vertices, GL_STATIC_DRAW );
+
+    function->glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof( float ), (void*) 0 );
+    function->glEnableVertexAttribArray( 0 );
+    function->glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof( float ),
+                                     (void*) ( 2 * sizeof( float ) ) );
+    function->glEnableVertexAttribArray( 1 );
+
+    function->glBindVertexArray( 0 );
 }

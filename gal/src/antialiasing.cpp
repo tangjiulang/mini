@@ -88,22 +88,23 @@ void draw_fullscreen_primitive()
     };
 
 
-    function->glGenVertexArrays(1, &vao);
-    function->glGenBuffers(1, &vbo);
+    if( vao == 0 )
+        function->glGenVertexArrays( 1, &vao );
 
-    function->glBindVertexArray(vao);
-    function->glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    function->glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    if( vbo == 0 )
+    {
+        function->glGenBuffers( 1, &vbo );
+        function->glBindVertexArray( vao );
+        function->glBindBuffer( GL_ARRAY_BUFFER, vbo );
+        function->glBufferData( GL_ARRAY_BUFFER, sizeof( vertices ), vertices, GL_STATIC_DRAW );
 
-    // 顶点坐标
-    function->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    function->glEnableVertexAttribArray(0);
-
-    // 纹理坐标
-    function->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-    function->glEnableVertexAttribArray(1);
-
-    function->glBindVertexArray(0);
+        function->glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof( float ), (void*) 0 );
+        function->glEnableVertexAttribArray( 0 );
+        function->glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof( float ),
+                                         (void*) ( 2 * sizeof( float ) ) );
+        function->glEnableVertexAttribArray( 1 );
+        function->glBindVertexArray( 0 );
+    }
 
     function->glBindVertexArray(vao);
     function->glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -480,30 +481,23 @@ void draw_fullscreen_triangle()
         { { 3.f,  1.f}, {2.f, 1.f} }
     };
 
-    function->glGenVertexArrays(1, &vao);
-    function->glBindVertexArray(vao);
+    if( vao == 0 )
+        function->glGenVertexArrays( 1, &vao );
 
-    function->glGenBuffers(1, &vbo);
-    function->glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    function->glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+    if( vbo == 0 )
+    {
+        function->glGenBuffers( 1, &vbo );
+        function->glBindVertexArray( vao );
+        function->glBindBuffer( GL_ARRAY_BUFFER, vbo );
+        function->glBufferData( GL_ARRAY_BUFFER, sizeof( verts ), verts, GL_STATIC_DRAW );
 
-    // location = 0 : a_pos
-    function->glEnableVertexAttribArray(0);
-    function->glVertexAttribPointer(
-        0, 2, GL_FLOAT, GL_FALSE,
-        sizeof(Vertex),
-        (void*)0
-    );
-
-    // location = 1 : a_texcoord
-    function->glEnableVertexAttribArray(1);
-    function->glVertexAttribPointer(
-        1, 2, GL_FLOAT, GL_FALSE,
-        sizeof(Vertex),
-        (void*)(sizeof(float) * 2)
-    );
-
-    function->glBindVertexArray(0);
+        function->glEnableVertexAttribArray( 0 );
+        function->glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, sizeof( Vertex ), (void*) 0 );
+        function->glEnableVertexAttribArray( 1 );
+        function->glVertexAttribPointer( 1, 2, GL_FLOAT, GL_FALSE, sizeof( Vertex ),
+                                         (void*) ( sizeof( float ) * 2 ) );
+        function->glBindVertexArray( 0 );
+    }
 
     // ===== 绘制 =====
 

@@ -43,6 +43,28 @@ GPU_MANAGER::GPU_MANAGER( VERTEX_CONTAINER* aContainer ) :
 
 GPU_MANAGER::~GPU_MANAGER()
 {
+    QOpenGLContext* ctx = QOpenGLContext::currentContext();
+
+    if( !ctx || ( vao == 0 && vbo == 0 ) )
+        return;
+
+    QOpenGLFunctions_3_3_Core* function =
+            QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>( ctx );
+
+    if( !function )
+        return;
+
+    if( vbo != 0 )
+    {
+        function->glDeleteBuffers( 1, &vbo );
+        vbo = 0;
+    }
+
+    if( vao != 0 )
+    {
+        function->glDeleteVertexArrays( 1, &vao );
+        vao = 0;
+    }
 }
 
 
@@ -125,10 +147,11 @@ void GPU_CACHED_MANAGER::EndDrawing()
     CACHED_CONTAINER* cached = static_cast<CACHED_CONTAINER*>( m_container );
 
 
-    function->glGenVertexArrays(1, &vao);
-    function->glGenBuffers(1, &vbo);
-    function->glBindVertexArray(vao);
-    function->glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    if( vao == 0 )
+        function->glGenVertexArrays( 1, &vao );
+
+    function->glBindVertexArray( vao );
+    static_cast<CACHED_CONTAINER_GPU*>( cached )->GetBuffer()->bind();
     if( cached->IsMapped() )
         cached->Unmap();
 
@@ -144,14 +167,16 @@ void GPU_CACHED_MANAGER::EndDrawing()
 
 
     // a_position
-    function->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)0);
-    function->glEnableVertexAttribArray(0);
+    function->glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof( GLfloat ), (void*) 0 );
+    function->glEnableVertexAttribArray( 0 );
     // a_color
-    function->glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, 11 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
-    function->glEnableVertexAttribArray(1);
+    function->glVertexAttribPointer( 1, 4, GL_FLOAT, GL_TRUE, 11 * sizeof( GLfloat ),
+                                     (void*) ( 3 * sizeof( GLfloat ) ) );
+    function->glEnableVertexAttribArray( 1 );
     // a_shaderParams
-    function->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), (void*)(7 * sizeof(GLfloat)));
-    function->glEnableVertexAttribArray(2);
+    function->glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, 11 * sizeof( GLfloat ),
+                                     (void*) ( 7 * sizeof( GLfloat ) ) );
+    function->glEnableVertexAttribArray( 2 );
 
     PROF_TIMER cntDraw( "gl-draw-elements" );
 
@@ -171,9 +196,9 @@ void GPU_CACHED_MANAGER::EndDrawing()
             if( icnt > 0 )
             {
                 m_shader->Use();
-                function->glBindVertexArray(vao);
-                function->glDrawElements(GL_TRIANGLES, icnt, GL_UNSIGNED_INT, m_indices.get());
-                function->glBindVertexArray(0);
+                function->glBindVertexArray( vao );
+                function->glDrawElements( GL_TRIANGLES, icnt, GL_UNSIGNED_INT, m_indices.get() );
+                function->glBindVertexArray( 0 );
                 m_shader->Deactivate();
                 drawCalls++;
             }
@@ -182,9 +207,9 @@ void GPU_CACHED_MANAGER::EndDrawing()
             iptr = m_indices.get();
 
             m_shader->Use();
-            function->glBindVertexArray(vao);
-            function->glDrawArrays(GL_TRIANGLES, cur->m_start, cur->m_end - cur->m_start + 1);
-            function->glBindVertexArray(0);
+            function->glBindVertexArray( vao );
+            function->glDrawArrays( GL_TRIANGLES, cur->m_start, cur->m_end - cur->m_start + 1 );
+            function->glBindVertexArray( 0 );
             m_shader->Deactivate();
 
             drawCalls++;
@@ -204,9 +229,9 @@ void GPU_CACHED_MANAGER::EndDrawing()
     if( icnt > 0 )
     {
         m_shader->Use();
-        function->glBindVertexArray(vao);
-        function->glDrawElements(GL_TRIANGLES, icnt, GL_UNSIGNED_INT, m_indices.get());
-        function->glBindVertexArray(0);
+        function->glBindVertexArray( vao );
+        function->glDrawElements( GL_TRIANGLES, icnt, GL_UNSIGNED_INT, m_indices.get() );
+        function->glBindVertexArray( 0 );
         m_shader->Deactivate();
         drawCalls++;
     }
@@ -270,38 +295,42 @@ void GPU_NONCACHED_MANAGER::EndDrawing()
 
     VERTEX *vertices = m_container->GetAllVertices();
 
-    GLint drawBuf;
-    function->glGetIntegerv(GL_DRAW_BUFFER, &drawBuf);
-
     if( m_enableDepthTest )
         function->glEnable( GL_DEPTH_TEST );
     else
         function->glDisable( GL_DEPTH_TEST );
 
     // Prepare buffers
-    function->glGenVertexArrays(1, &vao);
-    function->glGenBuffers(1, &vbo);
-    function->glBindVertexArray(vao);
-    function->glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    function->glBufferData(GL_ARRAY_BUFFER, m_container->GetSize() * VERTEX_SIZE, vertices, GL_STATIC_DRAW);
+    if( vao == 0 )
+        function->glGenVertexArrays( 1, &vao );
+
+    if( vbo == 0 )
+        function->glGenBuffers( 1, &vbo );
+
+    function->glBindVertexArray( vao );
+    function->glBindBuffer( GL_ARRAY_BUFFER, vbo );
+    function->glBufferData( GL_ARRAY_BUFFER, m_container->GetSize() * VERTEX_SIZE, vertices,
+                            GL_STREAM_DRAW );
 
     // a_position
-    function->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_SIZE, (void*)0);
-    function->glEnableVertexAttribArray(0);
+    function->glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, VERTEX_SIZE, (void*) 0 );
+    function->glEnableVertexAttribArray( 0 );
     // a_color
-    function->glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, VERTEX_SIZE, (void*)(COORD_SIZE));
-    function->glEnableVertexAttribArray(1);
+    function->glVertexAttribPointer( 1, 4, GL_UNSIGNED_BYTE, GL_TRUE, VERTEX_SIZE,
+                                     (void*) ( COORD_SIZE ) );
+    function->glEnableVertexAttribArray( 1 );
     // a_shaderParams
-    function->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, VERTEX_SIZE, (void*)(COORD_SIZE + COLOR_SIZE));
-    function->glEnableVertexAttribArray(2);
+    function->glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, VERTEX_SIZE,
+                                     (void*) ( COORD_SIZE + COLOR_SIZE ) );
+    function->glEnableVertexAttribArray( 2 );
 
-    function->glBindVertexArray(0);
+    function->glBindVertexArray( 0 );
     //function->glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     
     m_shader->Use();
-    function->glBindVertexArray(vao);
-    function->glDrawArrays(GL_TRIANGLES, 0, m_container->GetSize());
-    function->glBindVertexArray(0);
+    function->glBindVertexArray( vao );
+    function->glDrawArrays( GL_TRIANGLES, 0, m_container->GetSize() );
+    function->glBindVertexArray( 0 );
     m_shader->Deactivate();
 
 
