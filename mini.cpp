@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/async.h>
+#include <filesystem>
 
 int main(int argc, char* argv[])
 {
@@ -10,7 +11,15 @@ int main(int argc, char* argv[])
 
     spdlog::init_thread_pool(8192, 1);
 
-    auto file_logger = spdlog::basic_logger_mt<spdlog::async_factory>("default", "log.txt", true);
+    std::filesystem::path logPath;
+#ifdef MINI_BUILD_DIR
+    logPath = std::filesystem::path(MINI_BUILD_DIR) / "log.txt";
+#else
+    logPath = std::filesystem::current_path() / "log.txt";
+#endif
+
+    auto file_logger = spdlog::basic_logger_mt<spdlog::async_factory>(
+            "default", logPath.string(), true );
     spdlog::set_default_logger(file_logger);
 
     spdlog::set_level(spdlog::level::level_enum::trace);

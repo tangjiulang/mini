@@ -53,6 +53,7 @@ add_subdirectory(font)
 add_subdirectory(TimeTest)
 
 add_executable (mini "mini.cpp" "mini.h" )
+target_compile_definitions(mini PRIVATE MINI_BUILD_DIR="${CMAKE_BINARY_DIR}")
 
 target_link_libraries(mini PUBLIC 
                         Qt6::Core
