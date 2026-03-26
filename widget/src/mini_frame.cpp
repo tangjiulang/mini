@@ -46,12 +46,15 @@ void MiniFrame::GeneratorData()
 void MiniFrame::InitialViewData()
 {
 	m_drawPanelGal->InitialViewData(m_dataManager);
+    m_drawPanelGal->Paint();
+    m_drawPanelGal->m_gal->update();
 }
 
 void MiniFrame::resizeEvent(QResizeEvent* event)
 {
 	m_drawPanelGal->ResizeEvent(event);
     m_drawPanelGal->Paint();
+    m_drawPanelGal->m_gal->update();
 }
 
 void MiniFrame::mousePressEvent(QMouseEvent* event)
@@ -64,6 +67,7 @@ void MiniFrame::mouseMoveEvent(QMouseEvent* event)
 {
 	m_drawPanelGal->SetCursor();
     m_drawPanelGal->Paint();
+    m_drawPanelGal->m_gal->update();
 }
 
 void MiniFrame::mouseReleaseEvent(QMouseEvent* event)

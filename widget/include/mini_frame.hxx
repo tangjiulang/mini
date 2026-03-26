@@ -22,10 +22,10 @@ protected:
     {
         m_drawPanelGal->onWheel(event);
         m_drawPanelGal->Paint();
+        m_drawPanelGal->m_gal->update();
     }
 
     void paintEvent(QPaintEvent* event) {
-        m_drawPanelGal->Paint();
     }
 
     void mousePressEvent(QMouseEvent* event) override;
