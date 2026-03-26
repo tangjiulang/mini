@@ -5,7 +5,7 @@
 
 void DataManager::GenerateData(MINI::VIEW* view)
 {
-    constexpr int N = 1; // 数量
+    constexpr int N = 20000; // 数量
     constexpr double WIDTH = 10000.0;
     constexpr double HEIGHT = 10000.0;
 
@@ -32,12 +32,9 @@ void DataManager::GenerateData(MINI::VIEW* view)
     //    m_rectangles.push_back(SHAPE_RECT{ view->ToWorld(VECTOR2D(x1, y1)), view->ToWorld(VECTOR2D(x2, y2)) });
     //}
     //
-    //for (int i = 0; i < N; ++i) {
-    //    double cx = distX(gen);
-    //    double cy = distY(gen);
-    //    double r = distR(gen);
-    //    m_circles.push_back(SHAPE_CIRCLE{ view->ToWorld(VECTOR2D(cx, cy)), static_cast<int32_t>(view->ToWorld(r)) });
-    //}
+    for (int i = 1; i < N; ++i) {
+        m_circles.push_back(SHAPE_CIRCLE{ view->ToWorld(VECTOR2D(500, 500)), static_cast<int32_t>(view->ToWorld(i % 500)) });
+    }
 
     //for (int i = 0; i < N; i++) {
     //    VECTOR2I center(0, 0);
@@ -51,12 +48,12 @@ void DataManager::GenerateData(MINI::VIEW* view)
     //    m_arcs.push_back(arc);
     //}
 
-    TEXT_ATTRIBUTES attrs;
-    attrs.m_StrokeWidth = 30000;
-    attrs.m_Size = { 1500000, 1500000 };
-    attrs.m_Mirrored = true;
-    attrs.m_Angle = EDA_ANGLE(180);
-    attrs.m_Font = KIFONT::FONT::GetFont("Arial");
+    //TEXT_ATTRIBUTES attrs;
+    //attrs.m_StrokeWidth = 30000;
+    //attrs.m_Size = { 1500000, 1500000 };
+    //attrs.m_Mirrored = true;
+    //attrs.m_Angle = EDA_ANGLE(180);
+    //attrs.m_Font = KIFONT::FONT::GetFont("Arial");
 
-    m_texts.push_back(MINI::DATA_Text{ "你好 hello, world", attrs, view->ToWorld(VECTOR2I{ 500, 500 }) });
+    //m_texts.push_back(MINI::DATA_Text{ "你好 hello, world", attrs, view->ToWorld(VECTOR2I{ 500, 500 }) });
 }

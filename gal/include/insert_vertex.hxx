@@ -6,6 +6,7 @@
 #include "color4d.hxx"
 #include "eda_angle.hxx"
 #include "vertex_container.hxx"
+#include "box2.hxx"
 
 namespace MINI {
 class INSERT_VERTEX {
@@ -93,6 +94,13 @@ public:
 		m_lineWidth = aLineWidth;
 	}
 
+    void SetVisibleWorldExtents( const BOX2D& aExtents )
+    {
+        m_visibleWorldExtents = aExtents;
+        m_visibleWorldExtents.Normalize();
+        m_hasVisibleWorldExtents = true;
+    }
+
 	void DrawLine(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);
 	void drawLineQuad(const VECTOR2D& startPoint, const VECTOR2D& endPoint);
 	void DrawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);
@@ -137,6 +145,8 @@ private:
     COLOR4D               m_fillColor;
     COLOR4D               m_strokeColor;
     double                m_lineWidth;
+    bool                  m_hasVisibleWorldExtents = false;
+    BOX2D                 m_visibleWorldExtents;
 };
 }
 

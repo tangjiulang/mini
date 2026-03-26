@@ -114,6 +114,46 @@ void MINI::INSERT_VERTEX::DrawCircle(const VECTOR2D& aCenterPoint, double aRadiu
 
 void MINI::INSERT_VERTEX::drawCircle(const VECTOR2D& aCenterPoint, double aRadius)
 {
+    double halfStrokeWidth = std::max( 0.0, m_lineWidth * 0.5 );
+    double strokeOuterRadius = aRadius + halfStrokeWidth;
+    double strokeInnerRadius = std::max( 0.0, aRadius - halfStrokeWidth );
+    double cullRadius = m_isStrokeEnabled ? strokeOuterRadius : aRadius;
+    bool strokeInvisibleInViewport = false;
+
+    if( m_hasVisibleWorldExtents )
+    {
+        BOX2D circleBox( aCenterPoint - VECTOR2D( cullRadius, cullRadius ),
+                         VECTOR2D( cullRadius * 2.0, cullRadius * 2.0 ) );
+
+        if( !m_visibleWorldExtents.Intersects( circleBox ) )
+            return;
+
+        if( m_isStrokeEnabled && strokeInnerRadius > 0.0 )
+        {
+            VECTOR2D corners[4] = {
+                { m_visibleWorldExtents.GetLeft(), m_visibleWorldExtents.GetTop() },
+                { m_visibleWorldExtents.GetRight(), m_visibleWorldExtents.GetTop() },
+                { m_visibleWorldExtents.GetRight(), m_visibleWorldExtents.GetBottom() },
+                { m_visibleWorldExtents.GetLeft(), m_visibleWorldExtents.GetBottom() }
+            };
+
+            double maxCornerDist2 = 0.0;
+
+            for( const VECTOR2D& corner : corners )
+            {
+                VECTOR2D delta = corner - aCenterPoint;
+                double dist2 = delta.SquaredEuclideanNorm();
+                maxCornerDist2 = std::max( maxCornerDist2, dist2 );
+            }
+
+            const double innerRadius2 = strokeInnerRadius * strokeInnerRadius;
+            strokeInvisibleInViewport = maxCornerDist2 <= innerRadius2;
+
+            if( strokeInvisibleInViewport && !m_isFillEnabled )
+                return;
+        }
+    }
+
     if (m_isFillEnabled)
     {
         m_currentVertex = m_container->Allocate(3);
@@ -126,7 +166,7 @@ void MINI::INSERT_VERTEX::drawCircle(const VECTOR2D& aCenterPoint, double aRadiu
                      { SHADER_FILLED_CIRCLE, 3.0, static_cast<GLfloat>(aRadius) });
     }
 
-    if (m_isStrokeEnabled)
+    if (m_isStrokeEnabled && !strokeInvisibleInViewport)
     {
         m_currentVertex = m_container->Allocate(3);
 
@@ -531,6 +571,43 @@ void MINI::INSERT_VERTEX::DrawArcSegment(const VECTOR2D& aCenterPoint, double aR
 
 void MINI::INSERT_VERTEX::DrawRectangle(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint)
 {
+    const double halfStrokeWidth = std::max(0.0, m_lineWidth * 0.5);
+    const double minX = std::min(aStartPoint.x, aEndPoint.x);
+    const double maxX = std::max(aStartPoint.x, aEndPoint.x);
+    const double minY = std::min(aStartPoint.y, aEndPoint.y);
+    const double maxY = std::max(aStartPoint.y, aEndPoint.y);
+    const double cullExpand = m_isStrokeEnabled ? halfStrokeWidth : 0.0;
+    bool strokeInvisibleInViewport = false;
+
+    if(m_hasVisibleWorldExtents)
+    {
+        BOX2D rectBox(VECTOR2D(minX - cullExpand, minY - cullExpand),
+                      VECTOR2D((maxX - minX) + 2.0 * cullExpand,
+                               (maxY - minY) + 2.0 * cullExpand));
+
+        if(!m_visibleWorldExtents.Intersects(rectBox))
+            return;
+
+        if(m_isStrokeEnabled)
+        {
+            const double innerLeft = minX + halfStrokeWidth;
+            const double innerRight = maxX - halfStrokeWidth;
+            const double innerTop = minY + halfStrokeWidth;
+            const double innerBottom = maxY - halfStrokeWidth;
+
+            if(innerLeft < innerRight && innerTop < innerBottom)
+            {
+                strokeInvisibleInViewport = m_visibleWorldExtents.GetLeft() >= innerLeft
+                                            && m_visibleWorldExtents.GetRight() <= innerRight
+                                            && m_visibleWorldExtents.GetTop() >= innerTop
+                                            && m_visibleWorldExtents.GetBottom() <= innerBottom;
+            }
+
+            if(strokeInvisibleInViewport && !m_isFillEnabled)
+                return;
+        }
+    }
+
     // Compute the diagonal points of the rectangle
     VECTOR2D diagonalPointA(aEndPoint.x, aStartPoint.y);
     VECTOR2D diagonalPointB(aStartPoint.x, aEndPoint.y);
@@ -549,7 +626,7 @@ void MINI::INSERT_VERTEX::DrawRectangle(const VECTOR2D& aStartPoint, const VECTO
     }
 
     // Stroke the outline
-    if (m_isStrokeEnabled)
+    if (m_isStrokeEnabled && !strokeInvisibleInViewport)
     {
         // DrawLine (and DrawPolyline )
         // has problem with 0 length lines so enforce minimum

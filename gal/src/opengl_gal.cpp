@@ -817,6 +817,46 @@ void OPENGL_GAL::DrawCircle( const VECTOR2D& aCenterPoint, double aRadius )
 
 void OPENGL_GAL::drawCircle( const VECTOR2D& aCenterPoint, double aRadius, bool aReserve )
 {
+    double halfStrokeWidth = std::max( 0.0, m_lineWidth * 0.5 );
+    double strokeOuterRadius = aRadius + halfStrokeWidth;
+    double strokeInnerRadius = std::max( 0.0, aRadius - halfStrokeWidth );
+    double cullRadius = m_isStrokeEnabled ? strokeOuterRadius : aRadius;
+    bool strokeInvisibleInViewport = false;
+
+    BOX2D visibleExtents = GetVisibleWorldExtents();
+    visibleExtents.Normalize();
+
+    BOX2D circleBox( aCenterPoint - VECTOR2D( cullRadius, cullRadius ),
+                     VECTOR2D( cullRadius * 2.0, cullRadius * 2.0 ) );
+
+    if( !visibleExtents.Intersects( circleBox ) )
+        return;
+
+    if( m_isStrokeEnabled && strokeInnerRadius > 0.0 )
+    {
+        VECTOR2D corners[4] = {
+            { visibleExtents.GetLeft(), visibleExtents.GetTop() },
+            { visibleExtents.GetRight(), visibleExtents.GetTop() },
+            { visibleExtents.GetRight(), visibleExtents.GetBottom() },
+            { visibleExtents.GetLeft(), visibleExtents.GetBottom() }
+        };
+
+        double maxCornerDist2 = 0.0;
+
+        for( const VECTOR2D& corner : corners )
+        {
+            VECTOR2D delta = corner - aCenterPoint;
+            double dist2 = delta.SquaredEuclideanNorm();
+            maxCornerDist2 = std::max( maxCornerDist2, dist2 );
+        }
+
+        const double innerRadius2 = strokeInnerRadius * strokeInnerRadius;
+        strokeInvisibleInViewport = maxCornerDist2 <= innerRadius2;
+
+        if( strokeInvisibleInViewport && !m_isFillEnabled )
+            return;
+    }
+
     if( m_isFillEnabled )
     {
         if( aReserve )
@@ -844,7 +884,7 @@ void OPENGL_GAL::drawCircle( const VECTOR2D& aCenterPoint, double aRadius, bool 
         m_currentManager->Vertex( aCenterPoint.x, aCenterPoint.y, m_layerDepth );
     }
 
-    if( m_isStrokeEnabled )
+    if( m_isStrokeEnabled && !strokeInvisibleInViewport )
     {
         if( aReserve )
             m_currentManager->Reserve( 3 );
@@ -1101,6 +1141,43 @@ void OPENGL_GAL::DrawArcSegment( const VECTOR2D& aCenterPoint, double aRadius,
 
 void OPENGL_GAL::DrawRectangle( const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint )
 {
+    const double halfStrokeWidth = std::max( 0.0, m_lineWidth * 0.5 );
+    const double minX = std::min( aStartPoint.x, aEndPoint.x );
+    const double maxX = std::max( aStartPoint.x, aEndPoint.x );
+    const double minY = std::min( aStartPoint.y, aEndPoint.y );
+    const double maxY = std::max( aStartPoint.y, aEndPoint.y );
+    const double cullExpand = m_isStrokeEnabled ? halfStrokeWidth : 0.0;
+    bool strokeInvisibleInViewport = false;
+
+    BOX2D visibleExtents = GetVisibleWorldExtents();
+    visibleExtents.Normalize();
+
+    BOX2D rectBox( VECTOR2D( minX - cullExpand, minY - cullExpand ),
+                   VECTOR2D( ( maxX - minX ) + 2.0 * cullExpand,
+                             ( maxY - minY ) + 2.0 * cullExpand ) );
+
+    if( !visibleExtents.Intersects( rectBox ) )
+        return;
+
+    if( m_isStrokeEnabled )
+    {
+        const double innerLeft = minX + halfStrokeWidth;
+        const double innerRight = maxX - halfStrokeWidth;
+        const double innerTop = minY + halfStrokeWidth;
+        const double innerBottom = maxY - halfStrokeWidth;
+
+        if( innerLeft < innerRight && innerTop < innerBottom )
+        {
+            strokeInvisibleInViewport = visibleExtents.GetLeft() >= innerLeft
+                                        && visibleExtents.GetRight() <= innerRight
+                                        && visibleExtents.GetTop() >= innerTop
+                                        && visibleExtents.GetBottom() <= innerBottom;
+        }
+
+        if( strokeInvisibleInViewport && !m_isFillEnabled )
+            return;
+    }
+
     // Compute the diagonal points of the rectangle
     VECTOR2D diagonalPointA( aEndPoint.x, aStartPoint.y );
     VECTOR2D diagonalPointB( aStartPoint.x, aEndPoint.y );
@@ -1122,7 +1199,7 @@ void OPENGL_GAL::DrawRectangle( const VECTOR2D& aStartPoint, const VECTOR2D& aEn
     }
 
     // Stroke the outline
-    if( m_isStrokeEnabled )
+    if( m_isStrokeEnabled && !strokeInvisibleInViewport )
     {
         m_currentManager->Color( m_strokeColor.r, m_strokeColor.g, m_strokeColor.b,
                                  m_strokeColor.a );

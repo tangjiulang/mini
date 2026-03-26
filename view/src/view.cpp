@@ -213,7 +213,7 @@ namespace MINI {
         if (aRequired)
             m_layers[aLayerId].requiredLayers.insert(aRequiredId);
         else
-            m_layers[aLayerId].requiredLayers.erase(aRequired);
+            m_layers[aLayerId].requiredLayers.erase(aRequiredId);
     }
 
 
@@ -818,7 +818,6 @@ namespace MINI {
 
     void VIEW::redrawRect(const BOX2I& aRect)
     {
-        auto t0 = std::chrono::high_resolution_clock::now();
         for (VIEW_LAYER* l : m_orderedLayers)
         {
             if (l->visible && IsTargetDirty(l->target) && areRequiredLayersEnabled(l->id))
@@ -857,15 +856,15 @@ namespace MINI {
                 }
             }
         }
-        auto t1 = std::chrono::high_resolution_clock::now();
-
-        double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
-        std::cout << "Time: " << ms << " ms\n";
     }
 
     void VIEW::RedrawRect(const BOX2I& aRect)
     {
-        auto t0 = std::chrono::high_resolution_clock::now();
+        BOX2D visibleWorldExtents;
+        visibleWorldExtents.SetOrigin( aRect.GetOrigin() );
+        visibleWorldExtents.SetEnd( aRect.GetEnd() );
+        visibleWorldExtents.Normalize();
+
         std::vector<std::future<void>> returns;
         for (VIEW_LAYER* l : m_orderedLayers)
         {
@@ -883,6 +882,7 @@ namespace MINI {
                         painter->m_insertVertex->SetLayerDepth(l->renderingOrder);
                         painter->m_insertVertex->SetMergeManager(gal->GetVertexManagerByTarget(l->target));
                         painter->m_insertVertex->SetTransformation(gal->GetVertexManagerByTarget(l->target)->GetTransformation());
+                        painter->m_insertVertex->SetVisibleWorldExtents( visibleWorldExtents );
                     }
 
                     // Differential layer also work for the negatives, since both special layer types
@@ -922,10 +922,6 @@ namespace MINI {
         for (auto painter : m_threadPool->m_painters)
             painter->m_insertVertex->MergeToManager();
 
-        auto t1 = std::chrono::high_resolution_clock::now();
-
-        double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
-        std::cout << "Time: " << ms << " ms\n";
     }
 
     void VIEW::draw(VIEW_ITEM* aItem, int aLayer, PAINTER* aPainter, bool aImmediate)
