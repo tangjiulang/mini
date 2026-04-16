@@ -423,6 +423,8 @@ void DrawPanelGal::Paint()
 	}
     m_gal->SetCursorColor(MINI::COLOR4D::WHITE);
 	m_gal->DrawCursor(m_cursor);
+
+    m_gal->PostPaint();
 }
 
 void DrawPanelGal::SetCursor()

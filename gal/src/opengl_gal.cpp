@@ -414,11 +414,7 @@ std::string OPENGL_GAL::CheckFeatures( GAL_DISPLAY_OPTIONS& aOptions )
 void OPENGL_GAL::PostPaint()
 {
     // posts an event to m_paint_listener to ask for redraw the canvas.
-    emit paintRequested();
-}
-
-void OPENGL_GAL::paintRequested() {
-    paintGL();
+    repaint();
 }
 
 bool OPENGL_GAL::updatedGalDisplayOptions( const GAL_DISPLAY_OPTIONS& aOptions )
