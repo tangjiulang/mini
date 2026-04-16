@@ -880,7 +880,6 @@ namespace MINI {
                         auto painter = m_threadPool->m_painters[m_threadPool->m_threadToPainter[id]];
                         painter->m_insertVertex->SetMergeManager(gal->GetVertexManagerByTarget(l->target));
                         painter->m_insertVertex->SetLayerDepth(l->renderingOrder);
-                        painter->m_insertVertex->SetMergeManager(gal->GetVertexManagerByTarget(l->target));
                         painter->m_insertVertex->SetTransformation(gal->GetVertexManagerByTarget(l->target)->GetTransformation());
                         painter->m_insertVertex->SetVisibleWorldExtents( visibleWorldExtents );
                     }
@@ -1408,14 +1407,12 @@ namespace MINI {
 
         if (ratio > 0.3)
         {
-            auto allItems = *m_allItems;
-
             // kill all Rtrees
             for (auto& [_, layer] : m_layers)
                 layer.items->RemoveAll();
 
             // and re-insert items from scratch
-            for (VIEW_ITEM* item : allItems)
+            for(VIEW_ITEM* item : *m_allItems)
             {
                 if (!item)
                     continue;

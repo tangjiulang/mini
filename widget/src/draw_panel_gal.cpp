@@ -350,6 +350,7 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
 	  m_gal(nullptr),
 	  m_view(nullptr),
 	  m_painter(nullptr),
+	  m_control(nullptr),
 	  m_backend(GAL_TYPE_NONE)
 {
 	SwitchBackend(aGalType);
@@ -390,8 +391,10 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType)
 
 DrawPanelGal::~DrawPanelGal()
 {
+	delete m_control;
 	delete m_view;
 	delete m_gal;
+	m_control = nullptr;
 	m_view = nullptr;
 	m_gal = nullptr;    // Ensure OnShow is not called
 }
