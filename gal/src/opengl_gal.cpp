@@ -499,7 +499,7 @@ void OPENGL_GAL::BeginDrawing()
         m_isFramebufferInitialized = true;
     }
 
-    //m_compositor->Begin();
+    m_compositor->Begin();
 
     // Disable 2D Textures
     this->glDisable( GL_TEXTURE_2D );
