@@ -292,7 +292,7 @@ OPENGL_GAL::OPENGL_GAL(GAL_DISPLAY_OPTIONS& aDisplayOptions,
     m_bitmapCache = std::make_unique<GL_BITMAP_CACHE>();
 
     m_compositor = new OPENGL_COMPOSITOR;
-    m_compositor->SetAntialiasingMode( m_options.antialiasing_mode );
+    m_compositor->SetAntialiasingMode(GAL_ANTIALIASING_MODE::AA_FAST);
 
     // Initialize the flags
     m_isFramebufferInitialized = false;

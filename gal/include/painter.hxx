@@ -6,6 +6,7 @@
 
 namespace MINI 
 {
+class VIEW;
 class VIEW_ITEM;
 class PAINTER {
 public:
@@ -40,8 +41,14 @@ public:
         m_gal = aGal;
     }
 
+    void SetView(const VIEW* aView)
+    {
+        m_view = aView;
+    }
+
 protected:
     GAL* m_gal;
+    const VIEW* m_view;
 public:
 	INSERT_VERTEX* m_insertVertex;
 };

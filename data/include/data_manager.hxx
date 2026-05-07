@@ -14,17 +14,18 @@ namespace MINI
 class VIEW;
 }
 
-class DataManager {
+class DataManager
+{
 public:
-	DataManager() = default;
-	void GenerateData(MINI::VIEW* view);
-	std::vector<MINI::DATA_Circle>		m_circles;
-	std::vector<MINI::DATA_Line>		m_lines;
-	std::vector<MINI::DATA_Rectangle>	m_rectangles;
-	std::vector<MINI::DATA_Triangle>	m_triangles;
-	std::vector<MINI::DATA_Polyline>	m_polylines;
-	std::vector<MINI::DATA_Polygon>	m_polygons;
-	std::vector<MINI::DATA_Arc>		m_arcs;
-	std::vector<MINI::DATA_PolySet>	m_polySet;
-	std::vector<MINI::DATA_Text>		m_texts;
+    DataManager() = default;
+    void                              GenerateData(MINI::VIEW* view);
+    std::vector<MINI::DATA_Circle>    m_circles;
+    std::vector<MINI::DATA_Line>      m_lines;
+    std::vector<MINI::DATA_Rectangle> m_rectangles;
+    std::vector<MINI::DATA_Triangle>  m_triangles;
+    std::vector<MINI::DATA_Polyline>  m_polylines;
+    std::vector<MINI::DATA_Polygon>   m_polygons;
+    std::vector<MINI::DATA_Arc>       m_arcs;
+    std::vector<MINI::DATA_PolySet>   m_polySet;
+    std::vector<MINI::DATA_Text>      m_texts;
 };

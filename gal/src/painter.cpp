@@ -3,7 +3,8 @@
 using namespace MINI;
 
 PAINTER::PAINTER(MINI::GAL* gal, bool isCached) :
-	m_gal(gal) 
+	m_gal(gal),
+    m_view(nullptr)
 {
 	OPENGL_GAL* openglGal = dynamic_cast<OPENGL_GAL*>(m_gal);
 	m_insertVertex = new INSERT_VERTEX(openglGal->GetCurrentManager(), isCached);

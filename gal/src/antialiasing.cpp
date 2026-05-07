@@ -466,7 +466,8 @@ void draw_fullscreen_triangle()
 {
     static GLuint vao = 0;
     static GLuint vbo = 0;
-
+    static QOpenGLContext*            context = QOpenGLContext::currentContext();
+    QOpenGLContext*            currentContext = QOpenGLContext::currentContext();
     QOpenGLFunctions_3_3_Core* function = QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_3_3_Core>(QOpenGLContext::currentContext());
 
     struct Vertex {
@@ -481,10 +482,10 @@ void draw_fullscreen_triangle()
         { { 3.f,  1.f}, {2.f, 1.f} }
     };
 
-    if( vao == 0 )
+    if( vao == 0 || context != currentContext)
         function->glGenVertexArrays( 1, &vao );
 
-    if( vbo == 0 )
+    if( vbo == 0 || context != currentContext)
     {
         function->glGenBuffers( 1, &vbo );
         function->glBindVertexArray( vao );
@@ -498,6 +499,8 @@ void draw_fullscreen_triangle()
                                          (void*) ( sizeof( float ) * 2 ) );
         function->glBindVertexArray( 0 );
     }
+
+    context = currentContext;
 
     // ===== 绘制 =====
 

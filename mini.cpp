@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
     spdlog::set_default_logger(file_logger);
 
     spdlog::set_level(spdlog::level::level_enum::trace);
+    spdlog::flush_on(spdlog::level::info);
 
     MiniFrame w;
     w.show();

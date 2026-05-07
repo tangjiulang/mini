@@ -12,6 +12,7 @@ public:
 	DATA_Circle(SHAPE_CIRCLE circle, PCB_LAYER_ID aLayer, double = 1);
 
 	virtual const BOX2I GetBoundingBox() const override;
+	double ViewGetLOD(int aLayer, const VIEW* aView) const override;
 	std::string GetClass() const override {
 		return "Circle";
 	}

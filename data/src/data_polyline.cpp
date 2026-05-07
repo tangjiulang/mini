@@ -1,4 +1,5 @@
 #include "DATA_Polyline.hxx"
+#include "data_vw_lod.hxx"
 
 #include <boost/geometry.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
@@ -28,6 +29,22 @@ MINI::DATA_Polyline::DATA_Polyline(SHAPE_LINE_CHAIN polyline, PCB_LAYER_ID aLaye
 const BOX2I MINI::DATA_Polyline::GetBoundingBox() const
 {
 	return m_polyline.BBox();
+}
+
+const SHAPE_LINE_CHAIN& MINI::DATA_Polyline::GetDrawPolyline(const VIEW* aView) const
+{
+    const int tolerance = DATA_VW_LOD::GetTolerance(aView);
+
+    if (tolerance <= 0)
+        return m_polyline;
+
+    if (m_lodTolerance != tolerance)
+    {
+        m_lodPolyline = DATA_VW_LOD::SimplifyLineChain(m_polyline, tolerance);
+        m_lodTolerance = tolerance;
+    }
+
+    return m_lodPolyline;
 }
 
 

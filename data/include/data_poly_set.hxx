@@ -14,6 +14,7 @@ namespace MINI {
 		DATA_PolySet(SHAPE_POLY_SET, PCB_LAYER_ID aLayer, double = 1);
 
 		virtual const BOX2I GetBoundingBox() const override;
+        const SHAPE_POLY_SET& GetDrawPolySet(const VIEW* aView) const;
 
 		std::string GetClass() const override {
 			return "PolySet";
@@ -22,5 +23,9 @@ namespace MINI {
 		SHAPE_POLY_SET m_polySet;
 
 		double m_lineWidth;
+
+    private:
+        mutable int            m_lodTolerance = -1;
+        mutable SHAPE_POLY_SET m_lodPolySet;
 	};
 }

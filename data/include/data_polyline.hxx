@@ -14,6 +14,7 @@ namespace MINI {
 		DATA_Polyline(SHAPE_LINE_CHAIN, PCB_LAYER_ID aLayer, double = 1);
 
 		virtual const BOX2I GetBoundingBox() const override;
+        const SHAPE_LINE_CHAIN& GetDrawPolyline(const VIEW* aView) const;
 
 		std::string GetClass() const override {
 			return "Polyline";
@@ -22,5 +23,9 @@ namespace MINI {
 		SHAPE_LINE_CHAIN m_polyline;
 
 		double m_lineWidth;
+
+    private:
+        mutable int              m_lodTolerance = -1;
+        mutable SHAPE_LINE_CHAIN m_lodPolyline;
 	};
 }

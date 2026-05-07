@@ -299,8 +299,15 @@ void MINI::INSERT_VERTEX::drawPolygon(GLdouble* aPoints, int aPointCount)
             for (int j = 0; j < 3; ++j)
             {
                 int index = poly[j];
-                if (index != TESS_UNDEF)
-                    InsertVertex({ verts[index * 3 + 0],  verts[index * 3 + 1], }, verts[index * 3 + 2], m_fillColor, { SHADER_NONE });
+                if (index != TESS_UNDEF) {
+                    m_currentVertex = m_container->Allocate(1);
+                    InsertVertex(
+                            {
+                                    verts[index * 3 + 0],
+                                    verts[index * 3 + 1],
+                            },
+                            verts[index * 3 + 2], m_fillColor, { SHADER_NONE });
+                }
             }
         }
 

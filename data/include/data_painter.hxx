@@ -5,7 +5,8 @@
 #include <text_attributes.hxx>
 #include <font_metrics.hxx>
 
-namespace MINI {
+namespace MINI
+{
 
 class DATA_Triangle;
 class DATA_Rectangle;
@@ -20,22 +21,20 @@ class DATA_Text;
 class DATA_PAINTER : public PAINTER
 {
 public:
-	DATA_PAINTER(GAL* aGal);
+    DATA_PAINTER(GAL* aGal);
 
-	virtual DATA_RENDER_SETTINGS* GetSettings() override
-	{
-		return &m_dataSettings;
-	}
-	virtual bool Draw(const VIEW_ITEM* aItem, int aLayer) override;
+    virtual DATA_RENDER_SETTINGS* GetSettings() override { return &m_dataSettings; }
+    virtual bool                  Draw(const VIEW_ITEM* aItem, int aLayer) override;
+
 protected:
-	void draw(const DATA_Triangle* aTriangle, int aLayer);
-	void draw(const DATA_Rectangle* a_Rectangle, int aLayer);
-	void draw(const DATA_Line* aLine, int aLayer);
-	void draw(const DATA_Circle* aCircle, int aLayer);
-	void draw(const DATA_Polyline* aPolygon, int aLayer);
-	void draw(const DATA_Polygon* aPolygon, int aLayer);
-	void draw(const DATA_Arc* aArc, int aLayer);
-	void draw(DATA_PolySet* aPolySet, int aLayer);
+    void draw(const DATA_Triangle* aTriangle, int aLayer);
+    void draw(const DATA_Rectangle* a_Rectangle, int aLayer);
+    void draw(const DATA_Line* aLine, int aLayer);
+    void draw(const DATA_Circle* aCircle, int aLayer);
+    void draw(const DATA_Polyline* aPolygon, int aLayer);
+    void draw(const DATA_Polygon* aPolygon, int aLayer);
+    void draw(const DATA_Arc* aArc, int aLayer);
+    void draw(DATA_PolySet* aPolySet, int aLayer);
     void draw(const DATA_Text* aText, int aLayer);
 
 private:
@@ -43,7 +42,7 @@ private:
                     const KIFONT::METRICS& aFontMetrics);
 
 protected:
-	DATA_RENDER_SETTINGS m_dataSettings;
+    DATA_RENDER_SETTINGS m_dataSettings;
 };
 
-}
+} // namespace MINI

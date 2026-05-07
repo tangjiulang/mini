@@ -943,6 +943,7 @@ namespace MINI {
         else
         {
             // Immediate mode
+            aPainter->SetView(this);
             if (!aPainter->Draw(aItem, aLayer))
                 aItem->ViewDraw(aLayer, this);  // Alternative drawing method
         }
@@ -968,6 +969,7 @@ namespace MINI {
         else
         {
             // Immediate mode
+            m_painter->SetView(this);
             if (!m_painter->Draw(aItem, aLayer))
                 aItem->ViewDraw(aLayer, this);  // Alternative drawing method
         }
@@ -1238,6 +1240,7 @@ namespace MINI {
         group = m_gal->BeginGroup();
         viewData->setGroup(aLayer, group);
 
+        m_painter->SetView(this);
         if (!m_painter->Draw(aItem, aLayer))
             aItem->ViewDraw(aLayer, this); // Alternative drawing method
 

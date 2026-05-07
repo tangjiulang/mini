@@ -2,6 +2,7 @@
 #include "reader.hxx"
 #include "TranslateToData.hxx"
 #include <QBoxLayout>
+#include <spdlog/spdlog.h>
 
 MiniFrame::MiniFrame(QWidget* parent)
 	: QMainWindow(parent)
@@ -32,6 +33,7 @@ MiniFrame::~MiniFrame()
 
 void MiniFrame::GeneratorData()
 {
+    spdlog::info("GeneratorData start");
 	//std::string filePath = "C:\\Users\\Administrator\\Documents\\preview.xml";
 	//IPC2581Document doc(filePath);
 	//doc.DocumentReader();
@@ -41,12 +43,15 @@ void MiniFrame::GeneratorData()
 	//TranslateToData translate(&doc.m_ecad, m_dataManager, m_drawPanelGal->m_view);
 	//translate.Translate(m_drawPanelGal->m_view);
 	m_dataManager->GenerateData(m_drawPanelGal->m_view);
+    spdlog::info("GeneratorData done");
 }
 
 void MiniFrame::InitialViewData()
 {
+    spdlog::info("InitialViewData start");
 	m_drawPanelGal->InitialViewData(m_dataManager);
     m_drawPanelGal->Paint();
+    spdlog::info("InitialViewData done");
 }
 
 void MiniFrame::resizeEvent(QResizeEvent* event)
