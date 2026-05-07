@@ -1,4 +1,4 @@
-file(GLOB Src_List ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+file(GLOB Src_List CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 add_library(data STATIC ${Src_List})
 

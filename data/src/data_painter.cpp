@@ -1,6 +1,7 @@
 #include "data_painter.hxx"
 #include "data_board_item.hxx"
 #include "data_line.hxx"
+#include "data_line_batch.hxx"
 #include "data_circle.hxx"
 #include "data_triangle.hxx"
 #include "data_rectangle.hxx"
@@ -27,6 +28,9 @@ bool MINI::DATA_PAINTER::Draw(const VIEW_ITEM* aItem, int aLayer)
     case ITEM_TYPE::LINE:
         // draw line
         draw(static_cast<const DATA_Line*>(item), aLayer);
+        break;
+    case ITEM_TYPE::LINE_BATCH:
+        draw(static_cast<const DATA_LineBatch*>(item), aLayer);
         break;
     case ITEM_TYPE::CIRCLE:
         // draw circle
@@ -93,6 +97,16 @@ void MINI::DATA_PAINTER::draw(const DATA_Line* aLine, int aLayer)
 
     m_gal->DrawLine(aLine->m_line.GetSeg().A, aLine->m_line.GetSeg().B);
 }
+
+void MINI::DATA_PAINTER::draw(const DATA_LineBatch* aLineBatch, int aLayer)
+{
+    COLOR4D color = m_dataSettings.GetColor(aLineBatch, aLayer);
+    m_gal->SetStrokeColor(color);
+    m_gal->SetFillColor(color);
+    m_gal->SetLineWidth(aLineBatch->LineWidth());
+    m_gal->DrawLineSegments(aLineBatch->Lines());
+}
+
 void MINI::DATA_PAINTER::draw(const DATA_Circle* aCircle, int aLayer)
 {
     COLOR4D color = m_dataSettings.GetColor(aCircle, aLayer);

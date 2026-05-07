@@ -14,6 +14,7 @@ enum class ITEM_TYPE
     TRIANGLE,
     RECTANGLE,
     LINE,
+    LINE_BATCH,
     ARC,
     CIRCLE,
     POLYGON,

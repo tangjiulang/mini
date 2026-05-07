@@ -101,6 +101,7 @@ public:
 
     /// @copydoc GAL::DrawLine()
     void DrawLine( const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint ) override;
+    void DrawLineSegments( const std::vector<LineSegmentData>& aLines ) override;
 
     /// @copydoc GAL::DrawSegment()
     void DrawSegment( const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint,

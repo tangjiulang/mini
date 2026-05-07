@@ -9,6 +9,35 @@ void MINI::INSERT_VERTEX::DrawLine(const VECTOR2D& aStartPoint, const VECTOR2D& 
     drawLineQuad(aStartPoint, aEndPoint);
 }
 
+void MINI::INSERT_VERTEX::DrawLineSegments(const std::vector<LineSegmentData>& aLines)
+{
+    if(aLines.empty())
+        return;
+
+    m_currentVertex = m_container->Allocate(static_cast<unsigned int>(aLines.size() * 6));
+
+    for(const LineSegmentData& line : aLines)
+    {
+        auto v1 = m_transform * glm::vec4(line.start.x, line.start.y, 0.0, 0.0);
+        auto v2 = m_transform * glm::vec4(line.end.x, line.end.y, 0.0, 0.0);
+
+        VECTOR2D vs(v2.x - v1.x, v2.y - v1.y);
+
+        InsertVertex(line.start, m_layerDepth, m_strokeColor,
+                     { (GLfloat) SHADER_LINE_A, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+        InsertVertex(line.start, m_layerDepth, m_strokeColor,
+                     { (GLfloat) SHADER_LINE_B, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+        InsertVertex(line.end, m_layerDepth, m_strokeColor,
+                     { (GLfloat) SHADER_LINE_C, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+        InsertVertex(line.end, m_layerDepth, m_strokeColor,
+                     { (GLfloat) SHADER_LINE_D, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+        InsertVertex(line.end, m_layerDepth, m_strokeColor,
+                     { (GLfloat) SHADER_LINE_E, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+        InsertVertex(line.start, m_layerDepth, m_strokeColor,
+                     { (GLfloat) SHADER_LINE_F, (GLfloat) m_lineWidth, (GLfloat) vs.x, (GLfloat) vs.y });
+    }
+}
+
 void MINI::INSERT_VERTEX::drawLineQuad(const VECTOR2D& aStartPoint, const  VECTOR2D& aEndPoint)
 {
 	m_currentVertex =  m_container->Allocate(6);

@@ -1,10 +1,12 @@
 #pragma once
 #include <array>
 #include <stack>
+#include <vector>
 #include <glm/gtc/matrix_transform.hpp>
 #include "vertex_manager.hxx"
 #include "color4d.hxx"
 #include "eda_angle.hxx"
+#include "line_segment_data.hxx"
 #include "vertex_container.hxx"
 #include "box2.hxx"
 
@@ -102,6 +104,7 @@ public:
     }
 
 	void DrawLine(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);
+    void DrawLineSegments(const std::vector<LineSegmentData>& aLines);
 	void drawLineQuad(const VECTOR2D& startPoint, const VECTOR2D& endPoint);
 	void DrawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);
 	void drawSegment(const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint);

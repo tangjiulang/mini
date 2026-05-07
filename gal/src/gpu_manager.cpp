@@ -295,6 +295,9 @@ void GPU_NONCACHED_MANAGER::EndDrawing()
 
     VERTEX *vertices = m_container->GetAllVertices();
 
+    if(m_container->GetSize() > 1000)
+        qDebug() << m_container->GetSize();
+
     if( m_enableDepthTest )
         function->glEnable( GL_DEPTH_TEST );
     else

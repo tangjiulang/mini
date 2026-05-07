@@ -739,6 +739,19 @@ void OPENGL_GAL::DrawLine( const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoin
 }
 
 
+void OPENGL_GAL::DrawLineSegments( const std::vector<LineSegmentData>& aLines )
+{
+    if( aLines.empty() )
+        return;
+
+    m_currentManager->Color( m_strokeColor.r, m_strokeColor.g, m_strokeColor.b, m_strokeColor.a );
+    reserveLineQuads( static_cast<int>( aLines.size() ) );
+
+    for( const LineSegmentData& line : aLines )
+        drawLineQuad( line.start, line.end, false );
+}
+
+
 void OPENGL_GAL::DrawSegment( const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint,
                               double aWidth )
 {

@@ -11,6 +11,7 @@ namespace MINI
 class DATA_Triangle;
 class DATA_Rectangle;
 class DATA_Line;
+class DATA_LineBatch;
 class DATA_Circle;
 class DATA_Polyline;
 class DATA_Polygon;
@@ -30,6 +31,7 @@ protected:
     void draw(const DATA_Triangle* aTriangle, int aLayer);
     void draw(const DATA_Rectangle* a_Rectangle, int aLayer);
     void draw(const DATA_Line* aLine, int aLayer);
+    void draw(const DATA_LineBatch* aLineBatch, int aLayer);
     void draw(const DATA_Circle* aCircle, int aLayer);
     void draw(const DATA_Polyline* aPolygon, int aLayer);
     void draw(const DATA_Polygon* aPolygon, int aLayer);

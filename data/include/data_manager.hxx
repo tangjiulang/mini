@@ -1,6 +1,7 @@
 #pragma once
 #include "data_circle.hxx"
 #include "data_line.hxx"
+#include "data_line_batch.hxx"
 #include "data_rectangle.hxx"
 #include "data_triangle.hxx"
 #include "data_polyline.hxx"
@@ -19,8 +20,11 @@ class DataManager
 public:
     DataManager() = default;
     void                              GenerateData(MINI::VIEW* view);
+    void                              GenerateLineBatchTestData(MINI::VIEW* aView);
+    void                              GeneratePolygonTestData(MINI::VIEW* aView);
     std::vector<MINI::DATA_Circle>    m_circles;
     std::vector<MINI::DATA_Line>      m_lines;
+    std::vector<MINI::DATA_LineBatch> m_lineBatches;
     std::vector<MINI::DATA_Rectangle> m_rectangles;
     std::vector<MINI::DATA_Triangle>  m_triangles;
     std::vector<MINI::DATA_Polyline>  m_polylines;

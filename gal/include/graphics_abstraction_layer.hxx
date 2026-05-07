@@ -4,6 +4,7 @@
 #include <deque>
 #include <stack>
 #include <limits>
+#include <vector>
 
 #include "matrix3x3.hxx"
 
@@ -12,6 +13,7 @@
 #include "color4d.hxx"
 #include "gal/include/cursors.hxx"
 #include "gal/include/definitions.hxx"
+#include "gal/include/line_segment_data.hxx"
 #include <gal/include/gal_display_options.hxx>
 #include "gal/include/utils.hxx"
 #include <glyph.hxx>
@@ -96,6 +98,7 @@ public:
      * @param aEndPoint     is the end point of the line.
      */
     virtual void DrawLine( const VECTOR2D& aStartPoint, const VECTOR2D& aEndPoint ) {};
+    virtual void DrawLineSegments( const std::vector<LineSegmentData>& aLines ) {};
 
     /**
      * Draw a rounded segment.

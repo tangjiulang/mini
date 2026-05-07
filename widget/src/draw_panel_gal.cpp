@@ -2,6 +2,7 @@
 #include "geometry_utils.hxx"
 #include "data_painter.hxx"
 #include "data_manager.hxx"
+#include "data_line_batch_builder.hxx"
 #include "gal/include/vertex_thread_pool.hxx"
 #include "data_thread_painter.hxx"
 
@@ -467,9 +468,10 @@ void DrawPanelGal::InitialViewData(DataManager* data)
         m_view->Add(&arc);
     }
 
+    data->m_lineBatches = MINI::BuildLineBatches(data->m_lines);
 
-    for(auto& line : data->m_lines)
-        m_view->Add(&line);
+    for(auto& lineBatch : data->m_lineBatches)
+        m_view->Add(&lineBatch);
 
     for(auto& text : data->m_texts)
         m_view->Add(&text);

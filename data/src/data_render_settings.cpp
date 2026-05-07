@@ -37,7 +37,7 @@ MINI::COLOR4D MINI::DATA_RENDER_SETTINGS::GetColor(const BOARD_ITEM* aItem, int 
 
     if (aItem->Type() == ITEM_TYPE::CIRCLE)
         color = COLOR4D(0.5, 0, 0.5, 0.7);
-    else if (aItem->Type() == ITEM_TYPE::LINE)
+    else if (aItem->Type() == ITEM_TYPE::LINE || aItem->Type() == ITEM_TYPE::LINE_BATCH)
         color = COLOR4D(0, 0.5, 0.5, 0.7);
 
     else 
