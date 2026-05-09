@@ -181,8 +181,6 @@ DrawPanelGal::DrawPanelGal(QWidget* parent, QSize aSize, GAL_TYPE aGalType) :
     // This fixes the zoom in and zoom out limits:
     m_view->SetScaleLimits(ZOOM_MAX_LIMIT_DATA, ZOOM_MIN_LIMIT_DATA);
 
-    for(int i = 0; i < MINI::VIEW::VIEW_MAX_LAYERS; i++)
-        m_view->SetLayerTarget(i, MINI::TARGET_NONCACHED);
 
     qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
     m_gal->show();
@@ -233,6 +231,9 @@ void DrawPanelGal::Paint()
 
     m_gal->makeCurrent();
 
+    if(m_view->IsDirty())
+        m_view->UpdateItems();
+
     MINI::GAL_DRAWING_CONTEXT ctx(m_gal);
 
     m_gal->SetCursorEnabled(true);
@@ -277,7 +278,7 @@ void DrawPanelGal::DrawSelectRect()
 void DrawPanelGal::SetDefaultLayerDeps()
 {
     // caching makes no sense for Cairo and other software renderers
-    auto target = MINI::TARGET_NONCACHED;
+    auto target = MINI::TARGET_CACHED;
 
     for(int i = 0; i < MINI::VIEW::VIEW_MAX_LAYERS; i++)
         m_view->SetLayerTarget(i, target);

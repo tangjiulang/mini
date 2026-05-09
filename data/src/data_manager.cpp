@@ -128,6 +128,22 @@ void DataManager::GenerateData(MINI::VIEW* view)
 void DataManager::GenerateLineBatchTestData(MINI::VIEW* aView)
 {
     spdlog::info("GenerateLineBatchTestData start");
+    (void) aView;
+
+    constexpr int kLineCount = 1000000;
+    constexpr int kLineStartX = -250000000;
+    constexpr int kLineEndX = 250000000;
+
+    m_lines.reserve(kLineCount);
+
+    for(int idx = 0; idx < kLineCount; ++idx)
+    {
+        const int y = -100000 + idx * 200;
+        m_lines.emplace_back(SHAPE_SEGMENT(VECTOR2I(kLineStartX, y), VECTOR2I(kLineEndX, y)), F_Cu, 2.0);
+    }
+
+    spdlog::info("GenerateLineBatchTestData done with {} lines (target {})", m_lines.size(), kLineCount);
+    return;
 
     constexpr int kGroupRows = 50;
     constexpr int kGroupCols = 50;

@@ -167,16 +167,16 @@ void GPU_CACHED_MANAGER::EndDrawing()
 
 
     // a_position
-    function->glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof( GLfloat ), (void*) 0 );
-    function->glEnableVertexAttribArray( 0 );
+    function->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, VERTEX_SIZE, (void*) 0);
+    function->glEnableVertexAttribArray(0);
     // a_color
-    function->glVertexAttribPointer( 1, 4, GL_FLOAT, GL_TRUE, 11 * sizeof( GLfloat ),
-                                     (void*) ( 3 * sizeof( GLfloat ) ) );
-    function->glEnableVertexAttribArray( 1 );
+    function->glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, VERTEX_SIZE, (void*) (COORD_SIZE));
+    function->glEnableVertexAttribArray(1);
     // a_shaderParams
-    function->glVertexAttribPointer( 2, 4, GL_FLOAT, GL_FALSE, 11 * sizeof( GLfloat ),
-                                     (void*) ( 7 * sizeof( GLfloat ) ) );
-    function->glEnableVertexAttribArray( 2 );
+    function->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, VERTEX_SIZE, (void*) (COORD_SIZE + COLOR_SIZE));
+    function->glEnableVertexAttribArray(2);
+
+    function->glBindVertexArray(0);
 
     PROF_TIMER cntDraw( "gl-draw-elements" );
 

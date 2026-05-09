@@ -242,6 +242,7 @@ bool CACHED_CONTAINER_GPU::defragmentResizeMemcpy( unsigned int aNewSize )
     newBuffer.bind();
     newBuffer.allocate(aNewSize * VERTEX_SIZE);
     newBufferMem = static_cast<VERTEX*>(newBuffer.map(QOpenGLBuffer::WriteOnly));
+    newBuffer.unmap();
     newBuffer.release();
     checkGlError( "creating buffer during defragmentation", __FILE__, __LINE__ );
 

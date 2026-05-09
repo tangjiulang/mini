@@ -1,4 +1,5 @@
 #include "view_control.hxx"
+#include <geometry_utils.hxx>
 
 constexpr double defaultZoomScale = 0.005;
 
@@ -36,8 +37,11 @@ void ViewControler::onWheel(QWheelEvent* aEvent)
 		rotation = numDegrees.x() * -1;
 
 	if (ctrl) {
-		const double zoomScale = GetScaleFroRotation(rotation);
-		m_view->SetScale(m_view->GetScale() * zoomScale);
+        const double zoomScale = GetScaleFroRotation(rotation);
+        QPointF      localPos = aEvent->position();
+        VECTOR2D     newCursor = { (double) localPos.x(), m_gal->GetScreenPixelSize().y - (double) localPos.y() };
+        newCursor = GetClampedCoords(m_gal->GetGridPoint(m_view->ToWorld(newCursor)));
+        m_view->SetScale(m_view->GetScale() * zoomScale, newCursor);
 	} else {
 		// Scrolling
 		VECTOR2D scrollVec = m_view->ToWorld(m_view->GetScreenPixelSize(), false)
